@@ -6,18 +6,32 @@ import {
   RefreshCw,
   Zap,
   ZapOff,
-  Pause,
-  Play,
-  CheckCircle2,
-  AlertCircle,
+  Upload,
   Sparkles,
-  Layers,
+  Settings,
+  AlertCircle,
+  PlusCircle,
+  Cpu,
 } from "lucide-react";
 import {
   matchIngredient,
-  IngredientDetection,
   RawPrediction,
 } from "@/utils/ingredientClassifier";
+import {
+  findMatchingMalaysianIngredient,
+  LocalIngredient,
+} from "@/utils/malaysianIngredients";
+import {
+  getAppSettings,
+  AppSettings,
+  PantryItem,
+  getPantryItems,
+  deletePantryItem,
+  clearPantry,
+} from "@/utils/pantryStorage";
+import PantryLoggerModal from "@/components/PantryLoggerModal";
+import PantryList from "@/components/PantryList";
+import SettingsModal from "@/components/SettingsModal";
 
 interface ModelType {
   classify: (
@@ -30,64 +44,66 @@ export default function CameraView() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const modelRef = useRef<ModelType | null>(null);
-  const isLoopActiveRef = useRef<boolean>(true);
-  const lastClassificationTimeRef = useRef<number>(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Component states
-  const [isModelLoading, setIsModelLoading] = useState<boolean>(true);
+  // States
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
-  const [modelError, setModelError] = useState<string | null>(null);
+  const [isModelLoading, setIsModelLoading] = useState<boolean>(true);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
-
-  // Camera settings
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
-  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isTorchSupported, setIsTorchSupported] = useState<boolean>(false);
   const [isTorchOn, setIsTorchOn] = useState<boolean>(false);
 
-  // Classification results
-  const [detection, setDetection] = useState<IngredientDetection | null>(null);
-  const [rawPredictions, setRawPredictions] = useState<RawPrediction[]>([]);
-  const [inferenceTimeMs, setInferenceTimeMs] = useState<number>(0);
-  const [showRawPredictions, setShowRawPredictions] = useState<boolean>(false);
+  // Captured snapshot preview
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
-  // 1. Initialize TensorFlow.js and MobileNet Model
+  // App Settings & Digital Pantry
+  const [settings, setSettings] = useState<AppSettings>({ apiKey: "", preferredEngine: "auto" });
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
+
+  // Detected Ingredient for Modal
+  const [detectedItem, setDetectedItem] = useState<{
+    id?: string;
+    name: string;
+    nameMalay?: string;
+    emoji?: string;
+    category?: string;
+    confidence?: number;
+    suggestedQuantity?: number;
+    suggestedUnit?: string;
+    culinaryNote?: string;
+    engineUsed?: string;
+  } | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  // Load Settings and Digital Pantry on Mount
+  useEffect(() => {
+    setSettings(getAppSettings());
+    setPantryItems(getPantryItems());
+  }, []);
+
+  // 1. Initialize TensorFlow.js MobileNet for Edge mode & offline fallback
   useEffect(() => {
     let isMounted = true;
-
     async function initModel() {
       try {
         setIsModelLoading(true);
-        setModelError(null);
-
-        // Dynamic client-side imports to avoid Next.js SSR build issues
         const tf = await import("@tensorflow/tfjs");
         await tf.ready();
-
         const mobilenet = await import("@tensorflow-models/mobilenet");
-        // Load MobileNet v2 with alpha 1.0 for accurate kitchen classification
-        const loadedModel = await mobilenet.load({
-          version: 2,
-          alpha: 1.0,
-        });
-
+        const loaded = await mobilenet.load({ version: 2, alpha: 1.0 });
         if (isMounted) {
-          modelRef.current = loadedModel;
+          modelRef.current = loaded;
           setIsModelLoading(false);
         }
       } catch (err) {
-        console.error("Failed to load TensorFlow/MobileNet model:", err);
-        if (isMounted) {
-          setModelError(
-            err instanceof Error ? err.message : "Failed to load MobileNet model"
-          );
-          setIsModelLoading(false);
-        }
+        console.warn("Edge MobileNet init error:", err);
+        if (isMounted) setIsModelLoading(false);
       }
     }
-
     initModel();
-
     return () => {
       isMounted = false;
     };
@@ -97,30 +113,24 @@ export default function CameraView() {
   const startCamera = useCallback(async () => {
     try {
       setCameraError(null);
-
-      // Stop any existing tracks
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
-      // Check MediaDevices support
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera API (getUserMedia) not supported in this browser");
+        throw new Error("Camera API not supported in this browser");
       }
 
-      // Mobile rear-facing camera preference with graceful fallback
-      const constraints: MediaStreamConstraints = {
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
           facingMode: { ideal: facingMode },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
-      };
+      });
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
-
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = () => {
@@ -129,7 +139,6 @@ export default function CameraView() {
         };
       }
 
-      // Check torch capability
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
         const capabilities = (videoTrack.getCapabilities?.() as { torch?: boolean }) || {};
@@ -138,18 +147,14 @@ export default function CameraView() {
     } catch (err) {
       console.error("Camera access error:", err);
       setCameraError(
-        err instanceof Error
-          ? err.message
-          : "Unable to access camera. Please grant camera permissions."
+        err instanceof Error ? err.message : "Unable to access camera. Please grant permissions."
       );
       setIsCameraActive(false);
     }
   }, [facingMode]);
 
-  // Start camera on mount & whenever facingMode changes
   useEffect(() => {
     startCamera();
-
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -157,7 +162,10 @@ export default function CameraView() {
     };
   }, [startCamera]);
 
-  // 3. Toggle Torch / Flashlight
+  const flipCamera = () => {
+    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
+  };
+
   const toggleTorch = async () => {
     if (!streamRef.current) return;
     const videoTrack = streamRef.current.getVideoTracks()[0];
@@ -165,9 +173,7 @@ export default function CameraView() {
       try {
         const nextState = !isTorchOn;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (videoTrack as any).applyConstraints({
-          advanced: [{ torch: nextState }],
-        });
+        await (videoTrack as any).applyConstraints({ advanced: [{ torch: nextState }] });
         setIsTorchOn(nextState);
       } catch (e) {
         console.warn("Could not toggle torch:", e);
@@ -175,307 +181,360 @@ export default function CameraView() {
     }
   };
 
-  // 4. Toggle Camera (Front / Rear)
-  const flipCamera = () => {
-    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
-  };
+  // 3. Process & Classify Image (Cloud Malaysian Vision AI or Edge TFJS)
+  const processImageForClassification = async (dataUrl: string) => {
+    setIsAnalyzing(true);
+    setCapturedImage(dataUrl);
 
-  // 5. Real-Time Classification Loop
-  useEffect(() => {
-    let animationFrameId: number;
-    isLoopActiveRef.current = true;
-
-    async function runClassification() {
-      const now = performance.now();
-
-      // Run inference every 400ms when video is active, model is ready, and not paused
-      if (
-        !isPaused &&
-        isCameraActive &&
-        modelRef.current &&
-        videoRef.current &&
-        videoRef.current.readyState === 4 &&
-        now - lastClassificationTimeRef.current >= 400
-      ) {
-        lastClassificationTimeRef.current = now;
-
+    try {
+      // Preference: If not strictly "edge", try Malaysian Vision API first
+      if (settings.preferredEngine !== "edge") {
         try {
-          const startTime = performance.now();
-          const preds = await modelRef.current.classify(videoRef.current, 5);
-          const duration = Math.round(performance.now() - startTime);
+          const res = await fetch("/api/classify", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-gemini-key": settings.apiKey || "",
+            },
+            body: JSON.stringify({
+              image: dataUrl,
+              apiKey: settings.apiKey,
+            }),
+          });
 
-          setInferenceTimeMs(duration);
-          setRawPredictions(preds);
-
-          const matched = matchIngredient(preds);
-          if (matched) {
-            setDetection(matched);
-          } else {
-            // Keep previous detection briefly or clear if nothing food-related
-            setDetection((prev) => (prev && prev.confidence > 50 ? prev : null));
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.data) {
+              setDetectedItem({
+                ...json.data,
+                engineUsed: json.engine || "Malaysian Vision AI",
+              });
+              setIsModalOpen(true);
+              setIsAnalyzing(false);
+              return;
+            }
           }
-        } catch (err) {
-          console.error("Inference step error:", err);
+        } catch (apiErr) {
+          console.warn("Malaysian Vision API call failed, falling back to local:", apiErr);
         }
       }
 
-      if (isLoopActiveRef.current) {
-        animationFrameId = requestAnimationFrame(runClassification);
+      // Edge MobileNet Fallback
+      if (modelRef.current) {
+        const img = new Image();
+        img.src = dataUrl;
+        await new Promise((resolve) => (img.onload = resolve));
+
+        const preds = await modelRef.current.classify(img, 5);
+        const matched = matchIngredient(preds);
+
+        if (matched) {
+          // Look up in Malaysian DB for local name
+          const local = findMatchingMalaysianIngredient(matched.ingredient.name);
+          setDetectedItem({
+            id: matched.ingredient.id,
+            name: matched.ingredient.name,
+            nameMalay: local ? local.nameMalay : matched.ingredient.name,
+            emoji: matched.ingredient.emoji,
+            category: matched.ingredient.category,
+            confidence: matched.confidence,
+            suggestedQuantity: 1,
+            suggestedUnit: local ? local.defaultUnit : "pcs",
+            culinaryNote: "Identified via Client-Side Edge MobileNet CNN.",
+            engineUsed: "TensorFlow.js Edge MobileNet",
+          });
+        } else {
+          // Generic fallback
+          const top = preds[0];
+          setDetectedItem({
+            name: top ? top.className.split(",")[0] : "Kitchen Ingredient",
+            nameMalay: "Bahan Dapur",
+            emoji: "🥗",
+            category: "Vegetables & Greens",
+            confidence: top ? Math.round(top.probability * 100) : 70,
+            suggestedQuantity: 1,
+            suggestedUnit: "biji",
+            culinaryNote: "Verified manually.",
+            engineUsed: "Manual Verification",
+          });
+        }
+
+        setIsModalOpen(true);
       }
+    } catch (e) {
+      console.error("Classification failure:", e);
+    } finally {
+      setIsAnalyzing(false);
     }
+  };
 
-    animationFrameId = requestAnimationFrame(runClassification);
+  // 4. Capture Still Frame from Live Camera (Center Cropped)
+  const handleSnapAndScan = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
 
-    return () => {
-      isLoopActiveRef.current = false;
-      cancelAnimationFrame(animationFrameId);
+    const canvas = document.createElement("canvas");
+    // Target 640x640 center crop
+    const size = Math.min(video.videoWidth, video.videoHeight);
+    canvas.width = 640;
+    canvas.height = 640;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const startX = (video.videoWidth - size) / 2;
+    const startY = (video.videoHeight - size) / 2;
+
+    ctx.drawImage(video, startX, startY, size, size, 0, 0, 640, 640);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+    processImageForClassification(dataUrl);
+  };
+
+  // 5. Handle File Upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        processImageForClassification(dataUrl);
+      }
     };
-  }, [isCameraActive, isPaused]);
+    reader.readAsDataURL(file);
+    // Reset file input
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // 6. Handle Manual Add
+  const handleAddManual = () => {
+    setDetectedItem({
+      name: "Bawang Merah",
+      nameMalay: "Bawang Merah",
+      emoji: "🧅",
+      category: "Aromatics & Spices",
+      confidence: 100,
+      suggestedQuantity: 3,
+      suggestedUnit: "biji",
+      culinaryNote: "Manually entered.",
+      engineUsed: "Manual Input",
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleItemAdded = (newItem: PantryItem) => {
+    setPantryItems((prev) => [newItem, ...prev.filter((p) => p.id !== newItem.id)]);
+    setCapturedImage(null);
+  };
+
+  const handleDeleteItem = (id: string) => {
+    deletePantryItem(id);
+    setPantryItems((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleClearAll = () => {
+    clearPantry();
+    setPantryItems([]);
+  };
 
   return (
-    <div className="relative w-full max-w-md mx-auto flex flex-col h-[calc(100vh-80px)] sm:h-[800px] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-slate-800">
-      {/* Top Header Overlay Bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between bg-gradient-to-b from-slate-950/90 to-transparent">
-        <div className="flex items-center space-x-2">
-          <span className="relative flex h-3 w-3">
-            {isCameraActive && !isPaused ? (
+    <div className="w-full max-w-md mx-auto flex flex-col space-y-4">
+      {/* Viewport Card */}
+      <div className="relative w-full h-[460px] sm:h-[500px] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
+        {/* Top Control Bar */}
+        <div className="absolute top-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between bg-gradient-to-b from-slate-950/90 to-transparent">
+          <div className="flex items-center space-x-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">
+              {settings.preferredEngine === "edge" ? "Edge Mode" : "Malaysian Vision AI"}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {/* Settings Button */}
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white backdrop-blur-md border border-slate-700/60 shadow-lg active:scale-95 transition-all"
+              title="AI Settings"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Video / Captured Image Container */}
+        <div className="relative flex-1 bg-black overflow-hidden flex items-center justify-center">
+          {capturedImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={capturedImage}
+              alt="Captured Frame"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              autoPlay
+              className={`w-full h-full object-cover transition-opacity duration-300 ${
+                isCameraActive ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          )}
+
+          {/* Center Target Box */}
+          {!capturedImage && isCameraActive && (
+            <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
+              <div className="relative w-60 h-60 rounded-3xl border-2 border-dashed border-emerald-500/40 flex items-center justify-center">
+                {/* 4 Corner Markers */}
+                <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-emerald-400 rounded-tl-xl" />
+                <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-emerald-400 rounded-tr-xl" />
+                <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-emerald-400 rounded-bl-xl" />
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-emerald-400 rounded-br-xl" />
+
+                {/* Laser scan animation */}
+                <div className="absolute inset-x-3 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-pulse shadow-[0_0_12px_#34d399]" />
+              </div>
+              <p className="mt-3 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-[11px] font-medium text-slate-300 border border-slate-800">
+                Place raw ingredient inside box
+              </p>
+            </div>
+          )}
+
+          {/* Analyzing Spinner Overlay */}
+          {isAnalyzing && (
+            <div className="absolute inset-0 z-30 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center space-y-3">
+              <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+              <div className="text-center">
+                <h4 className="text-sm font-bold text-white">Analyzing Kitchen Ingredient</h4>
+                <p className="text-xs text-slate-400">Comparing against 75+ Malaysian culinary staples...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Camera Controls Floating (Right) */}
+          {!capturedImage && (
+            <div className="absolute right-3 top-14 z-20 flex flex-col space-y-2.5">
+              <button
+                onClick={flipCamera}
+                disabled={!isCameraActive}
+                className="p-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700/60 text-white shadow-lg active:scale-95 transition-all disabled:opacity-40"
+                title="Flip Camera"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+
+              {isTorchSupported && (
+                <button
+                  onClick={toggleTorch}
+                  className={`p-2.5 rounded-full backdrop-blur-md border shadow-lg active:scale-95 transition-all ${
+                    isTorchOn
+                      ? "bg-amber-500 border-amber-400 text-slate-950"
+                      : "bg-slate-900/80 hover:bg-slate-800 border-slate-700/60 text-white"
+                  }`}
+                  title="Flashlight"
+                >
+                  {isTorchOn ? <Zap className="w-4 h-4 fill-current" /> : <ZapOff className="w-4 h-4" />}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Camera Error Message */}
+          {cameraError && !capturedImage && (
+            <div className="absolute inset-0 z-30 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center space-y-3">
+              <AlertCircle className="w-10 h-10 text-rose-500" />
+              <h4 className="text-sm font-bold text-white">Camera Access Required</h4>
+              <p className="text-xs text-slate-400 max-w-xs">{cameraError}</p>
+              <button
+                onClick={startCamera}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl"
+              >
+                Retry Camera
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Shutter & Upload Actions */}
+        <div className="relative z-20 p-3.5 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-between gap-2">
+          {/* File Upload Button */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*"
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isAnalyzing}
+            className="flex-1 py-2.5 px-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 active:scale-95 transition-all"
+          >
+            <Upload className="w-4 h-4 text-emerald-400" />
+            <span>Upload Photo</span>
+          </button>
+
+          {/* Primary Snap & Scan Shutter Button */}
+          <button
+            onClick={capturedImage ? () => setCapturedImage(null) : handleSnapAndScan}
+            disabled={(!isCameraActive && !capturedImage) || isAnalyzing}
+            className="flex-[1.4] py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-black tracking-wide shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2 active:scale-95 transition-all disabled:opacity-40"
+          >
+            {capturedImage ? (
               <>
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                <Camera className="w-4 h-4" />
+                <span>Retake Photo</span>
               </>
             ) : (
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+              <>
+                <Sparkles className="w-4 h-4 fill-current" />
+                <span>Snap & Scan</span>
+              </>
             )}
-          </span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-            {isPaused ? "Paused" : isModelLoading ? "Loading AI..." : "Vision AI Active"}
-          </span>
-        </div>
+          </button>
 
-        {/* Quick Stats Pill */}
-        {inferenceTimeMs > 0 && !isModelLoading && (
-          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-md border border-slate-700/50 text-[11px] font-mono text-emerald-400">
-            <Sparkles className="w-3 h-3" />
-            <span>{inferenceTimeMs}ms</span>
-          </div>
-        )}
+          {/* Manual Entry Fallback Button */}
+          <button
+            onClick={handleAddManual}
+            disabled={isAnalyzing}
+            className="p-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white active:scale-95 transition-all"
+            title="Manual Text Fallback"
+          >
+            <PlusCircle className="w-5 h-5 text-emerald-400" />
+          </button>
+        </div>
       </div>
 
-      {/* Main Live Camera Viewport */}
-      <div className="relative flex-1 bg-black overflow-hidden flex items-center justify-center">
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          autoPlay
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
-            isCameraActive ? "opacity-100" : "opacity-0"
-          }`}
+      {/* Active Digital Pantry List */}
+      <PantryList
+        items={pantryItems}
+        onDeleteItem={handleDeleteItem}
+        onClearAll={handleClearAll}
+      />
+
+      {/* Detection & Logging Modal */}
+      {isModalOpen && detectedItem && (
+        <PantryLoggerModal
+          initialData={detectedItem}
+          onClose={() => setIsModalOpen(false)}
+          onItemAdded={handleItemAdded}
         />
-
-        {/* Target Reticle / Scan Zone in Center */}
-        {isCameraActive && (
-          <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
-            <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-2xl border-2 border-dashed border-emerald-500/40 flex items-center justify-center">
-              {/* Corner Accents */}
-              <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg" />
-              <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg" />
-              <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg" />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-emerald-400 rounded-br-lg" />
-
-              {/* Animated Laser Scan Line */}
-              {!isPaused && (
-                <div className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-pulse shadow-[0_0_12px_#34d399]" />
-              )}
-
-              {/* Center Crosshair */}
-              <div className="w-4 h-4 border-t border-b border-l border-r border-emerald-400/30 rounded-full" />
-            </div>
-
-            <p className="mt-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-xs font-medium text-slate-300 border border-slate-700/40">
-              Center ingredient inside box
-            </p>
-          </div>
-        )}
-
-        {/* Floating Quick Action Controls (Right Side) */}
-        <div className="absolute right-4 top-16 z-20 flex flex-col space-y-3">
-          {/* Flip Camera Button */}
-          <button
-            onClick={flipCamera}
-            disabled={!isCameraActive}
-            className="p-3 rounded-full bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-white shadow-lg active:scale-95 transition-all disabled:opacity-40"
-            title="Switch front/rear camera"
-          >
-            <RefreshCw className="w-5 h-5" />
-          </button>
-
-          {/* Torch Toggle (if supported on mobile) */}
-          {isTorchSupported && (
-            <button
-              onClick={toggleTorch}
-              className={`p-3 rounded-full backdrop-blur-md border shadow-lg active:scale-95 transition-all ${
-                isTorchOn
-                  ? "bg-amber-500 border-amber-400 text-slate-950"
-                  : "bg-slate-900/80 hover:bg-slate-800 border-slate-700 text-white"
-              }`}
-              title="Toggle Flashlight"
-            >
-              {isTorchOn ? <Zap className="w-5 h-5 fill-current" /> : <ZapOff className="w-5 h-5" />}
-            </button>
-          )}
-
-          {/* Pause / Resume Scan */}
-          <button
-            onClick={() => setIsPaused((prev) => !prev)}
-            disabled={!isCameraActive}
-            className={`p-3 rounded-full backdrop-blur-md border shadow-lg active:scale-95 transition-all ${
-              isPaused
-                ? "bg-emerald-500 border-emerald-400 text-slate-950"
-                : "bg-slate-900/80 hover:bg-slate-800 border-slate-700 text-white"
-            }`}
-            title={isPaused ? "Resume Scanning" : "Freeze / Pause Detection"}
-          >
-            {isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5" />}
-          </button>
-
-          {/* Toggle Top Predictions Drawer */}
-          {rawPredictions.length > 0 && (
-            <button
-              onClick={() => setShowRawPredictions((prev) => !prev)}
-              className={`p-3 rounded-full backdrop-blur-md border shadow-lg active:scale-95 transition-all ${
-                showRawPredictions
-                  ? "bg-blue-600 border-blue-400 text-white"
-                  : "bg-slate-900/80 hover:bg-slate-800 border-slate-700 text-white"
-              }`}
-              title="Toggle Detailed Probabilities"
-            >
-              <Layers className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-
-        {/* Loading / Error States Overlay */}
-        {(isModelLoading || !isCameraActive || cameraError || modelError) && (
-          <div className="absolute inset-0 z-30 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-            {cameraError ? (
-              <div className="flex flex-col items-center max-w-xs space-y-3">
-                <AlertCircle className="w-12 h-12 text-rose-500" />
-                <h3 className="text-lg font-bold text-white">Camera Access Blocked</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{cameraError}</p>
-                <button
-                  onClick={startCamera}
-                  className="mt-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow-lg transition-all"
-                >
-                  Retry Camera
-                </button>
-              </div>
-            ) : modelError ? (
-              <div className="flex flex-col items-center max-w-xs space-y-3">
-                <AlertCircle className="w-12 h-12 text-amber-500" />
-                <h3 className="text-lg font-bold text-white">Model Load Failed</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{modelError}</p>
-              </div>
-            ) : isModelLoading ? (
-              <div className="flex flex-col items-center space-y-4">
-                <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
-                <div className="space-y-1">
-                  <h3 className="text-sm font-semibold text-white">Warming Up Neural Network</h3>
-                  <p className="text-xs text-slate-400">Loading MobileNet CNN for client-side inference...</p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center space-y-3">
-                <Camera className="w-10 h-10 text-slate-400 animate-pulse" />
-                <p className="text-xs text-slate-400">Requesting device camera stream...</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Raw Predictions Details Drawer (Collapsible) */}
-      {showRawPredictions && rawPredictions.length > 0 && (
-        <div className="absolute bottom-28 inset-x-3 z-30 p-3 rounded-2xl bg-slate-900/95 backdrop-blur-md border border-slate-700 shadow-xl space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1 border-b border-slate-800">
-            <span>Raw MobileNet Probabilities</span>
-            <span className="text-[10px] text-slate-500 font-mono">Top 5 Classes</span>
-          </div>
-          <div className="space-y-1.5 max-h-36 overflow-y-auto">
-            {rawPredictions.map((pred, idx) => (
-              <div key={idx} className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 truncate max-w-[200px]">
-                  {pred.className}
-                </span>
-                <span className="font-mono text-emerald-400 font-bold">
-                  {Math.round(pred.probability * 100)}%
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
       )}
 
-      {/* Prominent Bottom Detection Card / Overlay */}
-      <div className="relative z-20 p-4 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/80">
-        {detection ? (
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-3xl shadow-inner">
-                  {detection.ingredient.emoji}
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h2 className="text-xl font-bold tracking-tight text-white">
-                      {detection.ingredient.name}
-                    </h2>
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-medium text-[10px] uppercase tracking-wider">
-                      {detection.ingredient.category}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400 flex items-center space-x-1 mt-0.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Raw Model Label: {detection.rawLabel.split(",")[0]}</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Bold Confidence Percentage Badge */}
-              <div className="flex flex-col items-end">
-                <span className="text-2xl font-black tracking-tight text-emerald-400 font-mono">
-                  {detection.confidence}%
-                </span>
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">
-                  Confidence
-                </span>
-              </div>
-            </div>
-
-            {/* Confidence Progress Bar */}
-            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-emerald-500 to-teal-400 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(detection.confidence, 100)}%` }}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center space-x-3 py-1">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 animate-pulse">
-              <Camera className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-200">
-                Ready to Classify
-              </p>
-              <p className="text-xs text-slate-400">
-                Hold a raw ingredient (apple, banana, carrot, etc.) in the center box.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <SettingsModal
+          currentSettings={settings}
+          onClose={() => setIsSettingsOpen(false)}
+          onSave={(newSettings) => setSettings(newSettings)}
+        />
+      )}
     </div>
   );
 }
