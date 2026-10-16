@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
     const mimeType = match ? match[1] : "image/jpeg";
     const base64Data = match ? match[2] : image;
 
-    // Determine active API key (Client override -> Header -> Environment variable)
     const activeKey =
       apiKey ||
       req.headers.get("x-gemini-key") ||
@@ -25,11 +24,12 @@ export async function POST(req: NextRequest) {
     if (activeKey && activeKey.trim() !== "") {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${activeKey.trim()}`,
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "X-goog-api-key": activeKey.trim(),
             },
             body: JSON.stringify({
               contents: [
