@@ -155,6 +155,7 @@ export function matchIngredient(predictions: RawPrediction[]): IngredientDetecti
   if (!predictions || predictions.length === 0) return null;
 
   for (const pred of predictions) {
+    if (pred.probability < 0.20) continue; // Ignore low confidence noise
     const rawClassLower = pred.className.toLowerCase();
     const classWords = rawClassLower.split(/,\s*|\s+/);
 

@@ -79,7 +79,9 @@ export default function PantryLoggerModal({
     initialData.suggestedUnit || selectedIngredient.defaultUnit || "biji"
   );
 
-  const [isChangingItem, setIsChangingItem] = useState<boolean>(false);
+  const [isChangingItem, setIsChangingItem] = useState<boolean>(
+    !initialData.confidence || initialData.confidence === 0 || initialData.name === "Select Ingredient"
+  );
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const filteredIngredients = searchIngredients(searchQuery);

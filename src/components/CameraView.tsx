@@ -244,18 +244,17 @@ export default function CameraView() {
             engineUsed: "TensorFlow.js Edge MobileNet",
           });
         } else {
-          // Generic fallback
-          const top = preds[0];
+          // Low confidence edge fallback - prompt manual selection
           setDetectedItem({
-            name: top ? top.className.split(",")[0] : "Kitchen Ingredient",
-            nameMalay: "Bahan Dapur",
-            emoji: "🥗",
+            name: "Select Ingredient",
+            nameMalay: "Pilih Bahan",
+            emoji: "🔍",
             category: "Vegetables & Greens",
-            confidence: top ? Math.round(top.probability * 100) : 70,
+            confidence: 0,
             suggestedQuantity: 1,
             suggestedUnit: "biji",
-            culinaryNote: "Verified manually.",
-            engineUsed: "Manual Verification",
+            culinaryNote: "Offline Edge model could not identify this local produce with high confidence. Select your ingredient from the list below, or add a free Gemini Vision API key in Settings ⚙️ for 98% automatic recognition.",
+            engineUsed: "Manual Selection (Edge Fallback)",
           });
         }
 
@@ -510,6 +509,29 @@ export default function CameraView() {
           </button>
         </div>
       </div>
+
+      {/* Vision Engine Notice Banner */}
+      {!settings.apiKey && (
+        <div
+          onClick={() => setIsSettingsOpen(true)}
+          className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/30 flex items-center justify-between cursor-pointer hover:border-emerald-500/50 transition-all active:scale-[0.99]"
+        >
+          <div className="flex items-center space-x-2.5">
+            <span className="p-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 flex-shrink-0">
+              <Sparkles className="w-4 h-4 fill-current" />
+            </span>
+            <div>
+              <p className="text-xs font-bold text-white">Unlock 75+ Malaysian AI Accuracy</p>
+              <p className="text-[10px] text-slate-400">
+                Tap here to paste a free Google AI Studio key to accurately detect Cili Padi, Serai, Lengkuas & more!
+              </p>
+            </div>
+          </div>
+          <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 flex-shrink-0 ml-2">
+            Add Key
+          </span>
+        </div>
+      )}
 
       {/* Active Digital Pantry List */}
       <PantryList
