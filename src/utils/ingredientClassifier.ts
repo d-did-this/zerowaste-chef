@@ -9,22 +9,23 @@ export interface IngredientInfo {
   imageNetClass?: string;
 }
 
-export interface IngredientDetection {
-  ingredient: IngredientInfo;
-  confidence: number; // 0 to 100
-  rawLabel: string;
-  rawProbability: number;
-}
-
 export interface RawPrediction {
   className: string;
   probability: number;
 }
 
+export interface IngredientDetection {
+  ingredient: IngredientInfo;
+  confidence: number; // 0 to 100
+  rawLabel: string;
+  rawProbability: number;
+  topPredictions?: RawPrediction[];
+}
+
 /**
  * UTeM Workshop 2 Objective (b):
- * Predefined Dataset of at least 10 common kitchen ingredients
- * natively recognized by TensorFlow.js MobileNet (ImageNet 1,000 classes).
+ * Predefined Dataset of at least 10 common kitchen produce items
+ * natively recognized by Convolutional Neural Network (CNN) via TensorFlow.js MobileNet.
  */
 export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
   {
@@ -33,7 +34,7 @@ export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
     nameMalay: "Epal",
     emoji: "🍎",
     category: "Fruit",
-    keywords: ["apple", "granny smith"],
+    keywords: ["apple", "granny smith", "custard apple", "pomme"],
     defaultUnit: "biji",
     imageNetClass: "Granny Smith",
   },
@@ -43,7 +44,7 @@ export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
     nameMalay: "Pisang",
     emoji: "🍌",
     category: "Fruit",
-    keywords: ["banana"],
+    keywords: ["banana", "plantain"],
     defaultUnit: "sikat",
     imageNetClass: "banana",
   },
@@ -63,7 +64,7 @@ export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
     nameMalay: "Kubis",
     emoji: "🥬",
     category: "Vegetable",
-    keywords: ["cabbage", "head cabbage"],
+    keywords: ["cabbage", "head cabbage", "savoy", "kale"],
     defaultUnit: "biji",
     imageNetClass: "head cabbage",
   },
@@ -73,7 +74,7 @@ export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
     nameMalay: "Lada Benggala",
     emoji: "🫑",
     category: "Vegetable",
-    keywords: ["bell pepper", "capsicum"],
+    keywords: ["bell pepper", "capsicum", "sweet pepper", "paprika"],
     defaultUnit: "biji",
     imageNetClass: "bell pepper",
   },
@@ -83,7 +84,7 @@ export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
     nameMalay: "Timun",
     emoji: "🥒",
     category: "Vegetable",
-    keywords: ["cucumber", "cuke"],
+    keywords: ["cucumber", "cuke", "pickle", "gherkin"],
     defaultUnit: "batang",
     imageNetClass: "cucumber, cuke",
   },
@@ -93,7 +94,7 @@ export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
     nameMalay: "Oren",
     emoji: "🍊",
     category: "Fruit",
-    keywords: ["orange"],
+    keywords: ["orange", "mandarin", "tangerine", "clementine"],
     defaultUnit: "biji",
     imageNetClass: "orange",
   },
@@ -103,7 +104,7 @@ export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
     nameMalay: "Lemon",
     emoji: "🍋",
     category: "Fruit",
-    keywords: ["lemon", "citron"],
+    keywords: ["lemon", "citron", "lime"],
     defaultUnit: "biji",
     imageNetClass: "lemon",
   },
@@ -113,7 +114,7 @@ export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
     nameMalay: "Cendawan",
     emoji: "🍄",
     category: "Vegetable",
-    keywords: ["mushroom", "agaric", "bolete"],
+    keywords: ["mushroom", "agaric", "bolete", "fungus", "chanterelle"],
     defaultUnit: "bungkus",
     imageNetClass: "agaric, mushroom",
   },
@@ -129,9 +130,58 @@ export const PREDEFINED_CNN_INGREDIENTS: IngredientInfo[] = [
   },
 ];
 
-// Target Scope: At least 10 common kitchen ingredients + extended everyday kitchen staples
+// Target Scope: At least 10 predefined staples + extended produce recognized by ImageNet
 export const TARGET_INGREDIENTS: IngredientInfo[] = [
   ...PREDEFINED_CNN_INGREDIENTS,
+  {
+    id: "strawberry",
+    name: "Strawberry",
+    nameMalay: "Strawberi",
+    emoji: "🍓",
+    category: "Fruit",
+    keywords: ["strawberry", "berry"],
+    defaultUnit: "kotak",
+    imageNetClass: "strawberry",
+  },
+  {
+    id: "pineapple",
+    name: "Pineapple",
+    nameMalay: "Nanas",
+    emoji: "🍍",
+    category: "Fruit",
+    keywords: ["pineapple", "ananas"],
+    defaultUnit: "biji",
+    imageNetClass: "pineapple, ananas",
+  },
+  {
+    id: "zucchini",
+    name: "Zucchini / Squash",
+    nameMalay: "Zukini / Labu",
+    emoji: "🥒",
+    category: "Vegetable",
+    keywords: ["zucchini", "courgette", "squash", "spaghetti squash"],
+    defaultUnit: "batang",
+    imageNetClass: "zucchini, courgette",
+  },
+  {
+    id: "cauliflower",
+    name: "Cauliflower",
+    nameMalay: "Kubis Bunga",
+    emoji: "🥦",
+    category: "Vegetable",
+    keywords: ["cauliflower"],
+    defaultUnit: "biji",
+    imageNetClass: "cauliflower",
+  },
+  {
+    id: "avocado",
+    name: "Avocado",
+    nameMalay: "Avokado",
+    emoji: "🥑",
+    category: "Fruit",
+    keywords: ["avocado", "alligator pear", "guacamole"],
+    defaultUnit: "biji",
+  },
   {
     id: "carrot",
     name: "Carrot",
@@ -186,24 +236,6 @@ export const TARGET_INGREDIENTS: IngredientInfo[] = [
     keywords: ["garlic", "clove", "garlic clove", "allium sativum"],
     defaultUnit: "labu",
   },
-  {
-    id: "strawberry",
-    name: "Strawberry",
-    nameMalay: "Strawberi",
-    emoji: "🍓",
-    category: "Fruit",
-    keywords: ["strawberry", "berry"],
-    defaultUnit: "kotak",
-  },
-  {
-    id: "avocado",
-    name: "Avocado",
-    nameMalay: "Avokado",
-    emoji: "🥑",
-    category: "Fruit",
-    keywords: ["avocado", "alligator pear", "guacamole"],
-    defaultUnit: "biji",
-  },
 ];
 
 /**
@@ -212,7 +244,7 @@ export const TARGET_INGREDIENTS: IngredientInfo[] = [
  */
 export function matchPredefinedCnnIngredient(
   predictions: RawPrediction[],
-  minProbability: number = 0.20
+  minProbability: number = 0.05
 ): IngredientDetection | null {
   if (!predictions || predictions.length === 0) return null;
 
@@ -233,6 +265,7 @@ export function matchPredefinedCnnIngredient(
             confidence: Math.round(pred.probability * 100),
             rawLabel: pred.className,
             rawProbability: pred.probability,
+            topPredictions: predictions,
           };
         }
       }
@@ -247,7 +280,7 @@ export function matchPredefinedCnnIngredient(
  */
 export function matchIngredient(
   predictions: RawPrediction[],
-  minProbability: number = 0.20
+  minProbability: number = 0.05
 ): IngredientDetection | null {
   if (!predictions || predictions.length === 0) return null;
 
@@ -268,6 +301,7 @@ export function matchIngredient(
             confidence: Math.round(pred.probability * 100),
             rawLabel: pred.className,
             rawProbability: pred.probability,
+            topPredictions: predictions,
           };
         }
       }
@@ -276,7 +310,7 @@ export function matchIngredient(
 
   // Fallback: If it's a food-related item from ImageNet not in the explicit list
   const topPred = predictions[0];
-  if (topPred && topPred.probability >= 0.25) {
+  if (topPred && topPred.probability >= 0.15) {
     const foodTerms = [
       "fruit", "vegetable", "berry", "melon", "squash", "bread",
       "cheese", "meat", "pastry", "pie", "soup", "plate", "dish", "citrus"
@@ -299,6 +333,7 @@ export function matchIngredient(
         confidence: Math.round(topPred.probability * 100),
         rawLabel: topPred.className,
         rawProbability: topPred.probability,
+        topPredictions: predictions,
       };
     }
   }

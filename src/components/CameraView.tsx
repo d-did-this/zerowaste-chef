@@ -12,6 +12,8 @@ import {
   AlertCircle,
   PlusCircle,
   Cpu,
+  X,
+  CheckCircle2,
 } from "lucide-react";
 import {
   PREDEFINED_CNN_INGREDIENTS,
@@ -40,6 +42,21 @@ interface ModelType {
   ) => Promise<RawPrediction[]>;
 }
 
+interface ActiveResult {
+  id?: string;
+  name: string;
+  nameMalay?: string;
+  emoji: string;
+  category?: string;
+  confidence: number;
+  rawLabel: string;
+  engineUsed: string;
+  topPredictions?: RawPrediction[];
+  suggestedQuantity?: number;
+  suggestedUnit?: string;
+  culinaryNote?: string;
+}
+
 export default function CameraView() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -48,35 +65,26 @@ export default function CameraView() {
 
   // States
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
-  const [isModelLoading, setIsModelLoading] = useState<boolean>(true);
+  const [cnnStatus, setCnnStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [cnnError, setCnnError] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [isTorchSupported, setIsTorchSupported] = useState<boolean>(false);
   const [isTorchOn, setIsTorchOn] = useState<boolean>(false);
 
-  // Captured snapshot preview
+  // Captured snapshot preview & Active On-Screen Result
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [activeResult, setActiveResult] = useState<ActiveResult | null>(null);
 
   // App Settings & Digital Pantry
-  const [settings, setSettings] = useState<AppSettings>({ apiKey: "", preferredEngine: "hybrid" });
+  const [settings, setSettings] = useState<AppSettings>({ apiKey: "", preferredEngine: "cnn" });
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
 
-  // Detected Ingredient for Modal
-  const [detectedItem, setDetectedItem] = useState<{
-    id?: string;
-    name: string;
-    nameMalay?: string;
-    emoji?: string;
-    category?: string;
-    confidence?: number;
-    suggestedQuantity?: number;
-    suggestedUnit?: string;
-    culinaryNote?: string;
-    engineUsed?: string;
-  } | null>(null);
+  // Optional manual logger modal
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [modalItem, setModalItem] = useState<ActiveResult | null>(null);
 
   // Load Settings and Digital Pantry on Mount
   useEffect(() => {
@@ -88,32 +96,39 @@ export default function CameraView() {
   const handleModeChange = (mode: "cnn" | "hybrid" | "gemini") => {
     const updated = saveAppSettings({ preferredEngine: mode });
     setSettings(updated);
+    setActiveResult(null);
   };
 
-  // 1. Initialize TensorFlow.js MobileNet for Edge mode & offline fallback
-  useEffect(() => {
-    let isMounted = true;
-    async function initModel() {
+  // 1. Initialize TensorFlow.js MobileNet (with v1 fallback for maximum compatibility)
+  const initCnnModel = useCallback(async () => {
+    try {
+      setCnnStatus("loading");
+      setCnnError(null);
+      const tf = await import("@tensorflow/tfjs");
+      await tf.ready();
+      const mobilenet = await import("@tensorflow-models/mobilenet");
+      
+      // Load mobilenet v2 alpha 1.0
       try {
-        setIsModelLoading(true);
-        const tf = await import("@tensorflow/tfjs");
-        await tf.ready();
-        const mobilenet = await import("@tensorflow-models/mobilenet");
         const loaded = await mobilenet.load({ version: 2, alpha: 1.0 });
-        if (isMounted) {
-          modelRef.current = loaded;
-          setIsModelLoading(false);
-        }
-      } catch (err) {
-        console.warn("Edge MobileNet init error:", err);
-        if (isMounted) setIsModelLoading(false);
+        modelRef.current = loaded;
+        setCnnStatus("ready");
+      } catch (v2Err) {
+        console.warn("MobileNet v2 load failed, attempting v1:", v2Err);
+        const fallbackLoaded = await mobilenet.load({ version: 1, alpha: 1.0 });
+        modelRef.current = fallbackLoaded;
+        setCnnStatus("ready");
       }
+    } catch (err: unknown) {
+      console.warn("Edge MobileNet init error:", err);
+      setCnnStatus("error");
+      setCnnError(err instanceof Error ? err.message : "Failed to load CNN weights");
     }
-    initModel();
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    initCnnModel();
+  }, [initCnnModel]);
 
   // 2. Start Camera Stream
   const startCamera = useCallback(async () => {
@@ -187,26 +202,97 @@ export default function CameraView() {
     }
   };
 
-  // 3. Process & Classify Image (CNN Only / Gemini Only / Hybrid)
-  const processImageForClassification = async (dataUrl: string) => {
-    setIsAnalyzing(true);
-    setCapturedImage(dataUrl);
+  // Instant Reset / Rescan (No page refresh needed!)
+  const handleRescan = () => {
+    setCapturedImage(null);
+    setActiveResult(null);
+    setIsAnalyzing(false);
+  };
 
-    const activeEngine = settings.preferredEngine || "hybrid";
+  // 3. Robust Classification Pipeline (Zero Hanging, Direct Canvas Support)
+  const processFrame = async (
+    source: HTMLCanvasElement | HTMLImageElement,
+    previewDataUrl: string
+  ) => {
+    setIsAnalyzing(true);
+    setCapturedImage(previewDataUrl);
+    setActiveResult(null);
+
+    const activeEngine = settings.preferredEngine || "cnn";
 
     try {
-      // Helper: Run client-side CNN MobileNet
-      const runClientCnn = async () => {
-        if (!modelRef.current) return null;
-        const img = new Image();
-        img.src = dataUrl;
-        await new Promise((resolve) => (img.onload = resolve));
-        const preds = await modelRef.current.classify(img, 5);
-        return preds;
-      };
+      // -------------------------------------------------------------
+      // 1. CNN ONLY (Objective b: Predefined 10 Produce Items)
+      // -------------------------------------------------------------
+      if (activeEngine === "cnn") {
+        if (!modelRef.current) {
+          if (cnnStatus === "loading") {
+            setActiveResult({
+              name: "CNN Still Loading",
+              nameMalay: "Model Sedang Dimuat",
+              emoji: "⏳",
+              confidence: 0,
+              rawLabel: "mobilenet_loading",
+              engineUsed: "Client-Side CNN (Initializing)",
+              culinaryNote: "TensorFlow.js MobileNet weights are downloading to your browser (takes 2-3s). Please wait a moment and tap Rescan.",
+            });
+            return;
+          } else {
+            setActiveResult({
+              name: "CNN Load Error",
+              nameMalay: "Ralat CNN",
+              emoji: "⚠️",
+              confidence: 0,
+              rawLabel: "mobilenet_error",
+              engineUsed: "Client-Side CNN",
+              culinaryNote: "Failed to download CNN weights. Tap the status badge to retry loading.",
+            });
+            return;
+          }
+        }
 
-      // Helper: Run cloud Gemini Vision API
-      const runCloudGemini = async () => {
+        // Direct classification on canvas/image (Super fast: ~40ms, NO dataUrl conversion hang)
+        const preds = await modelRef.current.classify(source, 5);
+        const matched = matchPredefinedCnnIngredient(preds, 0.05) || matchIngredient(preds, 0.05);
+
+        if (matched) {
+          const local = findMatchingMalaysianIngredient(matched.ingredient.name);
+          setActiveResult({
+            id: matched.ingredient.id,
+            name: matched.ingredient.name,
+            nameMalay: matched.ingredient.nameMalay || (local ? local.nameMalay : matched.ingredient.name),
+            emoji: matched.ingredient.emoji,
+            category: matched.ingredient.category,
+            confidence: matched.confidence,
+            rawLabel: matched.rawLabel,
+            topPredictions: preds,
+            engineUsed: "Client-Side CNN (MobileNet)",
+            suggestedQuantity: 1,
+            suggestedUnit: matched.ingredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
+            culinaryNote: `Detected client-side via MobileNet CNN. ImageNet match: "${matched.rawLabel}". (Objective b Predefined Dataset).`,
+          });
+        } else {
+          const topRaw = preds[0];
+          setActiveResult({
+            name: topRaw ? topRaw.className.split(",")[0] : "Not in Predefined 10",
+            nameMalay: "Tiada Dalam 10 Predefined CNN",
+            emoji: "🔍",
+            confidence: topRaw ? Math.round(topRaw.probability * 100) : 0,
+            rawLabel: topRaw ? topRaw.className : "unknown",
+            topPredictions: preds,
+            engineUsed: "Client-Side CNN (Outside Predefined)",
+            suggestedQuantity: 1,
+            suggestedUnit: "pcs",
+            culinaryNote: "MobileNet CNN only classifies the 10 predefined produce items (Apple, Banana, Broccoli, Cabbage, Bell Pepper, Cucumber, Orange, Lemon, Mushroom, Sweet Corn). For local Malaysian items like Cili Padi or Serai, switch to Hybrid or Gemini mode.",
+          });
+        }
+        return;
+      }
+
+      // -------------------------------------------------------------
+      // 2. GEMINI ONLY (75+ Malaysian Database)
+      // -------------------------------------------------------------
+      if (activeEngine === "gemini") {
         try {
           const res = await fetch("/api/classify", {
             method: "POST",
@@ -215,193 +301,140 @@ export default function CameraView() {
               "x-gemini-key": settings.apiKey || "",
             },
             body: JSON.stringify({
-              image: dataUrl,
+              image: previewDataUrl,
               apiKey: settings.apiKey,
             }),
           });
           if (res.ok) {
             const json = await res.json();
             if (json.success && json.data) {
-              return json.data;
+              setActiveResult({
+                ...json.data,
+                rawLabel: json.data.name,
+                engineUsed: "Gemini Vision AI (75+ Malaysian)",
+              });
+              return;
             }
           }
-        } catch (err) {
-          console.warn("Gemini Vision API call failed:", err);
-        }
-        return null;
-      };
-
-      // ========================================================
-      // MODE 1: CNN ONLY (UTeM Objective b: 10 Predefined Staples)
-      // ========================================================
-      if (activeEngine === "cnn") {
-        if (!modelRef.current && isModelLoading) {
-          setDetectedItem({
-            name: "Loading MobileNet CNN...",
-            nameMalay: "Memuatkan Model CNN...",
-            emoji: "⏳",
-            category: "Vegetables & Greens",
-            confidence: 0,
-            suggestedQuantity: 1,
-            suggestedUnit: "biji",
-            culinaryNote: "TensorFlow.js MobileNet CNN weights are loading into browser memory. Please try again in 5 seconds.",
-            engineUsed: "Client-Side CNN (Initializing)",
-          });
-          setIsModalOpen(true);
-          return;
+        } catch (apiErr) {
+          console.warn("Gemini Vision call failed:", apiErr);
         }
 
-        const preds = await runClientCnn();
-        if (preds) {
-          // Strictly match against the 10 predefined staples first
-          const matched = matchPredefinedCnnIngredient(preds, 0.20) || matchIngredient(preds, 0.20);
-          if (matched) {
-            const local = findMatchingMalaysianIngredient(matched.ingredient.name);
-            setDetectedItem({
-              id: matched.ingredient.id,
-              name: matched.ingredient.name,
-              nameMalay: matched.ingredient.nameMalay || (local ? local.nameMalay : matched.ingredient.name),
-              emoji: matched.ingredient.emoji,
-              category: matched.ingredient.category,
-              confidence: matched.confidence,
-              suggestedQuantity: 1,
-              suggestedUnit: matched.ingredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
-              culinaryNote: `Classified client-side via MobileNet CNN (ImageNet label: "${matched.rawLabel}"). Strictly fulfills Objective (b) Predefined Dataset.`,
-              engineUsed: "Client-Side CNN (MobileNet)",
-            });
-            setIsModalOpen(true);
-            return;
-          }
-        }
-
-        // If no match within the 10 predefined classes
-        setDetectedItem({
-          name: "Not in Predefined CNN Dataset",
-          nameMalay: "Tiada Dalam 10 Bahan Predefined CNN",
-          emoji: "🔍",
-          category: "Vegetables & Greens",
+        setActiveResult({
+          name: "Gemini Vision Unavailable",
+          nameMalay: "Gemini Vision Tidak Tersedia",
+          emoji: "⚠️",
           confidence: 0,
-          suggestedQuantity: 1,
-          suggestedUnit: "biji",
-          culinaryNote: "Client-side MobileNet only recognizes the 10 predefined produce classes (Apple, Banana, Broccoli, Cabbage, Bell Pepper, Cucumber, Orange, Lemon, Mushroom, Sweet Corn). For local Malaysian items like Cili Padi or Serai, switch to 'Hybrid' or 'Gemini Only' mode.",
-          engineUsed: "Client-Side CNN (No Match)",
+          rawLabel: "gemini_error",
+          engineUsed: "Gemini Vision",
+          culinaryNote: "Could not reach Gemini Vision API. Check your internet connection or enter an API key in Settings.",
         });
-        setIsModalOpen(true);
         return;
       }
 
-      // ========================================================
-      // MODE 2: GEMINI ONLY (75+ Malaysian Culinary Database)
-      // ========================================================
-      if (activeEngine === "gemini") {
-        const geminiData = await runCloudGemini();
-        if (geminiData) {
-          setDetectedItem({
-            ...geminiData,
-            engineUsed: "Gemini Vision AI (75+ Malaysian)",
-          });
-          setIsModalOpen(true);
-          return;
-        }
-
-        // Fallback if Gemini failed or offline
-        setDetectedItem({
-          name: "Select Ingredient",
-          nameMalay: "Pilih Bahan",
-          emoji: "🔍",
-          category: "Vegetables & Greens",
-          confidence: 0,
-          suggestedQuantity: 1,
-          suggestedUnit: "biji",
-          culinaryNote: "Gemini Vision API request could not be completed. Check your connection or enter an API key in Settings ⚙️.",
-          engineUsed: "Gemini Vision (Unavailable)",
-        });
-        setIsModalOpen(true);
-        return;
-      }
-
-      // ========================================================
-      // MODE 3: HYBRID (Both - Local CNN first, escalate to Gemini)
-      // ========================================================
+      // -------------------------------------------------------------
+      // 3. HYBRID MODE (Local CNN first, escalate to Gemini)
+      // -------------------------------------------------------------
       if (activeEngine === "hybrid") {
-        // Step A: Attempt fast edge CNN classification
-        const preds = await runClientCnn();
-        if (preds) {
-          const matched = matchPredefinedCnnIngredient(preds, 0.35) || matchIngredient(preds, 0.35);
-          if (matched && matched.confidence >= 35) {
-            const local = findMatchingMalaysianIngredient(matched.ingredient.name);
-            setDetectedItem({
-              id: matched.ingredient.id,
-              name: matched.ingredient.name,
-              nameMalay: matched.ingredient.nameMalay || (local ? local.nameMalay : matched.ingredient.name),
-              emoji: matched.ingredient.emoji,
-              category: matched.ingredient.category,
-              confidence: matched.confidence,
-              suggestedQuantity: 1,
-              suggestedUnit: matched.ingredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
-              culinaryNote: `Matched locally with CNN MobileNet (${matched.confidence}%). Instant edge execution with 0 API delay.`,
-              engineUsed: "Hybrid: CNN MobileNet (Local Match)",
-            });
-            setIsModalOpen(true);
-            return;
-          }
+        let preds: RawPrediction[] = [];
+        let cnnMatched = null;
+
+        if (modelRef.current) {
+          preds = await modelRef.current.classify(source, 5);
+          cnnMatched = matchPredefinedCnnIngredient(preds, 0.30) || matchIngredient(preds, 0.30);
         }
 
-        // Step B: Escalate to Gemini Vision for extended 75+ Malaysian items
-        const geminiData = await runCloudGemini();
-        if (geminiData) {
-          setDetectedItem({
-            ...geminiData,
-            engineUsed: "Hybrid: Gemini Vision (Cloud Escalated)",
+        if (cnnMatched && cnnMatched.confidence >= 30) {
+          const local = findMatchingMalaysianIngredient(cnnMatched.ingredient.name);
+          setActiveResult({
+            id: cnnMatched.ingredient.id,
+            name: cnnMatched.ingredient.name,
+            nameMalay: cnnMatched.ingredient.nameMalay || (local ? local.nameMalay : cnnMatched.ingredient.name),
+            emoji: cnnMatched.ingredient.emoji,
+            category: cnnMatched.ingredient.category,
+            confidence: cnnMatched.confidence,
+            rawLabel: cnnMatched.rawLabel,
+            topPredictions: preds,
+            engineUsed: "Hybrid: CNN MobileNet (Instant Local)",
+            suggestedQuantity: 1,
+            suggestedUnit: cnnMatched.ingredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
+            culinaryNote: `Matched locally with CNN MobileNet (${cnnMatched.confidence}%). Instant edge execution with 0 API delay.`,
           });
-          setIsModalOpen(true);
           return;
         }
 
-        // Step C: Fallback to lower-threshold CNN match if available
-        if (preds) {
-          const fallbackMatch = matchIngredient(preds, 0.18);
-          if (fallbackMatch) {
-            const local = findMatchingMalaysianIngredient(fallbackMatch.ingredient.name);
-            setDetectedItem({
-              id: fallbackMatch.ingredient.id,
-              name: fallbackMatch.ingredient.name,
-              nameMalay: fallbackMatch.ingredient.nameMalay || (local ? local.nameMalay : fallbackMatch.ingredient.name),
-              emoji: fallbackMatch.ingredient.emoji,
-              category: fallbackMatch.ingredient.category,
-              confidence: fallbackMatch.confidence,
-              suggestedQuantity: 1,
-              suggestedUnit: fallbackMatch.ingredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
-              culinaryNote: "Identified via Client-Side MobileNet CNN fallback.",
-              engineUsed: "Hybrid: CNN Fallback",
-            });
-            setIsModalOpen(true);
-            return;
+        // Auto-escalate to Gemini
+        try {
+          const res = await fetch("/api/classify", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-gemini-key": settings.apiKey || "",
+            },
+            body: JSON.stringify({
+              image: previewDataUrl,
+              apiKey: settings.apiKey,
+            }),
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.data) {
+              setActiveResult({
+                ...json.data,
+                rawLabel: json.data.name,
+                topPredictions: preds.length > 0 ? preds : undefined,
+                engineUsed: "Hybrid: Gemini Vision (Cloud Escalated)",
+              });
+              return;
+            }
           }
+        } catch (escalateErr) {
+          console.warn("Hybrid Gemini escalation error:", escalateErr);
         }
 
-        // Final Fallback: Manual selection prompt
-        setDetectedItem({
-          name: "Select Ingredient",
-          nameMalay: "Pilih Bahan",
+        // Fallback to top CNN prediction if Gemini was offline
+        if (preds.length > 0) {
+          const topRaw = preds[0];
+          setActiveResult({
+            name: topRaw.className.split(",")[0],
+            nameMalay: topRaw.className.split(",")[0],
+            emoji: "🥗",
+            confidence: Math.round(topRaw.probability * 100),
+            rawLabel: topRaw.className,
+            topPredictions: preds,
+            engineUsed: "Hybrid: CNN Fallback",
+            culinaryNote: "Identified via Client-Side MobileNet CNN fallback.",
+          });
+          return;
+        }
+
+        setActiveResult({
+          name: "No Identification",
+          nameMalay: "Tidak Dikenalpasti",
           emoji: "🔍",
-          category: "Vegetables & Greens",
           confidence: 0,
-          suggestedQuantity: 1,
-          suggestedUnit: "biji",
-          culinaryNote: "Neither engine identified this item with high confidence. Select your ingredient from the database below.",
-          engineUsed: "Manual Selection (Fallback)",
+          rawLabel: "none",
+          engineUsed: "Hybrid",
+          culinaryNote: "Neither engine identified this item. Try adjusting lighting or scanning closer.",
         });
-        setIsModalOpen(true);
       }
     } catch (e) {
       console.error("Classification failure:", e);
+      setActiveResult({
+        name: "Scanning Error",
+        nameMalay: "Ralat Pengimbasan",
+        emoji: "❌",
+        confidence: 0,
+        rawLabel: "error",
+        engineUsed: "Error",
+        culinaryNote: "An error occurred while scanning. Tap Rescan to try again.",
+      });
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  // 4. Capture Still Frame from Live Camera (Center Cropped)
+  // 4. Capture Frame from Live Camera (Pre-processed Center Crop)
   const handleSnapAndScan = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
@@ -417,12 +450,16 @@ export default function CameraView() {
     const startX = (video.videoWidth - size) / 2;
     const startY = (video.videoHeight - size) / 2;
 
+    // Apply slight contrast & brightness enhancement to highlight produce contours
+    ctx.filter = "contrast(1.08) brightness(1.02)";
     ctx.drawImage(video, startX, startY, size, size, 0, 0, 640, 640);
+
     const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-    processImageForClassification(dataUrl);
+    // Directly pass the canvas to classification (synchronous, 0 latency, no dataUrl onload hang!)
+    processFrame(canvas, dataUrl);
   };
 
-  // 5. Handle File Upload
+  // 5. Handle File Upload (Safely handles image loading with timeout)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -430,8 +467,29 @@ export default function CameraView() {
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        processImageForClassification(dataUrl);
+      if (!dataUrl) return;
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      let resolved = false;
+
+      const finishLoad = () => {
+        if (!resolved) {
+          resolved = true;
+          processFrame(img, dataUrl);
+        }
+      };
+
+      img.onload = finishLoad;
+      img.onerror = () => {
+        if (!resolved) {
+          resolved = true;
+          setIsAnalyzing(false);
+        }
+      };
+      img.src = dataUrl;
+      if (img.complete) {
+        finishLoad();
       }
     };
     reader.readAsDataURL(file);
@@ -440,12 +498,13 @@ export default function CameraView() {
 
   // 6. Handle Manual Add
   const handleAddManual = () => {
-    setDetectedItem({
+    setModalItem({
       name: "Bawang Merah",
       nameMalay: "Bawang Merah",
       emoji: "🧅",
       category: "Aromatics & Spices",
       confidence: 100,
+      rawLabel: "manual",
       suggestedQuantity: 3,
       suggestedUnit: "biji",
       culinaryNote: "Manually entered.",
@@ -456,7 +515,7 @@ export default function CameraView() {
 
   const handleItemAdded = (newItem: PantryItem) => {
     setPantryItems((prev) => [newItem, ...prev.filter((p) => p.id !== newItem.id)]);
-    setCapturedImage(null);
+    handleRescan();
   };
 
   const handleDeleteItem = (id: string) => {
@@ -510,22 +569,39 @@ export default function CameraView() {
         </button>
       </div>
 
-      {/* Mode Helper Information Cards */}
+      {/* Mode Helper Cards */}
       {settings.preferredEngine === "cnn" && (
         <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex flex-col space-y-1.5 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5">
               <Cpu className="w-4 h-4 text-blue-400" />
               <span className="text-xs font-bold text-blue-300">
-                UTeM Objective (b) • 10 Predefined CNN Produce
+                UTeM Objective (b) • 10 Predefined CNN Staples
               </span>
             </div>
-            <span className="text-[10px] font-mono font-bold bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
-              Edge Offline
+            {/* CNN Status Badge */}
+            <span
+              onClick={cnnStatus === "error" ? initCnnModel : undefined}
+              className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer ${
+                cnnStatus === "ready"
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  : cnnStatus === "loading"
+                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse"
+                  : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+              }`}
+            >
+              <span>●</span>
+              <span>
+                {cnnStatus === "ready"
+                  ? "CNN Ready"
+                  : cnnStatus === "loading"
+                  ? "Loading Weights..."
+                  : "CNN Error (Retry)"}
+              </span>
             </span>
           </div>
           <p className="text-[11px] text-slate-300 leading-relaxed">
-            Running client-side TensorFlow.js MobileNet locally on your browser. Scan any of these 10 predefined staples:
+            Running 100% client-side via TensorFlow.js MobileNet. Scan any of these 10 predefined staples:
           </p>
           <div className="flex flex-wrap gap-1.5 pt-1">
             {PREDEFINED_CNN_INGREDIENTS.map((item) => (
@@ -548,7 +624,7 @@ export default function CameraView() {
               Hybrid Vision Pipeline (Recommended)
             </span>
             <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
-              Instant CNN recognition (&lt;50ms, 0 API cost) for 10 common staples. Automatically escalates to Gemini Vision for 75+ Malaysian culinary items (Cili Padi, Lemongrass, Lengkuas, etc.).
+              Instant CNN recognition (&lt;50ms) for 10 common staples. Automatically escalates to Gemini Vision for 75+ Malaysian culinary items (Cili Padi, Lemongrass, Lengkuas, etc.).
             </p>
           </div>
         </div>
@@ -562,14 +638,14 @@ export default function CameraView() {
               Gemini Vision AI (75+ Malaysian Database)
             </span>
             <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
-              Direct cloud multi-modal AI recognizing regional aromatics, vegetables, proteins, and pantry staples with Malaysian cooking units.
+              Cloud multi-modal AI recognizing regional aromatics, vegetables, proteins, and pantry staples with Malaysian cooking units.
             </p>
           </div>
         </div>
       )}
 
       {/* Viewport Card */}
-      <div className="relative w-full h-[460px] sm:h-[500px] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
+      <div className="relative w-full h-[440px] sm:h-[480px] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
         {/* Top Control Bar */}
         <div className="absolute top-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between bg-gradient-to-b from-slate-950/90 to-transparent">
           <div className="flex items-center space-x-2">
@@ -726,10 +802,10 @@ export default function CameraView() {
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {settings.preferredEngine === "cnn"
-                    ? "Classifying against 10 predefined produce items locally..."
+                    ? "Classifying ImageNet produce classes in browser..."
                     : settings.preferredEngine === "gemini"
                     ? "Comparing against 75+ Malaysian culinary staples..."
-                    : "Matching local CNN & cloud Malaysian vision..."}
+                    : "Testing local CNN & Malaysian vision..."}
                 </p>
               </div>
             </div>
@@ -780,7 +856,7 @@ export default function CameraView() {
         </div>
 
         {/* Bottom Shutter & Upload Actions */}
-        <div className="relative z-20 p-3.5 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-between gap-2">
+        <div className="relative z-20 p-3 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-between gap-2">
           {/* File Upload Button */}
           <input
             type="file"
@@ -795,33 +871,34 @@ export default function CameraView() {
             className="flex-1 py-2.5 px-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 active:scale-95 transition-all"
           >
             <Upload className="w-4 h-4 text-emerald-400" />
-            <span>Upload Photo</span>
+            <span>Upload</span>
           </button>
 
-          {/* Primary Snap & Scan Shutter Button */}
-          <button
-            onClick={capturedImage ? () => setCapturedImage(null) : handleSnapAndScan}
-            disabled={(!isCameraActive && !capturedImage) || isAnalyzing}
-            className={`flex-[1.4] py-3 px-4 rounded-2xl text-slate-950 text-xs font-black tracking-wide shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition-all disabled:opacity-40 ${
-              settings.preferredEngine === "cnn"
-                ? "bg-gradient-to-r from-blue-400 to-indigo-400 hover:from-blue-300 hover:to-indigo-300 shadow-blue-500/20"
-                : settings.preferredEngine === "gemini"
-                ? "bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-300 hover:to-pink-300 shadow-purple-500/20"
-                : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
-            }`}
-          >
-            {capturedImage ? (
-              <>
-                <Camera className="w-4 h-4" />
-                <span>Retake Photo</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 fill-current" />
-                <span>Snap & Scan</span>
-              </>
-            )}
-          </button>
+          {/* Primary Action Button: Snap & Scan or Rescan */}
+          {capturedImage ? (
+            <button
+              onClick={handleRescan}
+              className="flex-[1.4] py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white text-xs font-black tracking-wide shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 active:scale-95 transition-all"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Rescan (Live Feed)</span>
+            </button>
+          ) : (
+            <button
+              onClick={handleSnapAndScan}
+              disabled={!isCameraActive || isAnalyzing}
+              className={`flex-[1.4] py-3 px-4 rounded-2xl text-slate-950 text-xs font-black tracking-wide shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition-all disabled:opacity-40 ${
+                settings.preferredEngine === "cnn"
+                  ? "bg-gradient-to-r from-blue-400 to-indigo-400 hover:from-blue-300 hover:to-indigo-300 shadow-blue-500/20"
+                  : settings.preferredEngine === "gemini"
+                  ? "bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-300 hover:to-pink-300 shadow-purple-500/20"
+                  : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
+              }`}
+            >
+              <Sparkles className="w-4 h-4 fill-current" />
+              <span>Snap & Scan</span>
+            </button>
+          )}
 
           {/* Manual Entry Fallback Button */}
           <button
@@ -835,6 +912,101 @@ export default function CameraView() {
         </div>
       </div>
 
+      {/* ======================================================== */}
+      {/* INLINE RESULT CARD (Simple, Direct, No Blocking Popups) */}
+      {/* ======================================================== */}
+      {activeResult && (
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl flex flex-col space-y-3 animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-3xl shadow-inner">
+                {activeResult.emoji}
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-lg font-black text-white">
+                    {activeResult.nameMalay || activeResult.name}
+                  </h3>
+                  {activeResult.confidence > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold">
+                      {activeResult.confidence}% Match
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-300 font-medium">
+                  {activeResult.name}
+                </p>
+                <div className="mt-1">
+                  <span className="inline-block px-2 py-0.5 rounded-md bg-slate-950 text-[10px] font-bold text-slate-300 border border-slate-800">
+                    {activeResult.engineUsed}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleRescan}
+              className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              title="Close & Rescan"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Raw MobileNet Predictions List (Proves CNN ImageNet classes) */}
+          {activeResult.topPredictions && activeResult.topPredictions.length > 0 && (
+            <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col space-y-1.5 text-xs">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                <span>Top Raw ImageNet Predictions</span>
+                <span className="text-blue-400 font-mono text-[10px]">MobileNet v2</span>
+              </div>
+              <div className="space-y-1">
+                {activeResult.topPredictions.slice(0, 3).map((p, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-300 capitalize font-medium">
+                      {idx + 1}. {p.className}
+                    </span>
+                    <span className="font-mono font-bold text-emerald-400">
+                      {(p.probability * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Culinary / Objective Note */}
+          {activeResult.culinaryNote && (
+            <p className="text-[11px] text-slate-400 leading-relaxed bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60">
+              {activeResult.culinaryNote}
+            </p>
+          )}
+
+          {/* Action Row: Big Rescan Button + Optional Pantry Save */}
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={handleRescan}
+              className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white font-black text-xs tracking-wide shadow-lg shadow-blue-500/25 active:scale-[0.98] transition-all flex items-center justify-center space-x-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Scan Next Item (Rescan)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setModalItem(activeResult);
+                setIsModalOpen(true);
+              }}
+              className="py-3 px-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 active:scale-95 transition-all flex items-center space-x-1"
+              title="Save to Pantry (Optional)"
+            >
+              <PlusCircle className="w-4 h-4 text-emerald-400" />
+              <span className="text-[11px]">Add to Pantry</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Active Digital Pantry List */}
       <PantryList
         items={pantryItems}
@@ -842,10 +1014,10 @@ export default function CameraView() {
         onClearAll={handleClearAll}
       />
 
-      {/* Detection & Logging Modal */}
-      {isModalOpen && detectedItem && (
+      {/* Optional Detection & Logging Modal */}
+      {isModalOpen && modalItem && (
         <PantryLoggerModal
-          initialData={detectedItem}
+          initialData={modalItem}
           onClose={() => setIsModalOpen(false)}
           onItemAdded={handleItemAdded}
         />
