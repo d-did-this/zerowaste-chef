@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Key, Sparkles, X, ExternalLink, Check, Cpu } from "lucide-react";
+import { Key, Sparkles, X, ExternalLink, Check, Cpu, Zap } from "lucide-react";
 import { AppSettings, saveAppSettings } from "@/utils/pantryStorage";
 
 interface SettingsModalProps {
@@ -17,7 +17,7 @@ export default function SettingsModal({
 }: SettingsModalProps) {
   const [apiKey, setApiKey] = useState<string>(currentSettings.apiKey || "");
   const [engine, setEngine] = useState<AppSettings["preferredEngine"]>(
-    currentSettings.preferredEngine || "auto"
+    currentSettings.preferredEngine || "hybrid"
   );
   const [isSaved, setIsSaved] = useState<boolean>(false);
 
@@ -55,54 +55,86 @@ export default function SettingsModal({
           </button>
         </div>
 
-        {/* Engine Selection */}
+        {/* Engine Selection (3 Modes) */}
         <div className="flex flex-col space-y-2">
           <label className="text-xs font-semibold text-slate-300">
-            Vision Classification Engine
+            Vision Classification Engine Mode
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2">
+            {/* 1. CNN Only */}
             <button
               type="button"
-              onClick={() => setEngine("cloud")}
-              className={`p-3 rounded-2xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                engine === "cloud" || engine === "auto"
-                  ? "bg-emerald-500/10 border-emerald-500/50 text-white shadow-md shadow-emerald-500/10"
+              onClick={() => setEngine("cnn")}
+              className={`p-3 rounded-2xl border text-left flex items-start space-x-3 transition-all ${
+                engine === "cnn"
+                  ? "bg-blue-500/10 border-blue-500/60 text-white shadow-md shadow-blue-500/10"
                   : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
               }`}
             >
-              <div className="flex items-center justify-between">
-                <Sparkles className="w-4 h-4 text-emerald-400" />
-                <span className="text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">
-                  75+ Items
-                </span>
-              </div>
-              <div>
-                <div className="text-xs font-bold">Malaysian AI</div>
-                <div className="text-[10px] text-slate-400 leading-tight">
-                  Recognizes Serai, Lengkuas, Cili Padi, Bendi & more.
+              <span className="p-2 rounded-xl bg-blue-500/20 text-blue-400 mt-0.5">
+                <Cpu className="w-4 h-4" />
+              </span>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-white">CNN Only (10 Staples)</div>
+                  <span className="text-[10px] font-bold uppercase bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">
+                    Objective (b)
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-400 leading-tight mt-1">
+                  Client-side TensorFlow.js MobileNet for 10 predefined staples. 100% offline, zero cloud API calls.
                 </div>
               </div>
             </button>
 
+            {/* 2. Hybrid (Recommended) */}
             <button
               type="button"
-              onClick={() => setEngine("edge")}
-              className={`p-3 rounded-2xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                engine === "edge"
-                  ? "bg-blue-500/10 border-blue-500/50 text-white shadow-md shadow-blue-500/10"
+              onClick={() => setEngine("hybrid")}
+              className={`p-3 rounded-2xl border text-left flex items-start space-x-3 transition-all ${
+                engine === "hybrid"
+                  ? "bg-emerald-500/10 border-emerald-500/60 text-white shadow-md shadow-emerald-500/10"
                   : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
               }`}
             >
-              <div className="flex items-center justify-between">
-                <Cpu className="w-4 h-4 text-blue-400" />
-                <span className="text-[10px] font-bold uppercase bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">
-                  Offline
-                </span>
+              <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 mt-0.5">
+                <Zap className="w-4 h-4" />
+              </span>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-white">Hybrid Mode (Recommended)</div>
+                  <span className="text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">
+                    Auto
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-400 leading-tight mt-1">
+                  Runs local CNN first (&lt;50ms, zero data). Auto-escalates to Gemini Vision for 75+ Malaysian ingredients.
+                </div>
               </div>
-              <div>
-                <div className="text-xs font-bold">Edge MobileNet</div>
-                <div className="text-[10px] text-slate-400 leading-tight">
-                  10 Universal Staples (Apple, Egg, Carrot, etc.).
+            </button>
+
+            {/* 3. Gemini Only */}
+            <button
+              type="button"
+              onClick={() => setEngine("gemini")}
+              className={`p-3 rounded-2xl border text-left flex items-start space-x-3 transition-all ${
+                engine === "gemini"
+                  ? "bg-purple-500/10 border-purple-500/60 text-white shadow-md shadow-purple-500/10"
+                  : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+              }`}
+            >
+              <span className="p-2 rounded-xl bg-purple-500/20 text-purple-400 mt-0.5">
+                <Sparkles className="w-4 h-4" />
+              </span>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-white">Gemini Only (75+ Local)</div>
+                  <span className="text-[10px] font-bold uppercase bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded">
+                    Cloud Vision
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-400 leading-tight mt-1">
+                  Direct recognition of Serai, Lengkuas, Cili Padi, Bendi, Kangkung & local pasar staples.
                 </div>
               </div>
             </button>

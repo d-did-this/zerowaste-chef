@@ -154,6 +154,13 @@ export default function PantryLoggerModal({
                     {selectedIngredient.name} •{" "}
                     <span className="text-emerald-400">{selectedIngredient.category}</span>
                   </p>
+                  {initialData.engineUsed && (
+                    <div className="mt-1">
+                      <span className="inline-block px-2 py-0.5 rounded-md bg-slate-950/80 text-[10px] font-semibold text-slate-300 border border-slate-700/80">
+                        {initialData.engineUsed}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 

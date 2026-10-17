@@ -17,7 +17,7 @@ const SETTINGS_KEY = "zerowaste_chef_settings_v1";
 
 export interface AppSettings {
   apiKey: string;
-  preferredEngine: "auto" | "cloud" | "edge";
+  preferredEngine: "cnn" | "gemini" | "hybrid";
 }
 
 export function getPantryItems(): PantryItem[] {
@@ -77,13 +77,22 @@ export function clearPantry(): void {
 
 export function getAppSettings(): AppSettings {
   if (typeof window === "undefined") {
-    return { apiKey: "", preferredEngine: "auto" };
+    return { apiKey: "", preferredEngine: "hybrid" };
   }
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    return raw ? JSON.parse(raw) : { apiKey: "", preferredEngine: "auto" };
+    const parsed = raw ? JSON.parse(raw) : null;
+    let engine: AppSettings["preferredEngine"] = "hybrid";
+    if (parsed?.preferredEngine === "cnn" || parsed?.preferredEngine === "edge") {
+      engine = "cnn";
+    } else if (parsed?.preferredEngine === "gemini" || parsed?.preferredEngine === "cloud") {
+      engine = "gemini";
+    } else if (parsed?.preferredEngine === "hybrid" || parsed?.preferredEngine === "auto") {
+      engine = "hybrid";
+    }
+    return { apiKey: parsed?.apiKey || "", preferredEngine: engine };
   } catch {
-    return { apiKey: "", preferredEngine: "auto" };
+    return { apiKey: "", preferredEngine: "hybrid" };
   }
 }
 
