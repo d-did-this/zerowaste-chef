@@ -7,20 +7,16 @@ import {
   Zap,
   ZapOff,
   Upload,
-  Sparkles,
   Settings,
   AlertCircle,
   PlusCircle,
   Cpu,
   X,
+  Terminal,
+  Trash2,
 } from "lucide-react";
 import {
-  PREDEFINED_CNN_INGREDIENTS,
-  RawPrediction,
-} from "@/utils/ingredientClassifier";
-import {
   runPredefinedCnnClassification,
-  PREDEFINED_PRODUCE_CATALOG,
   MobileNetModel,
 } from "@/utils/cnnProduceScanner";
 import { findMatchingMalaysianIngredient } from "@/utils/malaysianIngredients";
@@ -53,10 +49,15 @@ interface ActiveResult {
     confidence: number;
     rawLabel: string;
   }>;
-  topPredictions?: RawPrediction[];
   suggestedQuantity?: number;
   suggestedUnit?: string;
   culinaryNote?: string;
+}
+
+interface LogEntry {
+  id: string;
+  timestamp: string;
+  text: string;
 }
 
 export default function CameraView() {
@@ -64,6 +65,7 @@ export default function CameraView() {
   const streamRef = useRef<MediaStream | null>(null);
   const modelRef = useRef<MobileNetModel | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const terminalEndRef = useRef<HTMLDivElement>(null);
 
   // States
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
@@ -78,6 +80,9 @@ export default function CameraView() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [activeResult, setActiveResult] = useState<ActiveResult | null>(null);
 
+  // Live Terminal Logs
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+
   // App Settings & Digital Pantry
   const [settings, setSettings] = useState<AppSettings>({ apiKey: "", preferredEngine: "cnn" });
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
@@ -86,6 +91,32 @@ export default function CameraView() {
   // Optional manual logger modal
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalItem, setModalItem] = useState<ActiveResult | null>(null);
+
+  // Append to terminal logs
+  const addLog = useCallback((text: string) => {
+    const entry: LogEntry = {
+      id: "log_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+      timestamp: new Date().toLocaleTimeString(),
+      text,
+    };
+    setLogs((prev) => [...prev.slice(-40), entry]);
+  }, []);
+
+  // Initialize logs on client mount to avoid static prerender date warning
+  useEffect(() => {
+    setLogs([
+      {
+        id: "init_1",
+        timestamp: new Date().toLocaleTimeString(),
+        text: "[System] ZeroWaste Vision Engine initialized.",
+      },
+    ]);
+  }, []);
+
+  // Auto-scroll terminal to bottom
+  useEffect(() => {
+    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
 
   // Load Settings and Digital Pantry on Mount
   useEffect(() => {
@@ -98,31 +129,37 @@ export default function CameraView() {
     const updated = saveAppSettings({ preferredEngine: mode });
     setSettings(updated);
     setActiveResult(null);
+    addLog(`[Mode] Switched active pipeline to: ${mode.toUpperCase()}`);
   };
 
-  // 1. Initialize TensorFlow.js MobileNet (with v1 fallback for maximum compatibility)
+  // 1. Initialize TensorFlow.js MobileNet
   const initCnnModel = useCallback(async () => {
     try {
       setCnnStatus("loading");
+      addLog("[CNN] Downloading TensorFlow.js MobileNet weights...");
       const tf = await import("@tensorflow/tfjs");
       await tf.ready();
+      addLog("[CNN] TensorFlow.js runtime backend verified: " + tf.getBackend());
       const mobilenet = await import("@tensorflow-models/mobilenet");
 
       try {
         const loaded = await mobilenet.load({ version: 2, alpha: 1.0 });
         modelRef.current = loaded as unknown as MobileNetModel;
         setCnnStatus("ready");
+        addLog("[CNN] MobileNet v2 (1.00) loaded successfully into browser memory.");
       } catch (v2Err) {
         console.warn("MobileNet v2 load failed, attempting v1:", v2Err);
         const fallbackLoaded = await mobilenet.load({ version: 1, alpha: 1.0 });
         modelRef.current = fallbackLoaded as unknown as MobileNetModel;
         setCnnStatus("ready");
+        addLog("[CNN] MobileNet v1 loaded successfully as fallback.");
       }
     } catch (err: unknown) {
       console.warn("Edge MobileNet init error:", err);
       setCnnStatus("error");
+      addLog("[CNN Error] Failed to load MobileNet: " + (err instanceof Error ? err.message : String(err)));
     }
-  }, []);
+  }, [addLog]);
 
   useEffect(() => {
     initCnnModel();
@@ -155,6 +192,7 @@ export default function CameraView() {
         videoRef.current.onloadedmetadata = () => {
           videoRef.current?.play().catch((e) => console.warn("Video play error:", e));
           setIsCameraActive(true);
+          addLog(`[Camera] Video stream active (${facingMode} lens).`);
         };
       }
 
@@ -169,8 +207,9 @@ export default function CameraView() {
         err instanceof Error ? err.message : "Unable to access camera. Please grant permissions."
       );
       setIsCameraActive(false);
+      addLog("[Camera Error] " + (err instanceof Error ? err.message : "Access denied"));
     }
-  }, [facingMode]);
+  }, [facingMode, addLog]);
 
   useEffect(() => {
     startCamera();
@@ -194,6 +233,7 @@ export default function CameraView() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (videoTrack as any).applyConstraints({ advanced: [{ torch: nextState }] });
         setIsTorchOn(nextState);
+        addLog(`[Hardware] Flashlight ${nextState ? "ON" : "OFF"}`);
       } catch (e) {
         console.warn("Could not toggle torch:", e);
       }
@@ -205,6 +245,7 @@ export default function CameraView() {
     setCapturedImage(null);
     setActiveResult(null);
     setIsAnalyzing(false);
+    addLog("[Scanner] Viewfinder reset. Ready for next capture.");
   };
 
   // 3. Process Frame with Dedicated Produce CNN Head / Cloud Gemini
@@ -217,6 +258,7 @@ export default function CameraView() {
     setActiveResult(null);
 
     const activeEngine = settings.preferredEngine || "cnn";
+    addLog(`[Scan] Processing image frame via [${activeEngine.toUpperCase()}] engine...`);
 
     try {
       // -------------------------------------------------------------
@@ -226,14 +268,15 @@ export default function CameraView() {
         if (!modelRef.current) {
           if (cnnStatus === "loading") {
             setActiveResult({
-              name: "CNN Downloading Weights",
-              nameMalay: "Memuatkan Model CNN",
+              name: "CNN Initializing",
+              nameMalay: "Model Sedang Dimuat",
               emoji: "⏳",
               confidence: 0,
               rawLabel: "mobilenet_loading",
-              engineUsed: "Client-Side CNN (Initializing)",
-              culinaryNote: "TensorFlow.js MobileNet weights are downloading to your browser (takes 2-3s). Please wait a moment and tap Rescan.",
+              engineUsed: "Client-Side CNN",
+              culinaryNote: "TensorFlow.js MobileNet weights are loading into browser memory. Please retry in 2 seconds.",
             });
+            addLog("[CNN] Waiting for model weights to finish downloading.");
             return;
           } else {
             setActiveResult({
@@ -243,14 +286,20 @@ export default function CameraView() {
               confidence: 0,
               rawLabel: "mobilenet_error",
               engineUsed: "Client-Side CNN",
-              culinaryNote: "Failed to download CNN weights. Tap the status badge to retry loading.",
+              culinaryNote: "Failed to load MobileNet weights. Tap settings to retry.",
             });
+            addLog("[CNN Error] Model unavailable.");
             return;
           }
         }
 
-        // Multi-crop ensemble + color prior + masked produce logit classification
-        const cnnResult = await runPredefinedCnnClassification(modelRef.current, source);
+        // Run multi-scale ensemble + color & aspect-ratio prior with live telemetry
+        const cnnResult = await runPredefinedCnnClassification(
+          modelRef.current,
+          source,
+          (msg) => addLog(msg)
+        );
+
         const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name);
 
         setActiveResult({
@@ -262,18 +311,19 @@ export default function CameraView() {
           confidence: cnnResult.confidence,
           rawLabel: cnnResult.rawLabel,
           topRankings: cnnResult.topRankings,
-          engineUsed: "Client-Side CNN (Predefined Produce Head)",
+          engineUsed: "Client-Side CNN (MobileNet v2)",
           suggestedQuantity: 1,
           suggestedUnit: cnnResult.topIngredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
-          culinaryNote: `Classified client-side via MobileNet CNN. ImageNet Produce match: "${cnnResult.rawLabel}". (Fulfills UTeM Objective b).`,
+          culinaryNote: `Classified via MobileNet CNN ImageNet activation: ${cnnResult.rawLabel}. Meets Objective (b).`,
         });
         return;
       }
 
       // -------------------------------------------------------------
-      // 2. GEMINI ONLY MODE (75+ Malaysian Culinary Database)
+      // 2. GEMINI ONLY MODE (75+ Malaysian Database)
       // -------------------------------------------------------------
       if (activeEngine === "gemini") {
+        addLog("[Gemini] Sending payload to /api/classify cloud endpoint...");
         try {
           const res = await fetch("/api/classify", {
             method: "POST",
@@ -289,6 +339,7 @@ export default function CameraView() {
           if (res.ok) {
             const json = await res.json();
             if (json.success && json.data) {
+              addLog(`[Gemini] Result: ${json.data.name} (${json.data.nameMalay || ""}) - ${json.data.confidence}%`);
               setActiveResult({
                 ...json.data,
                 rawLabel: json.data.name,
@@ -299,16 +350,17 @@ export default function CameraView() {
           }
         } catch (apiErr) {
           console.warn("Gemini Vision call failed:", apiErr);
+          addLog("[Gemini Error] API call failed.");
         }
 
         setActiveResult({
-          name: "Gemini Vision Unavailable",
-          nameMalay: "Gemini Vision Tidak Tersedia",
+          name: "Gemini Unavailable",
+          nameMalay: "Gemini Tidak Tersedia",
           emoji: "⚠️",
           confidence: 0,
           rawLabel: "gemini_error",
           engineUsed: "Gemini Vision",
-          culinaryNote: "Could not reach Gemini Vision API. Check your internet connection or enter an API key in Settings.",
+          culinaryNote: "Could not reach Gemini Vision API. Check connection or enter API key in Settings.",
         });
         return;
       }
@@ -317,9 +369,15 @@ export default function CameraView() {
       // 3. HYBRID MODE (Fast Local CNN first, escalate to Gemini)
       // -------------------------------------------------------------
       if (activeEngine === "hybrid") {
+        addLog("[Hybrid] Running local CNN pass first...");
         if (modelRef.current) {
-          const cnnResult = await runPredefinedCnnClassification(modelRef.current, source);
-          if (cnnResult.confidence >= 45) {
+          const cnnResult = await runPredefinedCnnClassification(
+            modelRef.current,
+            source,
+            (msg) => addLog(msg)
+          );
+          if (cnnResult.confidence >= 50) {
+            addLog(`[Hybrid] High local CNN confidence (${cnnResult.confidence}%). Accepting match without cloud API.`);
             const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name);
             setActiveResult({
               id: cnnResult.topIngredient.id,
@@ -333,9 +391,11 @@ export default function CameraView() {
               engineUsed: "Hybrid: CNN MobileNet (Instant Local)",
               suggestedQuantity: 1,
               suggestedUnit: cnnResult.topIngredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
-              culinaryNote: `Matched locally with CNN MobileNet (${cnnResult.confidence}%). Instant edge execution with 0 API delay.`,
+              culinaryNote: `Matched locally with CNN MobileNet (${cnnResult.confidence}%). Instant edge execution with 0 API latency.`,
             });
             return;
+          } else {
+            addLog(`[Hybrid] Moderate CNN confidence (${cnnResult.confidence}%). Auto-escalating to Gemini Vision...`);
           }
         }
 
@@ -355,6 +415,7 @@ export default function CameraView() {
           if (res.ok) {
             const json = await res.json();
             if (json.success && json.data) {
+              addLog(`[Hybrid] Gemini escalation resolved: ${json.data.name}`);
               setActiveResult({
                 ...json.data,
                 rawLabel: json.data.name,
@@ -365,6 +426,7 @@ export default function CameraView() {
           }
         } catch (escalateErr) {
           console.warn("Hybrid Gemini escalation error:", escalateErr);
+          addLog("[Hybrid Error] Gemini escalation failed.");
         }
 
         setActiveResult({
@@ -379,6 +441,7 @@ export default function CameraView() {
       }
     } catch (e) {
       console.error("Classification failure:", e);
+      addLog("[Error] Classification exception: " + (e instanceof Error ? e.message : String(e)));
       setActiveResult({
         name: "Scanning Error",
         nameMalay: "Ralat Pengimbasan",
@@ -398,6 +461,7 @@ export default function CameraView() {
     if (!videoRef.current) return;
     const video = videoRef.current;
 
+    addLog("[Camera] Snapping still frame (center crop 640x640)...");
     const canvas = document.createElement("canvas");
     const size = Math.min(video.videoWidth, video.videoHeight);
     canvas.width = 640;
@@ -409,10 +473,7 @@ export default function CameraView() {
     const startX = (video.videoWidth - size) / 2;
     const startY = (video.videoHeight - size) / 2;
 
-    // Apply color contrast & saturation enhancement
-    ctx.filter = "contrast(1.12) brightness(1.02) saturate(1.18)";
     ctx.drawImage(video, startX, startY, size, size, 0, 0, 640, 640);
-
     const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
     processFrame(canvas, dataUrl);
   };
@@ -422,6 +483,7 @@ export default function CameraView() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    addLog(`[Upload] Image selected: ${file.name}`);
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
@@ -443,12 +505,11 @@ export default function CameraView() {
         if (!resolved) {
           resolved = true;
           setIsAnalyzing(false);
+          addLog("[Upload Error] Failed to decode image.");
         }
       };
       img.src = dataUrl;
-      if (img.complete) {
-        finishLoad();
-      }
+      if (img.complete) finishLoad();
     };
     reader.readAsDataURL(file);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -473,179 +534,94 @@ export default function CameraView() {
 
   const handleItemAdded = (newItem: PantryItem) => {
     setPantryItems((prev) => [newItem, ...prev.filter((p) => p.id !== newItem.id)]);
+    addLog(`[Pantry] Added ${newItem.name} (${newItem.quantity} ${newItem.unit})`);
     handleRescan();
   };
 
   const handleDeleteItem = (id: string) => {
     deletePantryItem(id);
     setPantryItems((prev) => prev.filter((p) => p.id !== id));
+    addLog(`[Pantry] Deleted item: ${id}`);
   };
 
   const handleClearAll = () => {
     clearPantry();
     setPantryItems([]);
+    addLog("[Pantry] All pantry records cleared.");
   };
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col space-y-3">
-      {/* 3-Way Mode Switcher: CNN Only / Hybrid / Gemini Only */}
-      <div className="bg-slate-900/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-800 shadow-xl flex items-center justify-between gap-1">
+    <div className="w-full max-w-md mx-auto flex flex-col space-y-3 font-sans text-zinc-100">
+      {/* ======================================================== */}
+      {/* 1. THREE CLEAN MONOCHROME TABS */}
+      {/* ======================================================== */}
+      <div className="grid grid-cols-3 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-sm">
         <button
           onClick={() => handleModeChange("cnn")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 ${
+          className={`py-2 px-1 text-[11px] font-mono font-semibold rounded-xl transition-all ${
             settings.preferredEngine === "cnn"
-              ? "bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-sm shadow-blue-500/10"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+              ? "bg-white text-black shadow-sm"
+              : "text-zinc-400 hover:text-white"
           }`}
         >
-          <Cpu className="w-3.5 h-3.5 flex-shrink-0" />
-          <span className="truncate">CNN Only (10)</span>
+          CNN (10 STAPLES)
         </button>
 
         <button
           onClick={() => handleModeChange("hybrid")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 ${
+          className={`py-2 px-1 text-[11px] font-mono font-semibold rounded-xl transition-all ${
             settings.preferredEngine === "hybrid"
-              ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm shadow-emerald-500/10"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+              ? "bg-white text-black shadow-sm"
+              : "text-zinc-400 hover:text-white"
           }`}
         >
-          <Zap className="w-3.5 h-3.5 flex-shrink-0 fill-current" />
-          <span className="truncate">Hybrid (Both)</span>
+          HYBRID (AUTO)
         </button>
 
         <button
           onClick={() => handleModeChange("gemini")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 ${
+          className={`py-2 px-1 text-[11px] font-mono font-semibold rounded-xl transition-all ${
             settings.preferredEngine === "gemini"
-              ? "bg-purple-500/20 text-purple-400 border border-purple-500/40 shadow-sm shadow-purple-500/10"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+              ? "bg-white text-black shadow-sm"
+              : "text-zinc-400 hover:text-white"
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 flex-shrink-0 fill-current" />
-          <span className="truncate">Gemini (75+)</span>
+          GEMINI (75+)
         </button>
       </div>
 
-      {/* Mode Helper Cards */}
-      {settings.preferredEngine === "cnn" && (
-        <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex flex-col space-y-1.5 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1.5">
-              <Cpu className="w-4 h-4 text-blue-400" />
-              <span className="text-xs font-bold text-blue-300">
-                UTeM Objective (b) • 10 Predefined CNN Produce
-              </span>
-            </div>
-            {/* CNN Status Badge */}
+      {/* ======================================================== */}
+      {/* 2. TOP HALF: THE SCANNER */}
+      {/* ======================================================== */}
+      <div className="relative w-full h-[360px] sm:h-[400px] bg-black rounded-3xl overflow-hidden border border-zinc-800 flex flex-col shadow-2xl">
+        {/* Top Status Bar */}
+        <div className="absolute top-0 left-0 right-0 z-20 px-3.5 py-2.5 flex items-center justify-between bg-gradient-to-b from-black/90 to-transparent">
+          <div className="flex items-center space-x-2">
             <span
-              onClick={cnnStatus === "error" ? initCnnModel : undefined}
-              className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer ${
+              className={`h-2 w-2 rounded-full ${
                 cnnStatus === "ready"
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  ? "bg-white shadow-[0_0_8px_#ffffff]"
                   : cnnStatus === "loading"
-                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse"
-                  : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                  ? "bg-zinc-500 animate-pulse"
+                  : "bg-red-500"
               }`}
-            >
-              <span>●</span>
-              <span>
-                {cnnStatus === "ready"
-                  ? "CNN Ready"
-                  : cnnStatus === "loading"
-                  ? "Loading Weights..."
-                  : "CNN Error (Retry)"}
-              </span>
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-300 leading-relaxed">
-            Target domain constrained strictly to the 10 produce classes via client-side MobileNet logit masking:
-          </p>
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {PREDEFINED_PRODUCE_CATALOG.slice(0, 10).map((item) => (
-              <span
-                key={item.id}
-                className="px-2 py-0.5 rounded-lg bg-blue-950/80 border border-blue-800/60 text-[11px] text-blue-200 font-semibold"
-              >
-                {item.emoji} {item.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {settings.preferredEngine === "hybrid" && (
-        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start space-x-2.5 animate-in fade-in duration-200">
-          <Zap className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5 fill-current" />
-          <div>
-            <span className="text-xs font-bold text-emerald-300">
-              Hybrid Vision Pipeline (Recommended)
-            </span>
-            <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
-              Instant CNN recognition (&lt;50ms) for common produce. Automatically escalates to Gemini Vision for 75+ Malaysian culinary items (Cili Padi, Lemongrass, Lengkuas, etc.).
-            </p>
-          </div>
-        </div>
-      )}
-
-      {settings.preferredEngine === "gemini" && (
-        <div className="p-3 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-start space-x-2.5 animate-in fade-in duration-200">
-          <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5 fill-current" />
-          <div>
-            <span className="text-xs font-bold text-purple-300">
-              Gemini Vision AI (75+ Malaysian Database)
-            </span>
-            <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
-              Cloud multi-modal AI recognizing regional aromatics, vegetables, proteins, and pantry staples with Malaysian cooking units.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Viewport Card */}
-      <div className="relative w-full h-[440px] sm:h-[480px] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
-        {/* Top Control Bar */}
-        <div className="absolute top-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between bg-gradient-to-b from-slate-950/90 to-transparent">
-          <div className="flex items-center space-x-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  settings.preferredEngine === "cnn"
-                    ? "bg-blue-400"
-                    : settings.preferredEngine === "gemini"
-                    ? "bg-purple-400"
-                    : "bg-emerald-400"
-                }`}
-              ></span>
-              <span
-                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                  settings.preferredEngine === "cnn"
-                    ? "bg-blue-500"
-                    : settings.preferredEngine === "gemini"
-                    ? "bg-purple-500"
-                    : "bg-emerald-500"
-                }`}
-              ></span>
-            </span>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">
+            />
+            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-300">
               {settings.preferredEngine === "cnn"
-                ? "CNN Produce Head (10)"
+                ? "CNN Produce Head (Client-Side)"
                 : settings.preferredEngine === "gemini"
-                ? "Gemini (75+ Local)"
-                : "Hybrid Vision Mode"}
+                ? "Gemini Cloud Vision"
+                : "Hybrid Dual Engine"}
             </span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            {/* Settings Button */}
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white backdrop-blur-md border border-slate-700/60 shadow-lg active:scale-95 transition-all"
-              title="AI Settings"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-1.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700/60 transition-all"
+            title="Settings"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Video / Captured Image Container */}
@@ -669,129 +645,53 @@ export default function CameraView() {
             />
           )}
 
-          {/* Center Target Box */}
+          {/* Minimalist Reticle */}
           {!capturedImage && isCameraActive && (
             <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
-              <div
-                className={`relative w-60 h-60 rounded-3xl border-2 border-dashed flex items-center justify-center ${
-                  settings.preferredEngine === "cnn"
-                    ? "border-blue-500/40"
-                    : settings.preferredEngine === "gemini"
-                    ? "border-purple-500/40"
-                    : "border-emerald-500/40"
-                }`}
-              >
-                {/* 4 Corner Markers */}
-                <div
-                  className={`absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 rounded-tl-xl ${
-                    settings.preferredEngine === "cnn"
-                      ? "border-blue-400"
-                      : settings.preferredEngine === "gemini"
-                      ? "border-purple-400"
-                      : "border-emerald-400"
-                  }`}
-                />
-                <div
-                  className={`absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 rounded-tr-xl ${
-                    settings.preferredEngine === "cnn"
-                      ? "border-blue-400"
-                      : settings.preferredEngine === "gemini"
-                      ? "border-purple-400"
-                      : "border-emerald-400"
-                  }`}
-                />
-                <div
-                  className={`absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 rounded-bl-xl ${
-                    settings.preferredEngine === "cnn"
-                      ? "border-blue-400"
-                      : settings.preferredEngine === "gemini"
-                      ? "border-purple-400"
-                      : "border-emerald-400"
-                  }`}
-                />
-                <div
-                  className={`absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 rounded-br-xl ${
-                    settings.preferredEngine === "cnn"
-                      ? "border-blue-400"
-                      : settings.preferredEngine === "gemini"
-                      ? "border-purple-400"
-                      : "border-emerald-400"
-                  }`}
-                />
-
-                {/* Laser scan animation */}
-                <div
-                  className={`absolute inset-x-3 h-0.5 animate-pulse ${
-                    settings.preferredEngine === "cnn"
-                      ? "bg-gradient-to-r from-transparent via-blue-400 to-transparent shadow-[0_0_12px_#60a5fa]"
-                      : settings.preferredEngine === "gemini"
-                      ? "bg-gradient-to-r from-transparent via-purple-400 to-transparent shadow-[0_0_12px_#c084fc]"
-                      : "bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399]"
-                  }`}
-                />
+              <div className="relative w-56 h-56 rounded-2xl border border-dashed border-white/30 flex items-center justify-center">
+                {/* Hairline Corner Guides */}
+                <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-white rounded-tl" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-white rounded-tr" />
+                <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-white rounded-bl" />
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-white rounded-br" />
               </div>
-              <p className="mt-3 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-[11px] font-medium text-slate-300 border border-slate-800">
-                {settings.preferredEngine === "cnn"
-                  ? "Center produce inside box"
-                  : "Place kitchen ingredient inside box"}
+              <p className="mt-2.5 px-2.5 py-0.5 rounded-full bg-black/70 border border-zinc-800 text-[10px] font-mono text-zinc-400">
+                Center ingredient inside frame
               </p>
             </div>
           )}
 
           {/* Analyzing Spinner Overlay */}
           {isAnalyzing && (
-            <div className="absolute inset-0 z-30 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center space-y-3">
-              <div
-                className={`w-12 h-12 border-4 rounded-full animate-spin ${
-                  settings.preferredEngine === "cnn"
-                    ? "border-blue-500/20 border-t-blue-500"
-                    : settings.preferredEngine === "gemini"
-                    ? "border-purple-500/20 border-t-purple-500"
-                    : "border-emerald-500/20 border-t-emerald-500"
-                }`}
-              />
-              <div className="text-center px-4">
-                <h4 className="text-sm font-bold text-white">
-                  {settings.preferredEngine === "cnn"
-                    ? "Evaluating Produce with CNN"
-                    : settings.preferredEngine === "gemini"
-                    ? "Analyzing with Gemini Vision AI"
-                    : "Running Hybrid Classification"}
-                </h4>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {settings.preferredEngine === "cnn"
-                    ? "Multi-scale crops + masked produce softmax..."
-                    : settings.preferredEngine === "gemini"
-                    ? "Comparing against 75+ Malaysian culinary staples..."
-                    : "Testing local CNN & Malaysian vision..."}
-                </p>
-              </div>
+            <div className="absolute inset-0 z-30 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center space-y-2.5">
+              <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              <p className="text-xs font-mono text-zinc-300">Processing activations...</p>
             </div>
           )}
 
           {/* Quick Camera Controls Floating (Right) */}
           {!capturedImage && (
-            <div className="absolute right-3 top-14 z-20 flex flex-col space-y-2.5">
+            <div className="absolute right-3 top-12 z-20 flex flex-col space-y-2">
               <button
                 onClick={flipCamera}
                 disabled={!isCameraActive}
-                className="p-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700/60 text-white shadow-lg active:scale-95 transition-all disabled:opacity-40"
+                className="p-2 rounded-xl bg-zinc-950/80 hover:bg-zinc-900 border border-zinc-800 text-white transition-all disabled:opacity-40"
                 title="Flip Camera"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="w-3.5 h-3.5" />
               </button>
 
               {isTorchSupported && (
                 <button
                   onClick={toggleTorch}
-                  className={`p-2.5 rounded-full backdrop-blur-md border shadow-lg active:scale-95 transition-all ${
+                  className={`p-2 rounded-xl border transition-all ${
                     isTorchOn
-                      ? "bg-amber-500 border-amber-400 text-slate-950"
-                      : "bg-slate-900/80 hover:bg-slate-800 border-slate-700/60 text-white"
+                      ? "bg-white border-white text-black"
+                      : "bg-zinc-950/80 hover:bg-zinc-900 border-zinc-800 text-white"
                   }`}
                   title="Flashlight"
                 >
-                  {isTorchOn ? <Zap className="w-4 h-4 fill-current" /> : <ZapOff className="w-4 h-4" />}
+                  {isTorchOn ? <Zap className="w-3.5 h-3.5 fill-current" /> : <ZapOff className="w-3.5 h-3.5" />}
                 </button>
               )}
             </div>
@@ -799,13 +699,13 @@ export default function CameraView() {
 
           {/* Camera Error Message */}
           {cameraError && !capturedImage && (
-            <div className="absolute inset-0 z-30 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center space-y-3">
-              <AlertCircle className="w-10 h-10 text-rose-500" />
-              <h4 className="text-sm font-bold text-white">Camera Access Required</h4>
-              <p className="text-xs text-slate-400 max-w-xs">{cameraError}</p>
+            <div className="absolute inset-0 z-30 bg-black/90 flex flex-col items-center justify-center p-6 text-center space-y-3">
+              <AlertCircle className="w-8 h-8 text-white" />
+              <h4 className="text-sm font-semibold text-white">Camera Access Required</h4>
+              <p className="text-xs text-zinc-400 max-w-xs">{cameraError}</p>
               <button
                 onClick={startCamera}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl"
+                className="px-4 py-2 bg-white text-black font-semibold text-xs rounded-xl"
               >
                 Retry Camera
               </button>
@@ -813,8 +713,8 @@ export default function CameraView() {
           )}
         </div>
 
-        {/* Bottom Shutter & Upload Actions */}
-        <div className="relative z-20 p-3 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-between gap-2">
+        {/* Bottom Shutter Controls */}
+        <div className="relative z-20 p-2.5 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between gap-2">
           {/* File Upload Button */}
           <input
             type="file"
@@ -826,9 +726,9 @@ export default function CameraView() {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isAnalyzing}
-            className="flex-1 py-2.5 px-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 active:scale-95 transition-all"
+            className="flex-1 py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 text-xs font-mono font-medium flex items-center justify-center space-x-1.5 active:scale-95 transition-all"
           >
-            <Upload className="w-4 h-4 text-emerald-400" />
+            <Upload className="w-3.5 h-3.5 text-zinc-300" />
             <span>Upload</span>
           </button>
 
@@ -836,24 +736,18 @@ export default function CameraView() {
           {capturedImage ? (
             <button
               onClick={handleRescan}
-              className="flex-[1.4] py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white text-xs font-black tracking-wide shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 active:scale-95 transition-all"
+              className="flex-[1.4] py-2.5 px-4 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold tracking-wide flex items-center justify-center space-x-2 active:scale-95 transition-all"
             >
-              <RefreshCw className="w-4 h-4" />
-              <span>Rescan (Live Feed)</span>
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Rescan</span>
             </button>
           ) : (
             <button
               onClick={handleSnapAndScan}
               disabled={!isCameraActive || isAnalyzing}
-              className={`flex-[1.4] py-3 px-4 rounded-2xl text-slate-950 text-xs font-black tracking-wide shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition-all disabled:opacity-40 ${
-                settings.preferredEngine === "cnn"
-                  ? "bg-gradient-to-r from-blue-400 to-indigo-400 hover:from-blue-300 hover:to-indigo-300 shadow-blue-500/20"
-                  : settings.preferredEngine === "gemini"
-                  ? "bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-300 hover:to-pink-300 shadow-purple-500/20"
-                  : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
-              }`}
+              className="flex-[1.4] py-2.5 px-4 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold tracking-wide flex items-center justify-center space-x-2 active:scale-95 transition-all disabled:opacity-40"
             >
-              <Sparkles className="w-4 h-4 fill-current" />
+              <Camera className="w-3.5 h-3.5" />
               <span>Snap & Scan</span>
             </button>
           )}
@@ -862,109 +756,139 @@ export default function CameraView() {
           <button
             onClick={handleAddManual}
             disabled={isAnalyzing}
-            className="p-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white active:scale-95 transition-all"
+            className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white active:scale-95 transition-all"
             title="Manual Text Fallback"
           >
-            <PlusCircle className="w-5 h-5 text-emerald-400" />
+            <PlusCircle className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* ======================================================== */}
-      {/* INLINE RESULT CARD (Produce Domain Only, No Crates/Dogs) */}
+      {/* 3. MIDDLE: THE OUTPUT (Clean, Simple, Clear) */}
       {/* ======================================================== */}
-      {activeResult && (
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl flex flex-col space-y-3 animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3.5">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-3xl shadow-inner">
-                {activeResult.emoji}
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h3 className="text-lg font-black text-white">
-                    {activeResult.nameMalay || activeResult.name}
-                  </h3>
-                  {activeResult.confidence > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold">
-                      {activeResult.confidence}% Match
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-300 font-medium">
-                  {activeResult.name}
-                </p>
-                <div className="mt-1">
-                  <span className="inline-block px-2 py-0.5 rounded-md bg-slate-950 text-[10px] font-bold text-slate-300 border border-slate-800">
-                    {activeResult.engineUsed}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleRescan}
-              className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
-              title="Close & Rescan"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Top Produce Rankings Breakdown */}
-          {activeResult.topRankings && activeResult.topRankings.length > 0 && (
-            <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col space-y-1.5 text-xs">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                <span>Top Produce Head Rankings</span>
-                <span className="text-blue-400 font-mono text-[10px]">MobileNet Logits</span>
-              </div>
-              <div className="space-y-1.5 pt-0.5">
-                {activeResult.topRankings.slice(0, 3).map((p, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-300 font-medium flex items-center space-x-1.5">
-                      <span>{p.emoji}</span>
-                      <span>{p.name} ({p.nameMalay})</span>
-                    </span>
-                    <span className="font-mono font-bold text-emerald-400">
-                      {p.confidence}%
-                    </span>
+      <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-sm flex flex-col space-y-3">
+        {activeResult ? (
+          <div className="space-y-3 animate-in fade-in duration-150">
+            {/* Header: Name, Match %, and Engine Tag */}
+            <div className="flex items-start justify-between pb-2 border-b border-zinc-800/80">
+              <div className="flex items-center space-x-3">
+                <span className="text-3xl p-1 bg-zinc-900 border border-zinc-800 rounded-xl">
+                  {activeResult.emoji}
+                </span>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-base font-bold text-white tracking-tight">
+                      {activeResult.nameMalay || activeResult.name}
+                    </h3>
+                    {activeResult.confidence > 0 && (
+                      <span className="px-2 py-0.5 rounded-md bg-white text-black font-mono text-[10px] font-bold">
+                        {activeResult.confidence}% MATCH
+                      </span>
+                    )}
                   </div>
-                ))}
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    {activeResult.name} •{" "}
+                    <span className="font-mono text-[11px] text-zinc-300">{activeResult.engineUsed}</span>
+                  </p>
+                </div>
               </div>
+
+              <button
+                onClick={handleRescan}
+                className="p-1 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-900 transition-colors"
+                title="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-          )}
 
-          {/* Culinary / Objective Note */}
-          {activeResult.culinaryNote && (
-            <p className="text-[11px] text-slate-400 leading-relaxed bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60">
-              {activeResult.culinaryNote}
-            </p>
-          )}
+            {/* Produce Rankings Table */}
+            {activeResult.topRankings && activeResult.topRankings.length > 0 && (
+              <div className="space-y-1.5 font-mono text-xs">
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500 flex justify-between">
+                  <span>Candidate Breakdown</span>
+                  <span>Softmax Score</span>
+                </div>
+                <div className="space-y-1 pt-0.5">
+                  {activeResult.topRankings.slice(0, 3).map((p, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between py-1 px-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/60 text-xs"
+                    >
+                      <span className="flex items-center space-x-2 text-zinc-200">
+                        <span>{p.emoji}</span>
+                        <span className="font-medium">{p.name} ({p.nameMalay})</span>
+                      </span>
+                      <span className="font-bold text-white">{p.confidence}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {/* Action Row: Big Rescan Button + Optional Pantry Save */}
-          <div className="flex items-center gap-2 pt-1">
-            <button
-              onClick={handleRescan}
-              className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white font-black text-xs tracking-wide shadow-lg shadow-blue-500/25 active:scale-[0.98] transition-all flex items-center justify-center space-x-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Scan Next Item (Rescan)</span>
-            </button>
+            {/* Action Row */}
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={handleRescan}
+                className="flex-1 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-mono text-xs font-bold active:scale-[0.98] transition-all flex items-center justify-center space-x-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Scan Next Ingredient</span>
+              </button>
 
-            <button
-              onClick={() => {
-                setModalItem(activeResult);
-                setIsModalOpen(true);
-              }}
-              className="py-3 px-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 active:scale-95 transition-all flex items-center space-x-1"
-              title="Save to Pantry (Optional)"
-            >
-              <PlusCircle className="w-4 h-4 text-emerald-400" />
-              <span className="text-[11px]">Add to Pantry</span>
-            </button>
+              <button
+                onClick={() => {
+                  setModalItem(activeResult);
+                  setIsModalOpen(true);
+                }}
+                className="py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-mono font-medium border border-zinc-800 transition-all flex items-center space-x-1"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>+ Log</span>
+              </button>
+            </div>
           </div>
+        ) : (
+          <div className="py-2 flex items-center justify-between text-xs font-mono text-zinc-400">
+            <span>READY TO SCAN</span>
+            <span className="text-zinc-600">Aim produce & tap Snap & Scan</span>
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* 4. BOTTOM: THE PROCESS TERMINAL (No Black Boxes) */}
+      {/* ======================================================== */}
+      <div className="p-3 rounded-2xl bg-black border border-zinc-800 flex flex-col space-y-2">
+        <div className="flex items-center justify-between pb-1.5 border-b border-zinc-900">
+          <div className="flex items-center space-x-2">
+            <Terminal className="w-3.5 h-3.5 text-zinc-400" />
+            <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-300">
+              Live Process Telemetry
+            </span>
+          </div>
+          <button
+            onClick={() => setLogs([])}
+            className="text-[10px] font-mono text-zinc-500 hover:text-zinc-300 flex items-center space-x-1"
+            title="Clear Terminal"
+          >
+            <Trash2 className="w-3 h-3" />
+            <span>Clear</span>
+          </button>
         </div>
-      )}
+
+        {/* Telemetry Log Body */}
+        <div className="h-36 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-1 pr-1 text-zinc-300 scrollbar-thin scrollbar-thumb-zinc-800">
+          {logs.map((log) => (
+            <div key={log.id} className="flex items-start space-x-2">
+              <span className="text-zinc-600 select-none flex-shrink-0">{log.timestamp}</span>
+              <span className="break-all">{log.text}</span>
+            </div>
+          ))}
+          <div ref={terminalEndRef} />
+        </div>
+      </div>
 
       {/* Active Digital Pantry List */}
       <PantryList

@@ -33,13 +33,12 @@ export interface ProduceClassificationResult {
     confidence: number;
     rawLabel: string;
   }>;
-  dominantColor?: { h: number; s: number; v: number };
+  dominantColor?: { h: number; s: number; v: number; label: string };
+  geometry?: { elongation: number; shapeType: string };
 }
 
 /**
- * Exact ImageNet 1,000 class indices for target produce items.
- * Constraining inference to this predefined dataset eliminates domestic background
- * noise (crates, dogs, drinks) and guarantees produce-domain evaluation.
+ * ImageNet 1,000 class indices strictly mapped to the 10 Predefined Produce items (+ produce staples).
  */
 export const PREDEFINED_PRODUCE_CATALOG: CnnProduceItem[] = [
   {
@@ -142,7 +141,7 @@ export const PREDEFINED_PRODUCE_CATALOG: CnnProduceItem[] = [
     imageNetLabel: "corn, ear (#987)",
     defaultUnit: "tongkol",
   },
-  // Extended produce staples
+  // Extended produce
   {
     id: "strawberry",
     name: "Strawberry",
@@ -159,53 +158,104 @@ export const PREDEFINED_PRODUCE_CATALOG: CnnProduceItem[] = [
     nameMalay: "Nanas",
     emoji: "🍍",
     category: "Fruit",
-    indices: [953], // pineapple, ananas
+    indices: [953], // pineapple
     imageNetLabel: "pineapple (#953)",
     defaultUnit: "biji",
   },
 ];
 
 /**
+ * Geometric shape analysis: Determines aspect ratio & elongation to distinguish
+ * elongated produce (Banana, Cucumber) from circular produce (Apple, Orange, Cabbage).
+ */
+export function analyzeProduceGeometry(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number
+): { elongation: number; shapeType: string } {
+  const imgData = ctx.getImageData(0, 0, width, height);
+  const data = imgData.data;
+
+  // Estimate background from the 4 corners
+  const cornerIndices = [
+    0,
+    (width - 1) * 4,
+    ((height - 1) * width) * 4,
+    ((height - 1) * width + (width - 1)) * 4,
+  ];
+
+  let bgR = 0, bgG = 0, bgB = 0;
+  for (const c of cornerIndices) {
+    bgR += data[c];
+    bgG += data[c + 1];
+    bgB += data[c + 2];
+  }
+  bgR /= 4; bgG /= 4; bgB /= 4;
+
+  let minX = width, maxX = 0, minY = height, maxY = 0;
+  let fgPixels = 0;
+
+  for (let y = 0; y < height; y += 2) {
+    for (let x = 0; x < width; x += 2) {
+      const idx = (y * width + x) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      const dist = Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
+      if (dist > 45) {
+        fgPixels++;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  const boxW = Math.max(1, maxX - minX);
+  const boxH = Math.max(1, maxY - minY);
+  const elongation = Math.max(boxW, boxH) / Math.min(boxW, boxH);
+  const shapeType = elongation >= 1.35 ? "Elongated (Cylindrical/Curved)" : "Compact (Spherical/Ovoid)";
+
+  return { elongation: Number(elongation.toFixed(2)), shapeType };
+}
+
+/**
  * Extracts dominant HSV color from center pixels to compute Bayesian color priors.
  */
-export function extractCenterHsv(ctx: CanvasRenderingContext2D, width: number, height: number): {
-  h: number;
-  s: number;
-  v: number;
-} {
-  // Sample center 40% region
-  const startX = Math.floor(width * 0.3);
-  const startY = Math.floor(height * 0.3);
-  const sampleW = Math.floor(width * 0.4);
-  const sampleH = Math.floor(height * 0.4);
+export function extractCenterHsv(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number
+): { h: number; s: number; v: number; label: string } {
+  const startX = Math.floor(width * 0.25);
+  const startY = Math.floor(height * 0.25);
+  const sampleW = Math.floor(width * 0.5);
+  const sampleH = Math.floor(height * 0.5);
 
   const imgData = ctx.getImageData(startX, startY, sampleW, sampleH);
   const data = imgData.data;
 
-  let totalR = 0;
-  let totalG = 0;
-  let totalB = 0;
-  let validCount = 0;
+  let totalR = 0, totalG = 0, totalB = 0, count = 0;
 
   for (let i = 0; i < data.length; i += 16) {
     const r = data[i];
     const g = data[i + 1];
     const b = data[i + 2];
     const brightness = (r + g + b) / 3;
-    // Discard extreme shadows or glare
-    if (brightness > 25 && brightness < 240) {
+    if (brightness > 20 && brightness < 245) {
       totalR += r;
       totalG += g;
       totalB += b;
-      validCount++;
+      count++;
     }
   }
 
-  if (validCount === 0) return { h: 0, s: 0, v: 0.5 };
+  if (count === 0) return { h: 0, s: 0, v: 0.5, label: "Neutral/Gray" };
 
-  const avgR = totalR / validCount / 255;
-  const avgG = totalG / validCount / 255;
-  const avgB = totalB / validCount / 255;
+  const avgR = totalR / count / 255;
+  const avgG = totalG / count / 255;
+  const avgB = totalB / count / 255;
 
   const max = Math.max(avgR, avgG, avgB);
   const min = Math.min(avgR, avgG, avgB);
@@ -229,7 +279,16 @@ export function extractCenterHsv(ctx: CanvasRenderingContext2D, width: number, h
     h /= 6;
   }
 
-  return { h: h * 360, s, v };
+  const hueDeg = Math.round(h * 360);
+  let label = "Neutral/Tan";
+  if (s >= 0.20) {
+    if (hueDeg >= 42 && hueDeg <= 72) label = "Yellow";
+    else if (hueDeg >= 75 && hueDeg <= 165) label = "Green";
+    else if (hueDeg > 22 && hueDeg < 42) label = "Orange";
+    else if (hueDeg <= 22 || hueDeg >= 340) label = "Red";
+  }
+
+  return { h: hueDeg, s: Number(s.toFixed(2)), v: Number(v.toFixed(2)), label };
 }
 
 /**
@@ -255,29 +314,41 @@ export function createCroppedCanvas(
   const startX = (srcWidth - cropSize) / 2;
   const startY = (srcHeight - cropSize) / 2;
 
-  // Apply subtle contrast & saturation enhancement
-  ctx.filter = "contrast(1.12) brightness(1.02) saturate(1.18)";
+  ctx.filter = "contrast(1.10) brightness(1.02) saturate(1.15)";
   ctx.drawImage(source, startX, startY, cropSize, cropSize, 0, 0, targetSize, targetSize);
 
   return canvas;
 }
 
 /**
- * Runs Predefined Produce CNN Classification using Multi-Crop Ensemble + Masked Logit Softmax
+ * Runs Predefined Produce CNN Classification with step-by-step telemetry logging
  */
 export async function runPredefinedCnnClassification(
   model: MobileNetModel,
-  source: HTMLCanvasElement | HTMLVideoElement | HTMLImageElement
+  source: HTMLCanvasElement | HTMLVideoElement | HTMLImageElement,
+  onLog?: (msg: string) => void
 ): Promise<ProduceClassificationResult> {
-  // 1. Create 2 multi-scale crops (1.0x standard, 0.75x tight zoom)
+  const log = (msg: string) => {
+    if (onLog) onLog(msg);
+  };
+
+  log("[Pipeline] Starting multi-scale produce analysis...");
+
+  // 1. Multi-scale crops
   const crop1 = createCroppedCanvas(source, 1.0, 224);
   const crop2 = createCroppedCanvas(source, 0.75, 224);
+  log("[Preprocessing] Generated 1.0x standard and 0.75x zoomed crops (224x224)");
 
-  // 2. Extract HSV color profile from center
+  // 2. Optical Color & Geometric Shape inspection
   const ctx1 = crop1.getContext("2d");
-  const color = ctx1 ? extractCenterHsv(ctx1, 224, 224) : { h: 0, s: 0, v: 0.5 };
+  const color = ctx1 ? extractCenterHsv(ctx1, 224, 224) : { h: 0, s: 0, v: 0.5, label: "Neutral" };
+  log(`[Color Sensor] HSV: H=${color.h}° S=${Math.round(color.s * 100)}% V=${Math.round(color.v * 100)}% -> Palette: ${color.label}`);
 
-  // 3. Compute logits from CNN via model.infer
+  const geometry = ctx1 ? analyzeProduceGeometry(ctx1, 224, 224) : { elongation: 1.0, shapeType: "Compact" };
+  log(`[Geometry Sensor] Elongation: ${geometry.elongation}x -> ${geometry.shapeType}`);
+
+  // 3. CNN inference on both crops
+  log("[CNN Core] Executing MobileNet feedforward on convolutional layers...");
   const logitsTensor1 = model.infer(crop1);
   const logitsTensor2 = model.infer(crop2);
 
@@ -286,71 +357,75 @@ export async function runPredefinedCnnClassification(
     logitsTensor2.data(),
   ]);
 
-  // Dispose tensors immediately to keep GPU memory clean
   logitsTensor1.dispose();
   logitsTensor2.dispose();
 
-  // 4. Average logits across multi-scale crops
+  // Average logits across ensemble
   const averagedLogits = new Float32Array(1000);
   for (let i = 0; i < 1000; i++) {
     averagedLogits[i] = (data1[i] + data2[i]) / 2;
   }
+  log("[CNN Core] Extracted 1,000-dimensional raw activations across ensemble");
 
-  // 5. Constrain inference to the Predefined Produce Classes (Logit Masking + Color Bayesian Prior)
+  // 4. Logit projection onto the Predefined Produce Classes
+  log("[Logit Head] Projecting activations onto the 10 Predefined Produce classes (ImageNet produces #936-#992)");
+
   const scoredItems = PREDEFINED_PRODUCE_CATALOG.map((item) => {
-    // Extract highest raw logit among the item's ImageNet indices
     let logit = Math.max(...item.indices.map((idx) => averagedLogits[idx] ?? -10));
 
-    // Color consistency prior boost (+1.5 logit)
-    const { h, s } = color;
-    if (s >= 0.22) {
-      // Yellow produce
-      if (h >= 42 && h <= 72) {
-        if (item.id === "banana" || item.id === "lemon" || item.id === "corn") {
-          logit += 1.8;
-        }
-      }
-      // Green produce
-      else if (h >= 75 && h <= 165) {
-        if (
-          item.id === "broccoli" ||
-          item.id === "cucumber" ||
-          item.id === "cabbage" ||
-          item.id === "apple"
-        ) {
-          logit += 1.8;
-        }
-      }
-      // Red produce
-      else if (h <= 22 || h >= 340) {
-        if (
-          item.id === "apple" ||
-          item.id === "strawberry" ||
-          item.id === "bell_pepper"
-        ) {
-          logit += 1.8;
-        }
-      }
-      // Orange produce
-      else if (h > 22 && h <= 42) {
-        if (item.id === "orange" || item.id === "bell_pepper") {
-          logit += 1.8;
-        }
+    // A. Shape-aware geometric adjustments
+    if (geometry.elongation >= 1.35) {
+      if (item.id === "banana" || item.id === "cucumber") {
+        logit += 2.2; // Boost elongated items
+      } else if (item.id === "orange" || item.id === "apple" || item.id === "cabbage") {
+        logit -= 2.0; // Penalize circular items when object is clearly elongated
       }
     } else {
-      // Low saturation / neutral
-      if (item.id === "mushroom") {
-        logit += 1.2;
+      if (item.id === "banana") {
+        logit -= 1.5; // Penalize banana when object is circular/spherical
       }
     }
 
-    return {
-      ...item,
-      logit,
-    };
+    // B. Color-aware Bayesian prior adjustments
+    if (color.s >= 0.20) {
+      // Yellow
+      if (color.h >= 42 && color.h <= 72) {
+        if (item.id === "banana" || item.id === "lemon" || item.id === "corn") {
+          logit += 2.0;
+        } else if (item.id === "broccoli" || item.id === "cabbage") {
+          logit -= 2.0;
+        }
+      }
+      // Green
+      else if (color.h >= 75 && color.h <= 165) {
+        if (item.id === "broccoli" || item.id === "cucumber" || item.id === "cabbage" || item.id === "apple") {
+          logit += 2.0;
+        } else if (item.id === "orange" || item.id === "banana") {
+          logit -= 2.0;
+        }
+      }
+      // Red
+      else if (color.h <= 22 || color.h >= 340) {
+        if (item.id === "apple" || item.id === "strawberry" || item.id === "bell_pepper") {
+          logit += 2.0;
+        } else if (item.id === "broccoli" || item.id === "banana") {
+          logit -= 2.0;
+        }
+      }
+      // Orange
+      else if (color.h > 22 && color.h <= 42) {
+        if (item.id === "orange" || item.id === "bell_pepper") {
+          logit += 2.0;
+        }
+      }
+    } else {
+      if (item.id === "mushroom") logit += 1.5;
+    }
+
+    return { ...item, logit };
   });
 
-  // 6. Compute Softmax Probability Distribution over ONLY the produce classes
+  // 5. Compute Softmax over Target Produce Classes
   const maxLogit = Math.max(...scoredItems.map((s) => s.logit));
   const exps = scoredItems.map((s) => Math.exp(s.logit - maxLogit));
   const sumExps = exps.reduce((acc, val) => acc + val, 0);
@@ -370,6 +445,9 @@ export async function runPredefinedCnnClassification(
 
   const topMatch = ranked[0];
 
+  log(`[Softmax Output] Top produce probabilities: ${ranked.slice(0, 3).map(r => `${r.name}: ${r.confidence}%`).join(" | ")}`);
+  log(`[Decision] Target identified: ${topMatch.name} (${topMatch.nameMalay}) at ${topMatch.confidence}% confidence`);
+
   return {
     topIngredient: topMatch.item,
     confidence: topMatch.confidence,
@@ -382,5 +460,6 @@ export async function runPredefinedCnnClassification(
       rawLabel: r.rawLabel,
     })),
     dominantColor: color,
+    geometry,
   };
 }

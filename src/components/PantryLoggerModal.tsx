@@ -7,7 +7,6 @@ import {
   Search,
   Plus,
   Minus,
-  Sparkles,
   BookOpen,
 } from "lucide-react";
 import {
@@ -110,73 +109,59 @@ export default function PantryLoggerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-5 overflow-hidden flex flex-col space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm font-mono">
+      <div className="relative w-full max-w-md bg-black border border-zinc-800 rounded-3xl p-5 flex flex-col space-y-4 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-          <div className="flex items-center space-x-2">
-            <span className="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <CheckCircle2 className="w-5 h-5" />
-            </span>
-            <div>
-              <h3 className="text-base font-bold text-white">Log to Digital Pantry</h3>
-              <p className="text-xs text-slate-400">Module 1 Vision & Inventory Input</p>
-            </div>
+        <div className="flex items-center justify-between pb-2 border-b border-zinc-900">
+          <div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Log to Digital Pantry</h3>
+            <p className="text-[11px] text-zinc-500">Record In-Stock Kitchen Produce</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg hover:bg-zinc-900 text-zinc-500 hover:text-white transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Detected Ingredient Display Card */}
         {!isChangingItem ? (
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/60 shadow-lg flex flex-col space-y-3">
+          <div className="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 flex flex-col space-y-2.5">
             <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3.5">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-3xl shadow-inner">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-2xl flex-shrink-0">
                   {selectedIngredient.emoji}
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h2 className="text-lg font-extrabold text-white">
+                    <h2 className="text-base font-bold text-white">
                       {selectedIngredient.nameMalay}
                     </h2>
                     {initialData.confidence && (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[11px] font-bold">
-                        {initialData.confidence}% Match
+                      <span className="px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-300 font-mono text-[10px] border border-zinc-800">
+                        {initialData.confidence}% AI
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-300 font-medium mt-0.5">
-                    {selectedIngredient.name} •{" "}
-                    <span className="text-emerald-400">{selectedIngredient.category}</span>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    {selectedIngredient.name} • {selectedIngredient.category}
                   </p>
-                  {initialData.engineUsed && (
-                    <div className="mt-1">
-                      <span className="inline-block px-2 py-0.5 rounded-md bg-slate-950/80 text-[10px] font-semibold text-slate-300 border border-slate-700/80">
-                        {initialData.engineUsed}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
 
               <button
                 onClick={() => setIsChangingItem(true)}
-                className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition-all border border-emerald-500/20"
+                className="text-xs text-zinc-400 hover:text-white underline"
               >
                 Change
               </button>
             </div>
 
-            {/* Culinary Note if available */}
             {initialData.culinaryNote && (
-              <div className="flex items-start space-x-2 p-2.5 rounded-xl bg-slate-950/60 text-xs text-slate-400 border border-slate-800">
-                <BookOpen className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                <p className="leading-relaxed">{initialData.culinaryNote}</p>
+              <div className="flex items-start space-x-2 p-2 rounded-lg bg-zinc-900/60 text-[11px] text-zinc-400 border border-zinc-900">
+                <BookOpen className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-zinc-500" />
+                <p className="leading-snug">{initialData.culinaryNote}</p>
               </div>
             )}
           </div>
@@ -184,88 +169,77 @@ export default function PantryLoggerModal({
           /* Search & Select Alternative Ingredient */
           <div className="flex flex-col space-y-2 max-h-56">
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-zinc-500" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search 75+ Malaysian ingredients..."
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                placeholder="Search Malaysian database..."
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-white font-mono"
                 autoFocus
               />
             </div>
 
-            <div className="overflow-y-auto space-y-1.5 pr-1 divide-y divide-slate-800/50">
+            <div className="overflow-y-auto space-y-1 pr-1 divide-y divide-zinc-900">
               {filteredIngredients.map((ing) => (
                 <button
                   key={ing.id}
+                  type="button"
                   onClick={() => handleSelectFromDb(ing)}
-                  className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800 transition-colors text-left"
+                  className="w-full p-2 flex items-center justify-between text-left hover:bg-zinc-900 rounded-xl transition-all"
                 >
-                  <div className="flex items-center space-x-2.5">
-                    <span className="text-xl">{ing.emoji}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg">{ing.emoji}</span>
                     <div>
                       <div className="text-xs font-bold text-white">{ing.nameMalay}</div>
-                      <div className="text-[10px] text-slate-400">{ing.name}</div>
+                      <div className="text-[10px] text-zinc-500">{ing.name}</div>
                     </div>
                   </div>
-                  <span className="text-[10px] text-emerald-400 font-mono px-2 py-0.5 rounded bg-emerald-500/10">
-                    {ing.defaultUnit}
-                  </span>
+                  <span className="text-[10px] text-zinc-500">{ing.defaultUnit}</span>
                 </button>
               ))}
             </div>
-
-            <button
-              onClick={() => setIsChangingItem(false)}
-              className="text-xs text-slate-400 hover:text-white py-1 text-center"
-            >
-              Cancel
-            </button>
           </div>
         )}
 
-        {/* Quantity and Malaysian Unit Selectors */}
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          {/* Quantity Selector */}
-          <div className="flex flex-col space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Quantity</label>
-            <div className="flex items-center bg-slate-950 border border-slate-700 rounded-xl overflow-hidden p-1">
+        {/* Quantity and Local Unit controls */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col space-y-1">
+            <label className="text-[11px] text-zinc-400 uppercase tracking-wider">Quantity</label>
+            <div className="flex items-center bg-zinc-950 border border-zinc-800 rounded-xl p-1">
               <button
                 type="button"
                 onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 active:scale-95"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-900 text-zinc-300 hover:text-white"
               >
-                <Minus className="w-4 h-4" />
+                <Minus className="w-3.5 h-3.5" />
               </button>
               <input
                 type="number"
-                min="0.1"
-                step="any"
+                min="1"
                 value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                className="w-full text-center bg-transparent text-sm font-bold text-white focus:outline-none"
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-full text-center bg-transparent text-xs font-bold text-white focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => setQuantity((prev) => prev + 1)}
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 active:scale-95"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-900 text-zinc-300 hover:text-white"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Localized Malaysian Unit Selector */}
-          <div className="flex flex-col space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Unit (Ukuran)</label>
+          <div className="flex flex-col space-y-1">
+            <label className="text-[11px] text-zinc-400 uppercase tracking-wider">Unit (Ukuran)</label>
             <select
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              className="w-full h-11 bg-slate-950 border border-slate-700 rounded-xl px-3 text-xs font-bold text-emerald-400 focus:outline-none focus:border-emerald-500"
+              className="w-full h-10 bg-zinc-950 border border-zinc-800 rounded-xl px-3 text-xs font-bold text-white focus:outline-none"
             >
               {COMMON_UNITS.map((u) => (
-                <option key={u} value={u} className="bg-slate-900 text-white font-normal">
+                <option key={u} value={u} className="bg-black text-white">
                   {u}
                 </option>
               ))}
@@ -273,13 +247,12 @@ export default function PantryLoggerModal({
           </div>
         </div>
 
-        {/* Confirm & Save Button */}
+        {/* Save Button */}
         <button
           onClick={handleSave}
-          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/25 active:scale-[0.98] transition-all flex items-center justify-center space-x-2"
+          className="w-full py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-mono font-bold text-xs tracking-wider uppercase transition-all flex items-center justify-center space-x-1.5"
         >
-          <Sparkles className="w-4 h-4 fill-current" />
-          <span>Save to My Digital Pantry</span>
+          <span>Save to Pantry</span>
         </button>
       </div>
     </div>
