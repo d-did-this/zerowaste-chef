@@ -129,8 +129,8 @@ export const PREDEFINED_PRODUCE_CATALOG: CnnProduceItem[] = [
     nameMalay: "Jagung",
     emoji: "🌽",
     category: "Grain",
-    indices: [987], // corn
-    imageNetLabel: "corn, ear (#987)",
+    indices: [987, 998], // corn, ear (#987, #998)
+    imageNetLabel: "corn, ear (#987/#998)",
   },
 ];
 
