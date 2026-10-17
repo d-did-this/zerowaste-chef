@@ -472,13 +472,19 @@ export async function runMobileNetV3Classification(
   const raw1001 = await predTensor.data();
   predTensor.dispose();
 
+  // 1. Global ImageNet-1K telemetry
+  const allIndexed = Array.from(raw1001).map((val, idx) => ({ idx, val }));
+  allIndexed.sort((a, b) => b.val - a.val);
+  const globalTop3 = allIndexed.slice(0, 3);
+  log(`[ImageNet Top Classes] ${globalTop3.map((g) => `#${g.idx} (${g.val.toFixed(1)})`).join(" | ")}`);
+
   // In MobileNet v3 1001 output tensor, ImageNet class index i (0..999) is at position i + 1
   const scoredItems = PREDEFINED_PRODUCE_CATALOG.map((item) => {
     const logit = Math.max(...item.indices.map((idx) => raw1001[idx + 1] ?? 0));
     return { ...item, logit };
   });
 
-  // Softmax over the 10 produce classes
+  // Softmax over the predefined classes
   const maxLogit = Math.max(...scoredItems.map((s) => s.logit));
   const exps = scoredItems.map((s) => Math.exp(s.logit - maxLogit));
   const sumExps = exps.reduce((acc, val) => acc + val, 0);
@@ -492,6 +498,7 @@ export async function runMobileNetV3Classification(
       confidence: Math.round(probs[idx] * 100),
       probability: probs[idx],
       rawLabel: item.imageNetLabel,
+      logit: item.logit,
       item,
     }))
     .sort((a, b) => b.probability - a.probability);
@@ -499,6 +506,12 @@ export async function runMobileNetV3Classification(
   const topMatch = ranked[0];
 
   log(`[Softmax Output] Candidate scores: ${ranked.slice(0, 3).map((r) => `${r.name}: ${r.confidence}%`).join(" | ")}`);
+
+  // Out-of-Distribution Warning for raw meats/seafood
+  if (topMatch.logit < 1.0) {
+    log(`[Out-of-Distribution] Weak produce signal (Logit: ${topMatch.logit.toFixed(1)}). Note: ImageNet-1K has no raw meat/fillet classes.`);
+  }
+
   log(`[Decision] MobileNet v3 identified: ${topMatch.name} (${topMatch.nameMalay}) at ${topMatch.confidence}% confidence.`);
 
   return {
