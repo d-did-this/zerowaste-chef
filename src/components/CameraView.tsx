@@ -13,14 +13,16 @@ import {
   PlusCircle,
   Cpu,
   X,
-  CheckCircle2,
 } from "lucide-react";
 import {
   PREDEFINED_CNN_INGREDIENTS,
-  matchPredefinedCnnIngredient,
-  matchIngredient,
   RawPrediction,
 } from "@/utils/ingredientClassifier";
+import {
+  runPredefinedCnnClassification,
+  PREDEFINED_PRODUCE_CATALOG,
+  MobileNetModel,
+} from "@/utils/cnnProduceScanner";
 import { findMatchingMalaysianIngredient } from "@/utils/malaysianIngredients";
 import {
   getAppSettings,
@@ -35,13 +37,6 @@ import PantryLoggerModal from "@/components/PantryLoggerModal";
 import PantryList from "@/components/PantryList";
 import SettingsModal from "@/components/SettingsModal";
 
-interface ModelType {
-  classify: (
-    img: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement,
-    topk?: number
-  ) => Promise<RawPrediction[]>;
-}
-
 interface ActiveResult {
   id?: string;
   name: string;
@@ -51,6 +46,13 @@ interface ActiveResult {
   confidence: number;
   rawLabel: string;
   engineUsed: string;
+  topRankings?: Array<{
+    name: string;
+    nameMalay: string;
+    emoji: string;
+    confidence: number;
+    rawLabel: string;
+  }>;
   topPredictions?: RawPrediction[];
   suggestedQuantity?: number;
   suggestedUnit?: string;
@@ -60,13 +62,12 @@ interface ActiveResult {
 export default function CameraView() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const modelRef = useRef<ModelType | null>(null);
+  const modelRef = useRef<MobileNetModel | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // States
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [cnnStatus, setCnnStatus] = useState<"loading" | "ready" | "error">("loading");
-  const [cnnError, setCnnError] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
@@ -103,26 +104,23 @@ export default function CameraView() {
   const initCnnModel = useCallback(async () => {
     try {
       setCnnStatus("loading");
-      setCnnError(null);
       const tf = await import("@tensorflow/tfjs");
       await tf.ready();
       const mobilenet = await import("@tensorflow-models/mobilenet");
-      
-      // Load mobilenet v2 alpha 1.0
+
       try {
         const loaded = await mobilenet.load({ version: 2, alpha: 1.0 });
-        modelRef.current = loaded;
+        modelRef.current = loaded as unknown as MobileNetModel;
         setCnnStatus("ready");
       } catch (v2Err) {
         console.warn("MobileNet v2 load failed, attempting v1:", v2Err);
         const fallbackLoaded = await mobilenet.load({ version: 1, alpha: 1.0 });
-        modelRef.current = fallbackLoaded;
+        modelRef.current = fallbackLoaded as unknown as MobileNetModel;
         setCnnStatus("ready");
       }
     } catch (err: unknown) {
       console.warn("Edge MobileNet init error:", err);
       setCnnStatus("error");
-      setCnnError(err instanceof Error ? err.message : "Failed to load CNN weights");
     }
   }, []);
 
@@ -209,7 +207,7 @@ export default function CameraView() {
     setIsAnalyzing(false);
   };
 
-  // 3. Robust Classification Pipeline (Zero Hanging, Direct Canvas Support)
+  // 3. Process Frame with Dedicated Produce CNN Head / Cloud Gemini
   const processFrame = async (
     source: HTMLCanvasElement | HTMLImageElement,
     previewDataUrl: string
@@ -222,14 +220,14 @@ export default function CameraView() {
 
     try {
       // -------------------------------------------------------------
-      // 1. CNN ONLY (Objective b: Predefined 10 Produce Items)
+      // 1. CNN ONLY MODE (UTeM Objective b: Predefined Produce Dataset)
       // -------------------------------------------------------------
       if (activeEngine === "cnn") {
         if (!modelRef.current) {
           if (cnnStatus === "loading") {
             setActiveResult({
-              name: "CNN Still Loading",
-              nameMalay: "Model Sedang Dimuat",
+              name: "CNN Downloading Weights",
+              nameMalay: "Memuatkan Model CNN",
               emoji: "⏳",
               confidence: 0,
               rawLabel: "mobilenet_loading",
@@ -251,46 +249,29 @@ export default function CameraView() {
           }
         }
 
-        // Direct classification on canvas/image (Super fast: ~40ms, NO dataUrl conversion hang)
-        const preds = await modelRef.current.classify(source, 5);
-        const matched = matchPredefinedCnnIngredient(preds, 0.05) || matchIngredient(preds, 0.05);
+        // Multi-crop ensemble + color prior + masked produce logit classification
+        const cnnResult = await runPredefinedCnnClassification(modelRef.current, source);
+        const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name);
 
-        if (matched) {
-          const local = findMatchingMalaysianIngredient(matched.ingredient.name);
-          setActiveResult({
-            id: matched.ingredient.id,
-            name: matched.ingredient.name,
-            nameMalay: matched.ingredient.nameMalay || (local ? local.nameMalay : matched.ingredient.name),
-            emoji: matched.ingredient.emoji,
-            category: matched.ingredient.category,
-            confidence: matched.confidence,
-            rawLabel: matched.rawLabel,
-            topPredictions: preds,
-            engineUsed: "Client-Side CNN (MobileNet)",
-            suggestedQuantity: 1,
-            suggestedUnit: matched.ingredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
-            culinaryNote: `Detected client-side via MobileNet CNN. ImageNet match: "${matched.rawLabel}". (Objective b Predefined Dataset).`,
-          });
-        } else {
-          const topRaw = preds[0];
-          setActiveResult({
-            name: topRaw ? topRaw.className.split(",")[0] : "Not in Predefined 10",
-            nameMalay: "Tiada Dalam 10 Predefined CNN",
-            emoji: "🔍",
-            confidence: topRaw ? Math.round(topRaw.probability * 100) : 0,
-            rawLabel: topRaw ? topRaw.className : "unknown",
-            topPredictions: preds,
-            engineUsed: "Client-Side CNN (Outside Predefined)",
-            suggestedQuantity: 1,
-            suggestedUnit: "pcs",
-            culinaryNote: "MobileNet CNN only classifies the 10 predefined produce items (Apple, Banana, Broccoli, Cabbage, Bell Pepper, Cucumber, Orange, Lemon, Mushroom, Sweet Corn). For local Malaysian items like Cili Padi or Serai, switch to Hybrid or Gemini mode.",
-          });
-        }
+        setActiveResult({
+          id: cnnResult.topIngredient.id,
+          name: cnnResult.topIngredient.name,
+          nameMalay: cnnResult.topIngredient.nameMalay || (local ? local.nameMalay : cnnResult.topIngredient.name),
+          emoji: cnnResult.topIngredient.emoji,
+          category: cnnResult.topIngredient.category,
+          confidence: cnnResult.confidence,
+          rawLabel: cnnResult.rawLabel,
+          topRankings: cnnResult.topRankings,
+          engineUsed: "Client-Side CNN (Predefined Produce Head)",
+          suggestedQuantity: 1,
+          suggestedUnit: cnnResult.topIngredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
+          culinaryNote: `Classified client-side via MobileNet CNN. ImageNet Produce match: "${cnnResult.rawLabel}". (Fulfills UTeM Objective b).`,
+        });
         return;
       }
 
       // -------------------------------------------------------------
-      // 2. GEMINI ONLY (75+ Malaysian Database)
+      // 2. GEMINI ONLY MODE (75+ Malaysian Culinary Database)
       // -------------------------------------------------------------
       if (activeEngine === "gemini") {
         try {
@@ -333,34 +314,29 @@ export default function CameraView() {
       }
 
       // -------------------------------------------------------------
-      // 3. HYBRID MODE (Local CNN first, escalate to Gemini)
+      // 3. HYBRID MODE (Fast Local CNN first, escalate to Gemini)
       // -------------------------------------------------------------
       if (activeEngine === "hybrid") {
-        let preds: RawPrediction[] = [];
-        let cnnMatched = null;
-
         if (modelRef.current) {
-          preds = await modelRef.current.classify(source, 5);
-          cnnMatched = matchPredefinedCnnIngredient(preds, 0.30) || matchIngredient(preds, 0.30);
-        }
-
-        if (cnnMatched && cnnMatched.confidence >= 30) {
-          const local = findMatchingMalaysianIngredient(cnnMatched.ingredient.name);
-          setActiveResult({
-            id: cnnMatched.ingredient.id,
-            name: cnnMatched.ingredient.name,
-            nameMalay: cnnMatched.ingredient.nameMalay || (local ? local.nameMalay : cnnMatched.ingredient.name),
-            emoji: cnnMatched.ingredient.emoji,
-            category: cnnMatched.ingredient.category,
-            confidence: cnnMatched.confidence,
-            rawLabel: cnnMatched.rawLabel,
-            topPredictions: preds,
-            engineUsed: "Hybrid: CNN MobileNet (Instant Local)",
-            suggestedQuantity: 1,
-            suggestedUnit: cnnMatched.ingredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
-            culinaryNote: `Matched locally with CNN MobileNet (${cnnMatched.confidence}%). Instant edge execution with 0 API delay.`,
-          });
-          return;
+          const cnnResult = await runPredefinedCnnClassification(modelRef.current, source);
+          if (cnnResult.confidence >= 45) {
+            const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name);
+            setActiveResult({
+              id: cnnResult.topIngredient.id,
+              name: cnnResult.topIngredient.name,
+              nameMalay: cnnResult.topIngredient.nameMalay || (local ? local.nameMalay : cnnResult.topIngredient.name),
+              emoji: cnnResult.topIngredient.emoji,
+              category: cnnResult.topIngredient.category,
+              confidence: cnnResult.confidence,
+              rawLabel: cnnResult.rawLabel,
+              topRankings: cnnResult.topRankings,
+              engineUsed: "Hybrid: CNN MobileNet (Instant Local)",
+              suggestedQuantity: 1,
+              suggestedUnit: cnnResult.topIngredient.defaultUnit || (local ? local.defaultUnit : "pcs"),
+              culinaryNote: `Matched locally with CNN MobileNet (${cnnResult.confidence}%). Instant edge execution with 0 API delay.`,
+            });
+            return;
+          }
         }
 
         // Auto-escalate to Gemini
@@ -382,7 +358,6 @@ export default function CameraView() {
               setActiveResult({
                 ...json.data,
                 rawLabel: json.data.name,
-                topPredictions: preds.length > 0 ? preds : undefined,
                 engineUsed: "Hybrid: Gemini Vision (Cloud Escalated)",
               });
               return;
@@ -390,22 +365,6 @@ export default function CameraView() {
           }
         } catch (escalateErr) {
           console.warn("Hybrid Gemini escalation error:", escalateErr);
-        }
-
-        // Fallback to top CNN prediction if Gemini was offline
-        if (preds.length > 0) {
-          const topRaw = preds[0];
-          setActiveResult({
-            name: topRaw.className.split(",")[0],
-            nameMalay: topRaw.className.split(",")[0],
-            emoji: "🥗",
-            confidence: Math.round(topRaw.probability * 100),
-            rawLabel: topRaw.className,
-            topPredictions: preds,
-            engineUsed: "Hybrid: CNN Fallback",
-            culinaryNote: "Identified via Client-Side MobileNet CNN fallback.",
-          });
-          return;
         }
 
         setActiveResult({
@@ -450,16 +409,15 @@ export default function CameraView() {
     const startX = (video.videoWidth - size) / 2;
     const startY = (video.videoHeight - size) / 2;
 
-    // Apply slight contrast & brightness enhancement to highlight produce contours
-    ctx.filter = "contrast(1.08) brightness(1.02)";
+    // Apply color contrast & saturation enhancement
+    ctx.filter = "contrast(1.12) brightness(1.02) saturate(1.18)";
     ctx.drawImage(video, startX, startY, size, size, 0, 0, 640, 640);
 
     const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-    // Directly pass the canvas to classification (synchronous, 0 latency, no dataUrl onload hang!)
     processFrame(canvas, dataUrl);
   };
 
-  // 5. Handle File Upload (Safely handles image loading with timeout)
+  // 5. Handle File Upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -576,7 +534,7 @@ export default function CameraView() {
             <div className="flex items-center space-x-1.5">
               <Cpu className="w-4 h-4 text-blue-400" />
               <span className="text-xs font-bold text-blue-300">
-                UTeM Objective (b) • 10 Predefined CNN Staples
+                UTeM Objective (b) • 10 Predefined CNN Produce
               </span>
             </div>
             {/* CNN Status Badge */}
@@ -601,10 +559,10 @@ export default function CameraView() {
             </span>
           </div>
           <p className="text-[11px] text-slate-300 leading-relaxed">
-            Running 100% client-side via TensorFlow.js MobileNet. Scan any of these 10 predefined staples:
+            Target domain constrained strictly to the 10 produce classes via client-side MobileNet logit masking:
           </p>
           <div className="flex flex-wrap gap-1.5 pt-1">
-            {PREDEFINED_CNN_INGREDIENTS.map((item) => (
+            {PREDEFINED_PRODUCE_CATALOG.slice(0, 10).map((item) => (
               <span
                 key={item.id}
                 className="px-2 py-0.5 rounded-lg bg-blue-950/80 border border-blue-800/60 text-[11px] text-blue-200 font-semibold"
@@ -624,7 +582,7 @@ export default function CameraView() {
               Hybrid Vision Pipeline (Recommended)
             </span>
             <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
-              Instant CNN recognition (&lt;50ms) for 10 common staples. Automatically escalates to Gemini Vision for 75+ Malaysian culinary items (Cili Padi, Lemongrass, Lengkuas, etc.).
+              Instant CNN recognition (&lt;50ms) for common produce. Automatically escalates to Gemini Vision for 75+ Malaysian culinary items (Cili Padi, Lemongrass, Lengkuas, etc.).
             </p>
           </div>
         </div>
@@ -671,7 +629,7 @@ export default function CameraView() {
             </span>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">
               {settings.preferredEngine === "cnn"
-                ? "CNN Only (10 Staples)"
+                ? "CNN Produce Head (10)"
                 : settings.preferredEngine === "gemini"
                 ? "Gemini (75+ Local)"
                 : "Hybrid Vision Mode"}
@@ -774,7 +732,7 @@ export default function CameraView() {
               </div>
               <p className="mt-3 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-[11px] font-medium text-slate-300 border border-slate-800">
                 {settings.preferredEngine === "cnn"
-                  ? "Place 1 of 10 predefined staples inside box"
+                  ? "Center produce inside box"
                   : "Place kitchen ingredient inside box"}
               </p>
             </div>
@@ -795,14 +753,14 @@ export default function CameraView() {
               <div className="text-center px-4">
                 <h4 className="text-sm font-bold text-white">
                   {settings.preferredEngine === "cnn"
-                    ? "Running Client-Side CNN"
+                    ? "Evaluating Produce with CNN"
                     : settings.preferredEngine === "gemini"
                     ? "Analyzing with Gemini Vision AI"
                     : "Running Hybrid Classification"}
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {settings.preferredEngine === "cnn"
-                    ? "Classifying ImageNet produce classes in browser..."
+                    ? "Multi-scale crops + masked produce softmax..."
                     : settings.preferredEngine === "gemini"
                     ? "Comparing against 75+ Malaysian culinary staples..."
                     : "Testing local CNN & Malaysian vision..."}
@@ -913,7 +871,7 @@ export default function CameraView() {
       </div>
 
       {/* ======================================================== */}
-      {/* INLINE RESULT CARD (Simple, Direct, No Blocking Popups) */}
+      {/* INLINE RESULT CARD (Produce Domain Only, No Crates/Dogs) */}
       {/* ======================================================== */}
       {activeResult && (
         <div className="p-4 rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl flex flex-col space-y-3 animate-in fade-in zoom-in-95 duration-200">
@@ -953,21 +911,22 @@ export default function CameraView() {
             </button>
           </div>
 
-          {/* Raw MobileNet Predictions List (Proves CNN ImageNet classes) */}
-          {activeResult.topPredictions && activeResult.topPredictions.length > 0 && (
+          {/* Top Produce Rankings Breakdown */}
+          {activeResult.topRankings && activeResult.topRankings.length > 0 && (
             <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col space-y-1.5 text-xs">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                <span>Top Raw ImageNet Predictions</span>
-                <span className="text-blue-400 font-mono text-[10px]">MobileNet v2</span>
+                <span>Top Produce Head Rankings</span>
+                <span className="text-blue-400 font-mono text-[10px]">MobileNet Logits</span>
               </div>
-              <div className="space-y-1">
-                {activeResult.topPredictions.slice(0, 3).map((p, idx) => (
+              <div className="space-y-1.5 pt-0.5">
+                {activeResult.topRankings.slice(0, 3).map((p, idx) => (
                   <div key={idx} className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-300 capitalize font-medium">
-                      {idx + 1}. {p.className}
+                    <span className="text-slate-300 font-medium flex items-center space-x-1.5">
+                      <span>{p.emoji}</span>
+                      <span>{p.name} ({p.nameMalay})</span>
                     </span>
                     <span className="font-mono font-bold text-emerald-400">
-                      {(p.probability * 100).toFixed(1)}%
+                      {p.confidence}%
                     </span>
                   </div>
                 ))}
