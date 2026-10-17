@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Camera,
   RefreshCw,
@@ -45,7 +47,12 @@ interface LogEntry {
   text: string;
 }
 
-export default function CameraView() {
+interface CameraViewProps {
+  engine?: "cnn_v2" | "cnn_v3" | "hybrid" | "gemini";
+}
+
+export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
+  const searchParams = useSearchParams();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const modelV2Ref = useRef<MobileNetModel | null>(null);
@@ -71,7 +78,7 @@ export default function CameraView() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   // App Settings
-  const [settings, setSettings] = useState<AppSettings>({ apiKey: "", preferredEngine: "cnn_v2" });
+  const [settings, setSettings] = useState<AppSettings>({ apiKey: "", preferredEngine: engine });
 
   // Append to terminal logs
   const addLog = useCallback((text: string) => {
@@ -107,8 +114,11 @@ export default function CameraView() {
     if (loaded.preferredEngine === "cnn") {
       loaded.preferredEngine = "cnn_v2";
     }
+    if (engine) {
+      loaded.preferredEngine = engine;
+    }
     setSettings(loaded);
-  }, []);
+  }, [engine]);
 
   // Quick Mode Switcher Handler
   const handleModeChange = (mode: "cnn_v2" | "cnn_v3" | "hybrid" | "gemini") => {
@@ -270,12 +280,12 @@ export default function CameraView() {
     setCapturedImage(previewDataUrl);
     setActiveResult(null);
 
-    const activeEngine = settings.preferredEngine || "cnn_v2";
+    const activeEngine = engine || settings.preferredEngine || "cnn_v2";
     addLog(`[Scan] Analyzing with [${activeEngine.toUpperCase().replace("_", " ")}]...`);
 
     try {
       // 1. CNN v2 MODE
-      if (activeEngine === "cnn_v2" || activeEngine === "cnn") {
+      if (activeEngine === "cnn_v2") {
         if (!modelV2Ref.current) {
           addLog("[CNN v2 Error] Model not ready yet.");
           setActiveResult({
@@ -474,28 +484,73 @@ export default function CameraView() {
     }
   };
 
+  // Automated Testbed Benchmark Runner
+  const testImageParam = searchParams?.get("testImage");
+  const benchmarkRanRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!testImageParam || benchmarkRanRef.current === testImageParam) return;
+
+    const actEngine = engine || settings.preferredEngine || "cnn_v2";
+    const isReady =
+      actEngine === "cnn_v2"
+        ? v2Status === "ready"
+        : actEngine === "cnn_v3"
+        ? v3Status === "ready"
+        : actEngine === "hybrid"
+        ? v2Status === "ready" || v3Status === "ready"
+        : true;
+
+    if (!isReady) return;
+
+    benchmarkRanRef.current = testImageParam;
+    addLog(`[Testbed] Auto-testing benchmark image: ${testImageParam}`);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    let loaded = false;
+    const runInference = () => {
+      if (!loaded) {
+        loaded = true;
+        setCapturedImage(testImageParam);
+        processFrame(img, testImageParam);
+      }
+    };
+    img.onload = runInference;
+    img.onerror = () => {
+      if (!loaded) {
+        loaded = true;
+        addLog(`[Testbed Error] Failed to load benchmark image: ${testImageParam}`);
+      }
+    };
+    img.src = testImageParam;
+    if (img.complete) runInference();
+  }, [testImageParam, v2Status, v3Status, engine, settings.preferredEngine, addLog]);
+
   // Status helper for active engine
   const isEngineLoading = () => {
-    if (settings.preferredEngine === "cnn_v2" || settings.preferredEngine === "cnn") {
+    const actEngine = engine || settings.preferredEngine || "cnn_v2";
+    if (actEngine === "cnn_v2") {
       return v2Status === "loading";
     }
-    if (settings.preferredEngine === "cnn_v3") {
+    if (actEngine === "cnn_v3") {
       return v3Status === "loading";
     }
-    if (settings.preferredEngine === "hybrid") {
+    if (actEngine === "hybrid") {
       return v2Status === "loading" && v3Status === "loading";
     }
     return false;
   };
 
   const getEngineStatus = () => {
-    if (settings.preferredEngine === "cnn_v2" || settings.preferredEngine === "cnn") {
+    const actEngine = engine || settings.preferredEngine || "cnn_v2";
+    if (actEngine === "cnn_v2") {
       return v2Status;
     }
-    if (settings.preferredEngine === "cnn_v3") {
+    if (actEngine === "cnn_v3") {
       return v3Status;
     }
-    if (settings.preferredEngine === "hybrid") {
+    if (actEngine === "hybrid") {
       return v2Status === "ready" || v3Status === "ready" ? "ready" : "loading";
     }
     return "ready";
@@ -563,52 +618,59 @@ export default function CameraView() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col space-y-3 font-mono text-zinc-100">
       {/* ======================================================== */}
-      {/* FOUR CLEAN TABS */}
+      {/* FIVE CLEAN NAVIGATION TABS */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-4 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl">
-        <button
-          onClick={() => handleModeChange("cnn_v2")}
+      <div className="grid grid-cols-5 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl text-center">
+        <Link
+          href="/v2"
           className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            settings.preferredEngine === "cnn_v2" || settings.preferredEngine === "cnn"
+            (engine || settings.preferredEngine) === "cnn_v2"
               ? "bg-white text-black"
               : "text-zinc-400 hover:text-white"
           }`}
         >
           CNN v2
-        </button>
+        </Link>
 
-        <button
-          onClick={() => handleModeChange("cnn_v3")}
+        <Link
+          href="/v3"
           className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            settings.preferredEngine === "cnn_v3"
+            (engine || settings.preferredEngine) === "cnn_v3"
               ? "bg-white text-black"
               : "text-zinc-400 hover:text-white"
           }`}
         >
           CNN v3
-        </button>
+        </Link>
 
-        <button
-          onClick={() => handleModeChange("hybrid")}
+        <Link
+          href="/hybrid"
           className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            settings.preferredEngine === "hybrid"
+            (engine || settings.preferredEngine) === "hybrid"
               ? "bg-white text-black"
               : "text-zinc-400 hover:text-white"
           }`}
         >
           HYBRID
-        </button>
+        </Link>
 
-        <button
-          onClick={() => handleModeChange("gemini")}
+        <Link
+          href="/gemini"
           className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            settings.preferredEngine === "gemini"
+            (engine || settings.preferredEngine) === "gemini"
               ? "bg-white text-black"
               : "text-zinc-400 hover:text-white"
           }`}
         >
           GEMINI
-        </button>
+        </Link>
+
+        <Link
+          href="/tester"
+          className="py-2 px-1 text-xs font-semibold rounded-lg transition-all text-zinc-400 hover:text-white hover:bg-zinc-900"
+        >
+          TESTER
+        </Link>
       </div>
 
       {/* ======================================================== */}
@@ -628,7 +690,7 @@ export default function CameraView() {
               }`}
             />
             <span className="text-[10px] uppercase text-zinc-400">
-              {settings.preferredEngine.replace("_", " ")} mode
+              {(engine || settings.preferredEngine).replace("_", " ")} mode
             </span>
           </div>
           <div className="text-[10px] text-zinc-500 font-mono">

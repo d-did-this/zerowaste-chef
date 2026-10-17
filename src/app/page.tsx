@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import CameraView from "@/components/CameraView";
 
 export default function Home() {
@@ -12,7 +12,9 @@ export default function Home() {
           <span className="text-[10px] font-mono text-zinc-500">UTeM Group 23</span>
         </header>
 
-        <CameraView />
+        <Suspense fallback={<div className="text-zinc-500 font-mono text-xs text-center py-10">Loading Scanner...</div>}>
+          <CameraView engine="cnn_v2" />
+        </Suspense>
       </div>
     </main>
   );
