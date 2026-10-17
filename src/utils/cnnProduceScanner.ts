@@ -388,3 +388,84 @@ export async function runPredefinedCnnClassification(
     foregroundMetrics: metrics,
   };
 }
+
+/**
+ * Runs MobileNet v3 Classification with 10-Class Softmax
+ */
+export async function runMobileNetV3Classification(
+  model: tf.GraphModel,
+  source: HTMLCanvasElement | HTMLVideoElement | HTMLImageElement,
+  onLog?: (msg: string) => void
+): Promise<ProduceClassificationResult> {
+  const log = (msg: string) => {
+    if (onLog) onLog(msg);
+  };
+
+  log("[Preprocessing] Capturing crop at native 224x224 resolution...");
+  const crop = createCroppedCanvas(source, 0.85, 224);
+
+  // Optical metrics for terminal telemetry
+  const ctx = crop.getContext("2d");
+  const metrics = ctx
+    ? extractForegroundFeatures(ctx, 224, 224)
+    : { peakHue: 0, peakSat: 0, avgVal: 0.5, elongation: 1.0, colorLabel: "Neutral", shapeLabel: "Compact", fgPixelCount: 0 };
+
+  log(`[Segmentation] Analyzed ${metrics.fgPixelCount} chromatic pixels.`);
+  log(`[Optical Sensor] Dominant Hue: ${metrics.colorLabel} (${metrics.peakHue}°), Sat=${Math.round(metrics.peakSat * 100)}%, Brightness=${Math.round(metrics.avgVal * 100)}%.`);
+  log(`[Geometry Sensor] Foreground Shape: ${metrics.shapeLabel}.`);
+
+  log("[CNN Core] Executing MobileNet v3 neural feedforward on convolutional layers...");
+  const tf = await import("@tensorflow/tfjs");
+
+  const predTensor = tf.tidy(() => {
+    const rawTensor = tf.browser.fromPixels(crop);
+    const floatTensor = tf.cast(rawTensor, "float32").div(255.0);
+    const batched = floatTensor.expandDims(0);
+    return model.predict(batched) as tf.Tensor;
+  });
+
+  const raw1001 = await predTensor.data();
+  predTensor.dispose();
+
+  // In MobileNet v3 1001 output tensor, ImageNet class index i (0..999) is at position i + 1
+  const scoredItems = PREDEFINED_PRODUCE_CATALOG.map((item) => {
+    const logit = Math.max(...item.indices.map((idx) => raw1001[idx + 1] ?? 0));
+    return { ...item, logit };
+  });
+
+  // Softmax over the 10 produce classes
+  const maxLogit = Math.max(...scoredItems.map((s) => s.logit));
+  const exps = scoredItems.map((s) => Math.exp(s.logit - maxLogit));
+  const sumExps = exps.reduce((acc, val) => acc + val, 0);
+  const probs = exps.map((e) => e / sumExps);
+
+  const ranked = scoredItems
+    .map((item, idx) => ({
+      name: item.name,
+      nameMalay: item.nameMalay,
+      emoji: item.emoji,
+      confidence: Math.round(probs[idx] * 100),
+      probability: probs[idx],
+      rawLabel: item.imageNetLabel,
+      item,
+    }))
+    .sort((a, b) => b.probability - a.probability);
+
+  const topMatch = ranked[0];
+
+  log(`[Softmax Output] Candidate scores: ${ranked.slice(0, 3).map((r) => `${r.name}: ${r.confidence}%`).join(" | ")}`);
+  log(`[Decision] MobileNet v3 identified: ${topMatch.name} (${topMatch.nameMalay}) at ${topMatch.confidence}% confidence.`);
+
+  return {
+    topIngredient: topMatch.item,
+    confidence: topMatch.confidence,
+    rawLabel: topMatch.rawLabel,
+    topRankings: ranked.slice(0, 3).map((r) => ({
+      name: r.name,
+      nameMalay: r.nameMalay,
+      emoji: r.emoji,
+      confidence: r.confidence,
+    })),
+    foregroundMetrics: metrics,
+  };
+}

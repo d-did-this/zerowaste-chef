@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 import {
   runPredefinedCnnClassification,
+  runMobileNetV3Classification,
   MobileNetModel,
 } from "@/utils/cnnProduceScanner";
+import type * as tfType from "@tensorflow/tfjs";
 import { findMatchingMalaysianIngredient } from "@/utils/malaysianIngredients";
 import {
   getAppSettings,
@@ -46,13 +48,15 @@ interface LogEntry {
 export default function CameraView() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const modelRef = useRef<MobileNetModel | null>(null);
+  const modelV2Ref = useRef<MobileNetModel | null>(null);
+  const modelV3Ref = useRef<tfType.GraphModel | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const terminalContainerRef = useRef<HTMLDivElement>(null);
 
   // States
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
-  const [cnnStatus, setCnnStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [v2Status, setV2Status] = useState<"loading" | "ready" | "error">("loading");
+  const [v3Status, setV3Status] = useState<"idle" | "loading" | "ready" | "error">("loading");
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
@@ -67,7 +71,7 @@ export default function CameraView() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   // App Settings
-  const [settings, setSettings] = useState<AppSettings>({ apiKey: "", preferredEngine: "cnn" });
+  const [settings, setSettings] = useState<AppSettings>({ apiKey: "", preferredEngine: "cnn_v2" });
 
   // Append to terminal logs
   const addLog = useCallback((text: string) => {
@@ -99,46 +103,83 @@ export default function CameraView() {
 
   // Load Settings on Mount
   useEffect(() => {
-    setSettings(getAppSettings());
+    const loaded = getAppSettings();
+    if (loaded.preferredEngine === "cnn") {
+      loaded.preferredEngine = "cnn_v2";
+    }
+    setSettings(loaded);
   }, []);
 
   // Quick Mode Switcher Handler
-  const handleModeChange = (mode: "cnn" | "hybrid" | "gemini") => {
+  const handleModeChange = (mode: "cnn_v2" | "cnn_v3" | "hybrid" | "gemini") => {
     const updated = saveAppSettings({ preferredEngine: mode });
     setSettings(updated);
     setActiveResult(null);
-    addLog(`[Mode] Switched to ${mode.toUpperCase()}`);
+    addLog(`[Mode] Switched to ${mode.toUpperCase().replace("_", " ")}`);
   };
 
-  // 1. Initialize TensorFlow.js MobileNet
-  const initCnnModel = useCallback(async () => {
+  // 1A. Initialize TensorFlow.js MobileNet v2
+  const initV2Model = useCallback(async () => {
     try {
-      setCnnStatus("loading");
-      addLog("[CNN] Loading TensorFlow.js MobileNet...");
+      setV2Status("loading");
+      addLog("[CNN v2] Loading MobileNet v2...");
       const tf = await import("@tensorflow/tfjs");
       await tf.ready();
       const mobilenet = await import("@tensorflow-models/mobilenet");
 
       try {
         const loaded = await mobilenet.load({ version: 2, alpha: 1.0 });
-        modelRef.current = loaded as unknown as MobileNetModel;
-        setCnnStatus("ready");
-        addLog("[CNN] MobileNet v2 loaded.");
+        modelV2Ref.current = loaded as unknown as MobileNetModel;
+        setV2Status("ready");
+        addLog("[CNN v2] MobileNet v2 loaded.");
       } catch {
         const fallbackLoaded = await mobilenet.load({ version: 1, alpha: 1.0 });
-        modelRef.current = fallbackLoaded as unknown as MobileNetModel;
-        setCnnStatus("ready");
-        addLog("[CNN] MobileNet v1 loaded (fallback).");
+        modelV2Ref.current = fallbackLoaded as unknown as MobileNetModel;
+        setV2Status("ready");
+        addLog("[CNN v2] MobileNet v1 loaded (fallback).");
       }
     } catch (err: unknown) {
-      setCnnStatus("error");
-      addLog("[CNN Error] " + (err instanceof Error ? err.message : String(err)));
+      setV2Status("error");
+      addLog("[CNN v2 Error] " + (err instanceof Error ? err.message : String(err)));
+    }
+  }, [addLog]);
+
+  // 1B. Initialize TensorFlow.js MobileNet v3
+  const initV3Model = useCallback(async () => {
+    try {
+      setV3Status("loading");
+      addLog("[CNN v3] Loading MobileNet v3 Large from TFHub...");
+      const tf = await import("@tensorflow/tfjs");
+      await tf.ready();
+
+      try {
+        const loaded = await tf.loadGraphModel(
+          "https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_large_100_224/classification/5/default/1",
+          { fromTFHub: true }
+        );
+        modelV3Ref.current = loaded;
+        setV3Status("ready");
+        addLog("[CNN v3] MobileNet v3 Large loaded.");
+      } catch {
+        addLog("[CNN v3] Large failed, trying MobileNet v3 Small...");
+        const fallback = await tf.loadGraphModel(
+          "https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_small_100_224/classification/5/default/1",
+          { fromTFHub: true }
+        );
+        modelV3Ref.current = fallback;
+        setV3Status("ready");
+        addLog("[CNN v3] MobileNet v3 Small loaded.");
+      }
+    } catch (err: unknown) {
+      setV3Status("error");
+      addLog("[CNN v3 Error] " + (err instanceof Error ? err.message : String(err)));
     }
   }, [addLog]);
 
   useEffect(() => {
-    initCnnModel();
-  }, [initCnnModel]);
+    initV2Model();
+    initV3Model();
+  }, [initV2Model, initV3Model]);
 
   // 2. Start Camera Stream
   const startCamera = useCallback(async () => {
@@ -229,26 +270,26 @@ export default function CameraView() {
     setCapturedImage(previewDataUrl);
     setActiveResult(null);
 
-    const activeEngine = settings.preferredEngine || "cnn";
-    addLog(`[Scan] Analyzing with [${activeEngine.toUpperCase()}]...`);
+    const activeEngine = settings.preferredEngine || "cnn_v2";
+    addLog(`[Scan] Analyzing with [${activeEngine.toUpperCase().replace("_", " ")}]...`);
 
     try {
-      // 1. CNN ONLY MODE
-      if (activeEngine === "cnn") {
-        if (!modelRef.current) {
-          addLog("[CNN Error] Model not ready yet.");
+      // 1. CNN v2 MODE
+      if (activeEngine === "cnn_v2" || activeEngine === "cnn") {
+        if (!modelV2Ref.current) {
+          addLog("[CNN v2 Error] Model not ready yet.");
           setActiveResult({
             name: "Model Loading",
             nameMalay: "Sila tunggu",
             emoji: "⏳",
             confidence: 0,
-            engineUsed: "CNN",
+            engineUsed: "CNN v2",
           });
           return;
         }
 
         const cnnResult = await runPredefinedCnnClassification(
-          modelRef.current,
+          modelV2Ref.current,
           source,
           (msg) => addLog(msg)
         );
@@ -261,12 +302,45 @@ export default function CameraView() {
           emoji: cnnResult.topIngredient.emoji,
           confidence: cnnResult.confidence,
           topRankings: cnnResult.topRankings,
-          engineUsed: "CNN (MobileNet)",
+          engineUsed: "CNN (MobileNet v2)",
         });
         return;
       }
 
-      // 2. GEMINI ONLY MODE
+      // 2. CNN v3 MODE
+      if (activeEngine === "cnn_v3") {
+        if (!modelV3Ref.current) {
+          addLog("[CNN v3 Error] Model not ready yet.");
+          setActiveResult({
+            name: "Model Loading",
+            nameMalay: "Sila tunggu",
+            emoji: "⏳",
+            confidence: 0,
+            engineUsed: "CNN v3",
+          });
+          return;
+        }
+
+        const v3Result = await runMobileNetV3Classification(
+          modelV3Ref.current,
+          source,
+          (msg) => addLog(msg)
+        );
+
+        const local = findMatchingMalaysianIngredient(v3Result.topIngredient.name);
+
+        setActiveResult({
+          name: v3Result.topIngredient.name,
+          nameMalay: v3Result.topIngredient.nameMalay || (local ? local.nameMalay : v3Result.topIngredient.name),
+          emoji: v3Result.topIngredient.emoji,
+          confidence: v3Result.confidence,
+          topRankings: v3Result.topRankings,
+          engineUsed: "CNN (MobileNet v3)",
+        });
+        return;
+      }
+
+      // 3. GEMINI ONLY MODE
       if (activeEngine === "gemini") {
         addLog("[Gemini] Requesting cloud API...");
         try {
@@ -310,30 +384,39 @@ export default function CameraView() {
         return;
       }
 
-      // 3. HYBRID MODE
+      // 4. HYBRID MODE (CNN First -> Gemini Escalation)
       if (activeEngine === "hybrid") {
         addLog("[Hybrid] Running local CNN...");
-        if (modelRef.current) {
-          const cnnResult = await runPredefinedCnnClassification(
-            modelRef.current,
+        // Prefer v3 if ready, otherwise v2
+        let cnnResult = null;
+        if (modelV3Ref.current) {
+          cnnResult = await runMobileNetV3Classification(
+            modelV3Ref.current,
             source,
             (msg) => addLog(msg)
           );
-          if (cnnResult.confidence >= 50) {
-            addLog(`[Hybrid] High CNN confidence (${cnnResult.confidence}%). Accepted.`);
-            const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name);
-            setActiveResult({
-              name: cnnResult.topIngredient.name,
-              nameMalay: cnnResult.topIngredient.nameMalay || (local ? local.nameMalay : cnnResult.topIngredient.name),
-              emoji: cnnResult.topIngredient.emoji,
-              confidence: cnnResult.confidence,
-              topRankings: cnnResult.topRankings,
-              engineUsed: "Hybrid (CNN)",
-            });
-            return;
-          } else {
-            addLog(`[Hybrid] Low CNN confidence (${cnnResult.confidence}%). Escalating to Gemini...`);
-          }
+        } else if (modelV2Ref.current) {
+          cnnResult = await runPredefinedCnnClassification(
+            modelV2Ref.current,
+            source,
+            (msg) => addLog(msg)
+          );
+        }
+
+        if (cnnResult && cnnResult.confidence >= 50) {
+          addLog(`[Hybrid] High CNN confidence (${cnnResult.confidence}%). Accepted.`);
+          const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name);
+          setActiveResult({
+            name: cnnResult.topIngredient.name,
+            nameMalay: cnnResult.topIngredient.nameMalay || (local ? local.nameMalay : cnnResult.topIngredient.name),
+            emoji: cnnResult.topIngredient.emoji,
+            confidence: cnnResult.confidence,
+            topRankings: cnnResult.topRankings,
+            engineUsed: "Hybrid (CNN)",
+          });
+          return;
+        } else {
+          addLog(`[Hybrid] Low CNN confidence (${cnnResult?.confidence ?? 0}%). Escalating to Gemini...`);
         }
 
         // Auto-escalate to Gemini
@@ -389,6 +472,33 @@ export default function CameraView() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Status helper for active engine
+  const isEngineLoading = () => {
+    if (settings.preferredEngine === "cnn_v2" || settings.preferredEngine === "cnn") {
+      return v2Status === "loading";
+    }
+    if (settings.preferredEngine === "cnn_v3") {
+      return v3Status === "loading";
+    }
+    if (settings.preferredEngine === "hybrid") {
+      return v2Status === "loading" && v3Status === "loading";
+    }
+    return false;
+  };
+
+  const getEngineStatus = () => {
+    if (settings.preferredEngine === "cnn_v2" || settings.preferredEngine === "cnn") {
+      return v2Status;
+    }
+    if (settings.preferredEngine === "cnn_v3") {
+      return v3Status;
+    }
+    if (settings.preferredEngine === "hybrid") {
+      return v2Status === "ready" || v3Status === "ready" ? "ready" : "loading";
+    }
+    return "ready";
   };
 
   // 4. Capture Frame from Live Camera
@@ -453,18 +563,29 @@ export default function CameraView() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col space-y-3 font-mono text-zinc-100">
       {/* ======================================================== */}
-      {/* THREE CLEAN TABS */}
+      {/* FOUR CLEAN TABS */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-3 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl">
+      <div className="grid grid-cols-4 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl">
         <button
-          onClick={() => handleModeChange("cnn")}
+          onClick={() => handleModeChange("cnn_v2")}
           className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            settings.preferredEngine === "cnn"
+            settings.preferredEngine === "cnn_v2" || settings.preferredEngine === "cnn"
               ? "bg-white text-black"
               : "text-zinc-400 hover:text-white"
           }`}
         >
-          CNN (10)
+          CNN v2
+        </button>
+
+        <button
+          onClick={() => handleModeChange("cnn_v3")}
+          className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
+            settings.preferredEngine === "cnn_v3"
+              ? "bg-white text-black"
+              : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          CNN v3
         </button>
 
         <button
@@ -486,7 +607,7 @@ export default function CameraView() {
               : "text-zinc-400 hover:text-white"
           }`}
         >
-          GEMINI (75+)
+          GEMINI
         </button>
       </div>
 
@@ -499,19 +620,19 @@ export default function CameraView() {
           <div className="flex items-center space-x-2">
             <span
               className={`h-2 w-2 rounded-full ${
-                cnnStatus === "ready"
+                getEngineStatus() === "ready"
                   ? "bg-white"
-                  : cnnStatus === "loading"
+                  : getEngineStatus() === "loading"
                   ? "bg-zinc-500 animate-pulse"
                   : "bg-red-500"
               }`}
             />
             <span className="text-[10px] uppercase text-zinc-400">
-              {settings.preferredEngine} mode
+              {settings.preferredEngine.replace("_", " ")} mode
             </span>
           </div>
           <div className="text-[10px] text-zinc-500 font-mono">
-            {cnnStatus === "loading" ? "Loading weights..." : "Model active"}
+            {getEngineStatus() === "loading" ? "Loading weights..." : "Model active"}
           </div>
         </div>
 
@@ -630,11 +751,11 @@ export default function CameraView() {
               disabled={
                 !isCameraActive ||
                 isAnalyzing ||
-                (settings.preferredEngine !== "gemini" && cnnStatus === "loading")
+                isEngineLoading()
               }
               className="flex-[1.5] py-2 px-4 rounded-lg bg-white text-black text-xs font-bold flex items-center justify-center space-x-1.5 disabled:opacity-40 active:scale-95 transition-transform"
             >
-              {cnnStatus === "loading" && settings.preferredEngine !== "gemini" ? (
+              {isEngineLoading() ? (
                 <>
                   <div className="w-3 h-3 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                   <span>Loading Model...</span>

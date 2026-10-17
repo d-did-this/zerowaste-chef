@@ -17,7 +17,7 @@ const SETTINGS_KEY = "zerowaste_chef_settings_v1";
 
 export interface AppSettings {
   apiKey: string;
-  preferredEngine: "cnn" | "gemini" | "hybrid";
+  preferredEngine: "cnn" | "cnn_v2" | "cnn_v3" | "gemini" | "hybrid";
 }
 
 export function getPantryItems(): PantryItem[] {
