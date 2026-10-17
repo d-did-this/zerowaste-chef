@@ -7,7 +7,6 @@ import {
   Zap,
   ZapOff,
   Upload,
-  Settings,
   AlertCircle,
   X,
   Terminal,
@@ -23,7 +22,6 @@ import {
   saveAppSettings,
   AppSettings,
 } from "@/utils/pantryStorage";
-import SettingsModal from "@/components/SettingsModal";
 
 interface ActiveResult {
   name: string;
@@ -50,7 +48,7 @@ export default function CameraView() {
   const streamRef = useRef<MediaStream | null>(null);
   const modelRef = useRef<MobileNetModel | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const terminalEndRef = useRef<HTMLDivElement>(null);
+  const terminalContainerRef = useRef<HTMLDivElement>(null);
 
   // States
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
@@ -70,7 +68,6 @@ export default function CameraView() {
 
   // App Settings
   const [settings, setSettings] = useState<AppSettings>({ apiKey: "", preferredEngine: "cnn" });
-  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
   // Append to terminal logs
   const addLog = useCallback((text: string) => {
@@ -93,9 +90,11 @@ export default function CameraView() {
     ]);
   }, []);
 
-  // Auto-scroll terminal to bottom
+  // Auto-scroll terminal container internally (no whole-page jumps)
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (terminalContainerRef.current) {
+      terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
+    }
   }, [logs]);
 
   // Load Settings on Mount
@@ -511,40 +510,37 @@ export default function CameraView() {
               {settings.preferredEngine} mode
             </span>
           </div>
-
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="p-1 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white"
-            title="Settings"
-          >
-            <Settings className="w-3.5 h-3.5" />
-          </button>
+          <div className="text-[10px] text-zinc-500 font-mono">
+            {cnnStatus === "loading" ? "Loading weights..." : "Model active"}
+          </div>
         </div>
 
         {/* Video / Captured Image Container */}
         <div className="relative flex-1 bg-black overflow-hidden flex items-center justify-center">
-          {capturedImage ? (
+          {/* Permanent Video Element: Kept active so stream never terminates or freezes */}
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            autoPlay
+            className={`w-full h-full object-cover transition-opacity duration-200 ${
+              isCameraActive ? "opacity-100" : "opacity-0"
+            }`}
+          />
+
+          {/* Captured Snapshot Overlay */}
+          {capturedImage && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={capturedImage}
-              alt="Frame"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <video
-              ref={videoRef}
-              playsInline
-              muted
-              autoPlay
-              className={`w-full h-full object-cover transition-opacity duration-200 ${
-                isCameraActive ? "opacity-100" : "opacity-0"
-              }`}
+              alt="Snapshot"
+              className="absolute inset-0 z-10 w-full h-full object-cover"
             />
           )}
 
           {/* Minimal Reticle */}
           {!capturedImage && isCameraActive && (
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
               <div className="relative w-52 h-52 border border-dashed border-white/40 rounded-xl" />
             </div>
           )}
@@ -613,7 +609,7 @@ export default function CameraView() {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isAnalyzing}
-            className="flex-1 py-2 px-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs font-semibold flex items-center justify-center space-x-1.5"
+            className="flex-1 py-2 px-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs font-semibold flex items-center justify-center space-x-1.5 hover:text-white"
           >
             <Upload className="w-3.5 h-3.5 text-zinc-400" />
             <span>Upload</span>
@@ -623,7 +619,7 @@ export default function CameraView() {
           {capturedImage ? (
             <button
               onClick={handleRescan}
-              className="flex-[1.5] py-2 px-4 rounded-lg bg-white text-black text-xs font-bold flex items-center justify-center space-x-1.5"
+              className="flex-[1.5] py-2 px-4 rounded-lg bg-white text-black text-xs font-bold flex items-center justify-center space-x-1.5 active:scale-95 transition-transform"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Rescan</span>
@@ -631,11 +627,24 @@ export default function CameraView() {
           ) : (
             <button
               onClick={handleSnapAndScan}
-              disabled={!isCameraActive || isAnalyzing}
-              className="flex-[1.5] py-2 px-4 rounded-lg bg-white text-black text-xs font-bold flex items-center justify-center space-x-1.5 disabled:opacity-40"
+              disabled={
+                !isCameraActive ||
+                isAnalyzing ||
+                (settings.preferredEngine !== "gemini" && cnnStatus === "loading")
+              }
+              className="flex-[1.5] py-2 px-4 rounded-lg bg-white text-black text-xs font-bold flex items-center justify-center space-x-1.5 disabled:opacity-40 active:scale-95 transition-transform"
             >
-              <Camera className="w-3.5 h-3.5" />
-              <span>Snap & Scan</span>
+              {cnnStatus === "loading" && settings.preferredEngine !== "gemini" ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  <span>Loading Model...</span>
+                </>
+              ) : (
+                <>
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Snap & Scan</span>
+                </>
+              )}
             </button>
           )}
         </div>
@@ -734,25 +743,18 @@ export default function CameraView() {
         </div>
 
         {/* Telemetry Log Body */}
-        <div className="h-36 overflow-y-auto text-[11px] leading-relaxed space-y-1 pr-1 text-zinc-300 scrollbar-thin">
+        <div
+          ref={terminalContainerRef}
+          className="h-36 overflow-y-auto text-[11px] leading-relaxed space-y-1 pr-1 text-zinc-300 scrollbar-thin"
+        >
           {logs.map((log) => (
             <div key={log.id} className="flex items-start space-x-2">
               <span className="text-zinc-600 select-none flex-shrink-0">{log.timestamp}</span>
               <span className="break-all">{log.text}</span>
             </div>
           ))}
-          <div ref={terminalEndRef} />
         </div>
       </div>
-
-      {/* Settings Modal */}
-      {isSettingsOpen && (
-        <SettingsModal
-          currentSettings={settings}
-          onClose={() => setIsSettingsOpen(false)}
-          onSave={(newSettings) => setSettings(newSettings)}
-        />
-      )}
     </div>
   );
 }
