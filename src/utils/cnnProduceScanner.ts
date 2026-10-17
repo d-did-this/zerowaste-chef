@@ -48,8 +48,8 @@ export const PREDEFINED_PRODUCE_CATALOG: CnnProduceItem[] = [
     nameMalay: "Epal",
     emoji: "🍎",
     category: "Fruit",
-    indices: [948], // Granny Smith
-    imageNetLabel: "Granny Smith (#948)",
+    indices: [948, 957], // Granny Smith, pomegranate (covers red and green apples)
+    imageNetLabel: "apple, Granny Smith (#948/#957)",
   },
   {
     id: "banana",
@@ -340,86 +340,13 @@ export async function runPredefinedCnnClassification(
   const rawLogitsData = await logitsTensor.data();
   logitsTensor.dispose();
 
-  // 3. Constrained Logit Scoring across the 10 Predefined Produce Classes
+  // 3. Constrained Logit Extraction across the 10 Predefined Produce Classes
   const scoredItems = PREDEFINED_PRODUCE_CATALOG.map((item) => {
     let logit = Math.max(...item.indices.map((idx) => rawLogitsData[idx] ?? 0));
 
-    // A. Shape Priors
-    if (metrics.elongation >= 1.30) {
-      // Elongated produce: Banana, Cucumber, Sweet Corn
-      if (item.id === "banana" || item.id === "cucumber" || item.id === "corn") {
-        logit += 2.0;
-      } else {
-        // Strongly penalize round fruits/vegetables when produce is elongated
-        logit -= 3.0;
-      }
-    } else {
-      // Compact/round produce: Apple, Orange, Lemon, Cabbage, Broccoli, Mushroom, Bell Pepper
-      if (item.id === "banana" || item.id === "cucumber") {
-        logit -= 3.0;
-      }
-    }
-
-    // B. Color & Brightness Priors
-    if (metrics.peakSat >= 0.20) {
-      // 1. Yellow Produce (Banana, Lemon, Sweet Corn)
-      if (metrics.peakHue >= 36 && metrics.peakHue <= 74) {
-        if (metrics.elongation >= 1.30) {
-          if (item.id === "banana") logit += 4.5;
-          if (item.id === "corn") logit += 2.5;
-        } else {
-          // Compact + Yellow = Lemon
-          if (item.id === "lemon") logit += 4.5;
-          if (item.id === "bell_pepper") logit += 1.5;
-        }
-        if (item.id === "orange" || item.id === "broccoli" || item.id === "cabbage") {
-          logit -= 4.0;
-        }
-      }
-      // 2. Orange Produce (Orange, Bell Pepper)
-      else if (metrics.peakHue >= 18 && metrics.peakHue < 36) {
-        if (metrics.elongation < 1.30) {
-          if (item.id === "orange") logit += 4.0;
-          if (item.id === "bell_pepper") logit += 2.5;
-        } else {
-          // Elongated orange/warm yellow = Banana under warm bulb
-          if (item.id === "banana") logit += 3.5;
-        }
-        if (item.id === "broccoli" || item.id === "cucumber" || item.id === "cabbage") {
-          logit -= 4.0;
-        }
-      }
-      // 3. Red Produce (Apple, Bell Pepper)
-      else if (metrics.peakHue < 18 || metrics.peakHue >= 340) {
-        if (item.id === "apple") logit += 4.0;
-        if (item.id === "bell_pepper") logit += 2.5;
-        if (item.id === "banana" || item.id === "orange" || item.id === "broccoli") {
-          logit -= 4.0;
-        }
-      }
-      // 4. Green Produce (Broccoli, Cabbage, Cucumber)
-      else if (metrics.peakHue >= 75 && metrics.peakHue <= 165) {
-        if (metrics.elongation >= 1.30) {
-          // Elongated green = Cucumber
-          if (item.id === "cucumber") logit += 4.5;
-        } else {
-          // Compact green: Broccoli vs Cabbage vs Green Apple
-          if (metrics.avgVal >= 0.50) {
-            // Pale / light green = Cabbage
-            if (item.id === "cabbage") logit += 4.5;
-            if (item.id === "apple") logit += 1.5;
-          } else {
-            // Dark green = Broccoli
-            if (item.id === "broccoli") logit += 4.5;
-          }
-        }
-        if (item.id === "banana" || item.id === "orange" || item.id === "lemon") {
-          logit -= 4.0;
-        }
-      }
-    } else {
-      // Neutral / Low saturation = Mushroom
-      if (item.id === "mushroom") logit += 3.5;
+    // Gentle calibration for Red Apple if red pigment is detected
+    if (item.id === "apple" && (metrics.peakHue < 18 || metrics.peakHue >= 340) && metrics.peakSat >= 0.35) {
+      logit += 1.0;
     }
 
     return { ...item, logit };
