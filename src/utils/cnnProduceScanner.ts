@@ -16,7 +16,7 @@ export interface CnnProduceItem {
   name: string;
   nameMalay: string;
   emoji: string;
-  category: "Fruit" | "Vegetable" | "Grain";
+  category: "Fruit" | "Vegetable" | "Grain" | "Protein" | "Fungi";
   indices: number[];
   imageNetLabel: string;
 }
@@ -131,6 +131,51 @@ export const PREDEFINED_PRODUCE_CATALOG: CnnProduceItem[] = [
     category: "Grain",
     indices: [987, 998], // corn, ear (#987, #998)
     imageNetLabel: "corn, ear (#987/#998)",
+  },
+  {
+    id: "cauliflower",
+    name: "Cauliflower",
+    nameMalay: "Kubis Bunga",
+    emoji: "🥦",
+    category: "Vegetable",
+    indices: [938], // cauliflower (#938)
+    imageNetLabel: "cauliflower (#938)",
+  },
+  {
+    id: "artichoke",
+    name: "Artichoke",
+    nameMalay: "Articok",
+    emoji: "🥬",
+    category: "Vegetable",
+    indices: [944], // artichoke, globe artichoke (#944)
+    imageNetLabel: "artichoke, globe artichoke (#944)",
+  },
+  {
+    id: "squash",
+    name: "Spaghetti Squash",
+    nameMalay: "Labu Spageti",
+    emoji: "🎃",
+    category: "Vegetable",
+    indices: [940, 941, 942], // spaghetti squash (#940), acorn squash (#941), butternut squash (#942)
+    imageNetLabel: "spaghetti squash (#940/#941/#942)",
+  },
+  {
+    id: "salmon",
+    name: "Salmon",
+    nameMalay: "Ikan Salmon",
+    emoji: "🐟",
+    category: "Protein",
+    indices: [391], // coho, coho salmon (#391)
+    imageNetLabel: "salmon, coho (#391)",
+  },
+  {
+    id: "chicken",
+    name: "Chicken",
+    nameMalay: "Ayam",
+    emoji: "🍗",
+    category: "Protein",
+    indices: [8, 7, 83], // hen (#8), cock (#7), prairie chicken (#83)
+    imageNetLabel: "hen, chicken (#8/#7)",
   },
 ];
 

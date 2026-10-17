@@ -23,7 +23,7 @@ interface BenchmarkItem {
   num: string;
   title: string;
   scientific: string;
-  category: "Vegetables" | "Fruits" | "Fungi";
+  category: "Vegetables" | "Fruits" | "Fungi" | "Proteins";
   scope: "MobileNetV2" | "MobileNetV3";
   model: string;
   img_src: string;
@@ -233,6 +233,56 @@ const BENCHMARK_ITEMS: BenchmarkItem[] = [
     model: "MobileNetV3",
     img_src: "/benchmark/v3/mushroom.jpg",
   },
+  {
+    id: "cauliflower_v3",
+    num: "11",
+    title: "White Cauliflower",
+    scientific: "Brassica oleracea var. botrytis",
+    category: "Vegetables",
+    scope: "MobileNetV3",
+    model: "MobileNetV3",
+    img_src: "/benchmark/v3/cauliflower.jpg",
+  },
+  {
+    id: "artichoke_v3",
+    num: "12",
+    title: "Globe Artichoke",
+    scientific: "Cynara cardunculus var. scolymus",
+    category: "Vegetables",
+    scope: "MobileNetV3",
+    model: "MobileNetV3",
+    img_src: "/benchmark/v3/artichoke.jpg",
+  },
+  {
+    id: "squash_v3",
+    num: "13",
+    title: "Spaghetti Squash",
+    scientific: "Cucurbita pepo",
+    category: "Vegetables",
+    scope: "MobileNetV3",
+    model: "MobileNetV3",
+    img_src: "/benchmark/v3/spaghetti_squash.jpg",
+  },
+  {
+    id: "salmon_v3",
+    num: "14",
+    title: "Fresh Salmon Fillet",
+    scientific: "Salmo salar",
+    category: "Proteins",
+    scope: "MobileNetV3",
+    model: "MobileNetV3",
+    img_src: "/benchmark/v3/salmon.jpg",
+  },
+  {
+    id: "chicken_v3",
+    num: "15",
+    title: "Whole Raw Chicken",
+    scientific: "Gallus gallus domesticus",
+    category: "Proteins",
+    scope: "MobileNetV3",
+    model: "MobileNetV3",
+    img_src: "/benchmark/v3/chicken.jpg",
+  },
 ];
 
 export default function TesterPage() {
@@ -434,7 +484,7 @@ export default function TesterPage() {
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              MobileNetV3 (10)
+              MobileNetV3 (15)
             </button>
           </div>
 
