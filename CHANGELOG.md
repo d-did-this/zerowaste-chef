@@ -4,6 +4,22 @@ All notable changes to the **ZeroWaste Chef** (UTeM Workshop 2, BAXU 3923, Group
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-10-19
+
+### Added
+- **Fullscreen Installed Web App (PWA):** Configured Web App Manifest (`public/manifest.json`) and mobile web app meta tags with `display: "fullscreen"`, launching the app in full screen mode when installed on home screens.
+- **Floating Camera Scan Button:** Replaced the docked pantry button with a dedicated circular, bulging floating action button (`w-14 h-14 rounded-full neo-bulge-primary`) at the bottom-right corner.
+- **Scanner HUD Manual Entry:** Added manual entry buttons directly on the Scanner HUD (top control bar and ready-to-scan shutter controls) opening a Neumorphic bottom sheet modal with Malaysian quantifiers.
+
+### Changed
+- **Darker Ingredient Shadows & Dark Green Borders:** Upgraded all pantry ingredient cards with deep ambient shadows and a thin subtle dark-green border (`border-[#004d34]/25`) for enhanced tactile depth.
+- **Darker Shadows on Scanner Cards:** Enhanced both the ingredient detail block (portions, notes, confirm button) and the viewfinder container with deeper dark-contrast shadows and dark-green border accents.
+- **Redesigned Floating Bottom Navigation Dock:** Transformed the bottom navigation into a modern elevated floating pill dock (`rounded-3xl`) with deep soft shadows and carved-in crater tabs (`.neo-crater-darkgreen`).
+- **Redesigned Rescan & Scan Next Buttons:** Rescan features a warm terracotta/amber gradient (`#f59e0b` to `#c2410c`) with replay icon, and Scan Next features an electric sapphire/indigo gradient (`#38bdf8` to `#1e40af`) with scanner icon.
+
+### Removed
+- **Header Back Button:** Removed the legacy back button from the header, replacing it with a clean tactile brand leaf emblem (`eco`).
+
 ---
 
 ## [2.3.1] - 2026-10-19

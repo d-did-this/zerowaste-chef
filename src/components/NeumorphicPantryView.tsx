@@ -464,7 +464,7 @@ export default function NeumorphicPantryView({
           filteredItems.map((item) => (
             <article
               key={item.id}
-              className="w-full neo-raised rounded-2xl p-3.5 flex flex-col gap-2 transition-all relative overflow-hidden"
+              className="w-full bg-[#f0f4f9] rounded-2xl p-3.5 flex flex-col gap-2 transition-all relative overflow-hidden shadow-[5px_5px_15px_rgba(10,30,20,0.18),-4px_-4px_12px_rgba(255,255,255,0.95)] border border-[#004d34]/25 hover:border-[#004d34]/40"
             >
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-xl neo-recessed flex items-center justify-center overflow-hidden flex-shrink-0 relative">
@@ -533,24 +533,28 @@ export default function NeumorphicPantryView({
         )}
       </div>
 
-      {/* Persistent Floating Kitchen Controls Dock */}
-      <div className="fixed bottom-24 right-4 z-40 flex items-center gap-2.5">
+      {/* Floating Action Buttons at Right Bottom */}
+      <div className="fixed bottom-24 right-4 z-40 flex flex-col items-end gap-2.5">
+        {/* Quick Manual Entry Floating Pill */}
         <button
           onClick={() => setIsManualModalOpen(true)}
-          className="h-11 px-3.5 rounded-full neo-raised-button text-[#006948] text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-md"
+          className="h-9 px-3 rounded-full bg-[#f0f4f9] text-[#006948] text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-[3px_3px_10px_rgba(15,30,22,0.15),-2px_-2px_8px_rgba(255,255,255,0.9)] border border-[#004d34]/20 hover:bg-emerald-50"
           type="button"
+          title="Manual Add Ingredient"
         >
-          <span className="material-symbols-outlined text-lg">edit_note</span>
+          <span className="material-symbols-outlined text-base">edit_note</span>
           <span>+ Manual</span>
         </button>
 
+        {/* Floating Circular Camera Scan Button */}
         <button
           onClick={onOpenScanner}
-          className="h-11 px-4 rounded-full neo-raised-primary text-white text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-md"
+          aria-label="Scan Ingredients"
+          className="w-14 h-14 rounded-full neo-bulge-primary text-white flex items-center justify-center active:scale-90 transition-all shadow-[6px_6px_18px_rgba(0,40,25,0.4),-4px_-4px_12px_rgba(255,255,255,0.95)] border-2 border-white/60 hover:scale-105"
           type="button"
+          title="Scan Produce with Camera"
         >
-          <span className="material-symbols-outlined text-xl">photo_camera</span>
-          <span>Scan</span>
+          <span className="material-symbols-outlined text-2xl">photo_camera</span>
         </button>
       </div>
 

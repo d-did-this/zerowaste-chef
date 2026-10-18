@@ -67,6 +67,54 @@ export default function NeumorphicScannerView({
   const [isAddedSuccess, setIsAddedSuccess] = useState<boolean>(false);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
 
+  // Manual Entry States in Scanner HUD
+  const [isManualModalOpen, setIsManualModalOpen] = useState<boolean>(false);
+  const [manualName, setManualName] = useState<string>("");
+  const [manualQty, setManualQty] = useState<number>(1);
+  const [manualUnit, setManualUnit] = useState<string>("biji");
+  const [manualCat, setManualCat] = useState<string>("produce");
+
+  const getManualCatEmoji = (cat: string): string => {
+    switch (cat.toLowerCase()) {
+      case "produce":
+        return "🥬";
+      case "proteins":
+        return "🍗";
+      case "seasoning":
+        return "🍶";
+      case "dairy":
+        return "🥚";
+      case "staples":
+        return "🌾";
+      default:
+        return "🥗";
+    }
+  };
+
+  const handleManualSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualName.trim()) return;
+
+    savePantryItem({
+      name: manualName.trim(),
+      nameMalay: manualName.trim(),
+      emoji: getManualCatEmoji(manualCat),
+      category: manualCat.charAt(0).toUpperCase() + manualCat.slice(1),
+      quantity: manualQty,
+      unit: manualUnit,
+      culinaryNote: "Manually logged from Scanner HUD",
+      imageUrl: capturedImage || undefined,
+    });
+
+    setManualName("");
+    setManualQty(1);
+    setIsManualModalOpen(false);
+    setIsAddedSuccess(true);
+    setTimeout(() => {
+      setIsAddedSuccess(false);
+    }, 2500);
+  };
+
   // Handle Zoom change (hardware + digital)
   const handleZoomChange = async (level: number) => {
     setZoomLevel(level);
@@ -463,7 +511,7 @@ export default function NeumorphicScannerView({
     <div className="w-full flex flex-col font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22]">
       {/* 1. Viewfinder Control Bar */}
       <div className="flex items-center justify-between mb-3 pt-1">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full neo-raised">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full neo-raised shadow-sm">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#68dba9] opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#006948]"></span>
@@ -474,6 +522,18 @@ export default function NeumorphicScannerView({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Manual Entry Button */}
+          <button
+            aria-label="Add Ingredient Manually"
+            onClick={() => setIsManualModalOpen(true)}
+            className="h-9 px-2.5 rounded-full neo-raised flex items-center gap-1 text-[#006948] hover:text-[#004d34] active:scale-95 transition-all border border-[#006948]/20 bg-white/60 text-[11px] font-bold shadow-sm"
+            type="button"
+            title="Manual Entry"
+          >
+            <span className="material-symbols-outlined text-base">edit_note</span>
+            <span className="hidden sm:inline">Manual</span>
+          </button>
+
           {/* Torch Toggle (Yellow Accent) */}
           <button
             aria-label="Toggle Flashlight"
@@ -481,7 +541,7 @@ export default function NeumorphicScannerView({
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
               isTorchOn
                 ? "bg-amber-400 text-amber-950 shadow-sm neo-sunken"
-                : "neo-raised text-amber-500 hover:text-amber-600 active:scale-95 bg-amber-50/40 border border-amber-300/40"
+                : "neo-raised text-amber-500 hover:text-amber-600 active:scale-95 bg-amber-50/40 border border-amber-300/40 shadow-sm"
             }`}
             type="button"
           >
@@ -494,7 +554,7 @@ export default function NeumorphicScannerView({
           <button
             aria-label="Flip Camera"
             onClick={toggleCameraFacing}
-            className="w-9 h-9 rounded-full neo-raised flex items-center justify-center text-[#3d4a42] hover:text-[#161c22] active:scale-95 transition-all"
+            className="w-9 h-9 rounded-full neo-raised flex items-center justify-center text-[#3d4a42] hover:text-[#161c22] active:scale-95 transition-all shadow-sm"
             type="button"
           >
             <span className="material-symbols-outlined text-lg">flip_camera_ios</span>
@@ -502,8 +562,8 @@ export default function NeumorphicScannerView({
         </div>
       </div>
 
-      {/* 2. Neumorphic Camera Viewfinder (Expanded Bigger Grid) */}
-      <div className="relative w-full rounded-2xl p-2 neo-sunken overflow-hidden mb-2">
+      {/* 2. Neumorphic Camera Viewfinder with Deeper Darker Frame Shadow */}
+      <div className="relative w-full rounded-2xl p-2 bg-[#e8eef6] shadow-[6px_6px_22px_rgba(15,30,22,0.18),-4px_-4px_14px_rgba(255,255,255,0.95)] border border-[#004d34]/20 overflow-hidden mb-2">
         <div className="relative w-full aspect-[3/4] sm:aspect-square min-h-[380px] max-h-[500px] rounded-xl overflow-hidden bg-[#e3e9f1] flex items-center justify-center">
           {/* Live Video Element with Smooth Digital/Hardware Zoom */}
           <video
@@ -599,8 +659,8 @@ export default function NeumorphicScannerView({
         </span>
       </div>
 
-      {/* 3. Neumorphic Output & Action Card */}
-      <div className="w-full rounded-2xl p-4 neo-raised flex flex-col gap-3">
+      {/* 3. Neumorphic Output & Action Card with Darker Shadow & Dark Green Border */}
+      <div className="w-full bg-[#f0f4f9] rounded-2xl p-4 flex flex-col gap-3 shadow-[7px_7px_24px_rgba(15,30,22,0.2),-5px_-5px_16px_rgba(255,255,255,0.95)] border border-[#004d34]/25">
         {activeResult ? (
           <>
             {/* Header: Identity & Verified Match (Dark Green Background Row) */}
@@ -709,7 +769,7 @@ export default function NeumorphicScannerView({
             <button
               onClick={handleConfirmPantry}
               disabled={isAddedSuccess}
-              className={`w-full py-4 px-5 rounded-full font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all neo-bulge-primary text-white tracking-wide ${
+              className={`w-full py-4 px-5 rounded-full font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all neo-bulge-primary text-white tracking-wide shadow-md ${
                 isAddedSuccess ? "!bg-[#00855d] text-[#f5fff7]" : ""
               }`}
               type="button"
@@ -720,36 +780,36 @@ export default function NeumorphicScannerView({
               <span>{isAddedSuccess ? "Added to Fridge!" : "Confirm & Add to Pantry"}</span>
             </button>
 
-            {/* Secondary Action Grid: Rescan (Warm Amber/Coral) & Scan Next (Vivid Sky Blue/Indigo) */}
+            {/* Secondary Action Grid: Redesigned Rescan (Warm Amber/Terracotta) & Scan Next (Vivid Cobalt/Indigo) */}
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 onClick={handleRescan}
-                className="w-full py-3 px-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-transform shadow-sm"
+                className="w-full py-3.5 px-3 rounded-2xl bg-gradient-to-b from-[#f59e0b] via-[#ea580c] to-[#c2410c] text-white text-xs font-black flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[4px_4px_14px_rgba(194,65,12,0.35),-2px_-2px_8px_rgba(255,255,255,0.85)] border-t border-amber-200/50 hover:brightness-105 tracking-wide"
                 type="button"
               >
-                <span className="material-symbols-outlined text-base">replay</span>
+                <span className="material-symbols-outlined text-lg">replay</span>
                 <span>Rescan</span>
               </button>
 
               <button
                 onClick={handleRescan}
-                className="w-full py-3 px-3 rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-transform shadow-sm"
+                className="w-full py-3.5 px-3 rounded-2xl bg-gradient-to-b from-[#38bdf8] via-[#2563eb] to-[#1e40af] text-white text-xs font-black flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[4px_4px_14px_rgba(30,64,175,0.35),-2px_-2px_8px_rgba(255,255,255,0.85)] border-t border-sky-200/50 hover:brightness-105 tracking-wide"
                 type="button"
               >
-                <span className="material-symbols-outlined text-base">qr_code_scanner</span>
+                <span className="material-symbols-outlined text-lg">qr_code_scanner</span>
                 <span>Scan Next</span>
               </button>
             </div>
           </>
         ) : (
-          /* Live Shutter Controls (When waiting for scan) */
+          /* Live Shutter Controls (When waiting for scan - with Darker Shadow Container) */
           <div className="flex flex-col space-y-3">
             <div className="flex items-center justify-between text-xs text-[#3d4a42] px-1">
-              <span className="font-semibold">Ready to Scan</span>
-              <span className="text-[10px] text-zinc-500">Center item inside the frame</span>
+              <span className="font-bold text-[#161c22]">Ready to Scan</span>
+              <span className="text-[10px] text-[#576574]">Center ingredient inside the frame</span>
             </div>
 
-            {/* Shutter Button & Upload */}
+            {/* Shutter Button, Upload & Manual Entry */}
             <div className="flex items-center gap-2">
               <input
                 type="file"
@@ -761,7 +821,7 @@ export default function NeumorphicScannerView({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAnalyzing}
-                className="py-3.5 px-4 rounded-2xl neo-raised text-[#3d4a42] hover:text-[#161c22] text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all"
+                className="py-3.5 px-3.5 rounded-2xl neo-raised text-[#3d4a42] hover:text-[#161c22] text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all shadow-sm"
                 type="button"
                 title="Upload Photo"
               >
@@ -769,9 +829,19 @@ export default function NeumorphicScannerView({
               </button>
 
               <button
+                onClick={() => setIsManualModalOpen(true)}
+                className="py-3.5 px-3.5 rounded-2xl neo-raised text-[#006948] hover:text-[#004d34] text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all border border-[#006948]/25 shadow-sm"
+                type="button"
+                title="Manual Entry"
+              >
+                <span className="material-symbols-outlined text-lg">edit_note</span>
+                <span className="text-[11px] font-bold">Manual</span>
+              </button>
+
+              <button
                 onClick={handleSnapAndScan}
                 disabled={!isCameraActive || isAnalyzing}
-                className="flex-1 py-4 px-5 rounded-2xl neo-bulge-primary text-white font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform tracking-wide disabled:opacity-40"
+                className="flex-1 py-4 px-4 rounded-2xl neo-bulge-primary text-white font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform tracking-wide disabled:opacity-40"
                 type="button"
               >
                 {isAnalyzing ? (
@@ -790,6 +860,118 @@ export default function NeumorphicScannerView({
           </div>
         )}
       </div>
+
+      {/* Manual Entry Bottom Sheet Modal */}
+      {isManualModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm transition-opacity">
+          <div className="w-full max-w-md bg-[#f0f4f9] neo-raised rounded-t-3xl p-5 shadow-2xl flex flex-col gap-4 animate-in slide-in-from-bottom duration-200">
+            <div className="w-12 h-1.5 neo-recessed-pill rounded-full mx-auto"></div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[#006948] text-2xl">add_circle</span>
+                <h2 className="text-base font-bold text-[#161c22]">Add Ingredient Manually</h2>
+              </div>
+              <button
+                onClick={() => setIsManualModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full neo-raised-button text-[#576574]"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-base">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleManualSave} className="flex flex-col gap-3.5">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase font-bold text-[#576574]">Ingredient Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Sweet Corn, Lemon, Halia"
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                  className="h-11 px-3.5 rounded-xl neo-recessed bg-transparent border-0 outline-none text-xs text-[#161c22] placeholder:text-zinc-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-bold text-[#576574]">Quantity</label>
+                  <div className="h-11 rounded-xl neo-recessed flex items-center justify-between px-2">
+                    <button
+                      type="button"
+                      onClick={() => setManualQty((q) => Math.max(1, q - 1))}
+                      className="w-7 h-7 rounded-lg neo-raised-button flex items-center justify-center text-xs text-[#161c22]"
+                    >
+                      -
+                    </button>
+                    <span className="text-xs font-bold text-[#161c22]">{manualQty}</span>
+                    <button
+                      type="button"
+                      onClick={() => setManualQty((q) => q + 1)}
+                      className="w-7 h-7 rounded-lg neo-raised-primary text-white flex items-center justify-center text-xs"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-bold text-[#576574]">Unit Type</label>
+                  <select
+                    value={manualUnit}
+                    onChange={(e) => setManualUnit(e.target.value)}
+                    className="h-11 px-3 rounded-xl neo-recessed bg-transparent border-0 outline-none text-xs font-semibold text-[#161c22]"
+                  >
+                    <option value="biji">biji (seeds / small fruits / eggs)</option>
+                    <option value="buah">buah (large fruits / items)</option>
+                    <option value="batang">batang (stalks / roots)</option>
+                    <option value="ikat">ikat (bunches / bundles)</option>
+                    <option value="ketul">ketul (pieces / blocks / meat)</option>
+                    <option value="labu">labu (heads / bulbs)</option>
+                    <option value="ulas">ulas (cloves / segments)</option>
+                    <option value="botol">botol (bottles)</option>
+                    <option value="tin">tin (cans)</option>
+                    <option value="bungkus">bungkus (packets / packs)</option>
+                    <option value="pcs">pcs (pieces)</option>
+                    <option value="g">g (grams)</option>
+                    <option value="kg">kg (kilograms)</option>
+                    <option value="ml">ml (milliliters)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase font-bold text-[#576574]">Category</label>
+                <div className="flex flex-wrap gap-2">
+                  {["produce", "proteins", "seasoning", "dairy", "staples"].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setManualCat(c)}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold capitalize transition-all ${
+                        manualCat === c
+                          ? "neo-recessed-active text-[#006948] font-bold"
+                          : "neo-raised-button text-[#576574]"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full mt-2 py-3.5 rounded-full neo-raised-primary text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
+              >
+                <span className="material-symbols-outlined text-lg">save</span>
+                <span>Save to Digital Pantry</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

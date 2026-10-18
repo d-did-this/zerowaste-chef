@@ -33,8 +33,40 @@ interface ReleaseEntry {
 
 const RELEASES: ReleaseEntry[] = [
   {
-    version: "v2.3.1",
+    version: "v2.4.0",
     tag: "LATEST",
+    date: "19 October 2026",
+    title: "Fullscreen PWA, Floating Camera FAB, Deeper Tactile Shadows & Nav Redesign",
+    summary:
+      "Installed web app now launches in full screen mode, the header back button is replaced with an elegant emblem, pantry cards and scanner blocks gain darker tactile shadows with subtle dark-green borders, the bottom nav is redesigned into a floating pill dock, the scan button is a floating camera FAB at the bottom right, and manual entry is integrated into the Scanner HUD.",
+    highlights: [
+      {
+        type: "Added",
+        items: [
+          "Fullscreen PWA Mode: Web app manifest and mobile tags configured with display: fullscreen for immersive app launch.",
+          "Floating Camera Scan Button: Circular bulging FAB positioned at the bottom right for instant camera scanning.",
+          "Scanner HUD Manual Entry: Quick manual entry button and bottom sheet modal directly accessible within the camera scanner.",
+        ],
+      },
+      {
+        type: "Changed",
+        items: [
+          "Darker Pantry Card Shadows & Green Borders: Richer drop shadows with a thin dark-green border on each ingredient card.",
+          "Darker Scanner Block Shadows: Viewfinder container and detected ingredient info card enhanced with deeper contrast shadows.",
+          "Floating Bottom Nav Dock: Redesigned bottom navigation as an elevated floating island dock with carved-in crater tabs.",
+          "Redesigned Rescan & Scan Next: Rescan styled in warm amber-terracotta and Scan Next in vivid electric cobalt-indigo.",
+        ],
+      },
+      {
+        type: "Removed",
+        items: [
+          "Header Back Button: Removed the top-left navigation back button in favor of a clean brand emblem.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "v2.3.1",
     date: "19 October 2026",
     title: "Pure Light-Mode Neumorphism (Reverted Dark Mode & Neon Glows)",
     summary:
