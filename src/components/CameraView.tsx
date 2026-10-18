@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import {
   Camera,
   RefreshCw,
@@ -55,6 +55,7 @@ interface CameraViewProps {
 
 export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
   const searchParams = useSearchParams();
+  const pathname = usePathname() || "";
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const modelV2Ref = useRef<MobileNetModel | null>(null);
@@ -417,13 +418,13 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
         return;
       }
 
-      // 4. HYBRID MODE (CNN First -> Gemini Escalation)
+      // 4. HYBRID MODE (MobileNet v4 First -> Gemini Escalation)
       if (activeEngine === "hybrid") {
-        addLog("[Hybrid] Running local CNN...");
-        // Prefer v3 if ready, otherwise v2
+        addLog("[Hybrid] Running local MobileNet v4 Core...");
+        // Prefer v4 if ready, otherwise v2 fallback
         let cnnResult = null;
         if (modelV3Ref.current) {
-          cnnResult = await runMobileNetV3Classification(
+          cnnResult = await runMobileNetV4Classification(
             modelV3Ref.current,
             source,
             (msg) => addLog(msg)
@@ -436,8 +437,14 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
           );
         }
 
-        if (cnnResult && cnnResult.confidence >= 50) {
-          addLog(`[Hybrid] High CNN confidence (${cnnResult.confidence}%). Accepted.`);
+        // Check if edge prediction is confident and in catalog
+        const isConfidentEdge =
+          cnnResult &&
+          cnnResult.confidence >= 60 &&
+          cnnResult.topIngredient.id !== "potato";
+
+        if (isConfidentEdge && cnnResult) {
+          addLog(`[Hybrid] High edge confidence (${cnnResult.confidence}%). Verified by MobileNet v4.`);
           const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name);
           setActiveResult({
             name: cnnResult.topIngredient.name,
@@ -445,11 +452,11 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
             emoji: cnnResult.topIngredient.emoji,
             confidence: cnnResult.confidence,
             topRankings: cnnResult.topRankings,
-            engineUsed: "Hybrid (CNN)",
+            engineUsed: "Hybrid (MobileNet v4 Edge)",
           });
           return;
         } else {
-          addLog(`[Hybrid] Low CNN confidence (${cnnResult?.confidence ?? 0}%). Escalating to Gemini...`);
+          addLog(`[Hybrid] Low or uncatalogued confidence (${cnnResult?.confidence ?? 0}%). Escalating to Gemini Vision...`);
         }
 
         // Auto-escalate to Gemini
@@ -468,20 +475,35 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
           if (res.ok) {
             const json = await res.json();
             if (json.success && json.data) {
-              addLog(`[Hybrid] Gemini result: ${json.data.name}`);
+              addLog(`[Hybrid] Gemini cloud matched: ${json.data.name} (${json.data.confidence}%)`);
               setActiveResult({
                 name: json.data.name,
                 nameMalay: json.data.nameMalay,
                 emoji: json.data.emoji || "🥗",
                 confidence: json.data.confidence,
-                engineUsed: "Hybrid (Gemini)",
+                engineUsed: "Hybrid (Gemini Cloud)",
               });
               return;
             }
           }
         } catch (escalateErr) {
           console.warn("Hybrid Gemini escalation error:", escalateErr);
-          addLog("[Hybrid Error] Escalation failed.");
+          addLog("[Hybrid Warning] Gemini escalation failed, checking local edge fallback...");
+        }
+
+        // Graceful fallback to local edge prediction if Gemini is unavailable
+        if (cnnResult) {
+          addLog("[Hybrid] Reverting to MobileNet v4 edge output.");
+          const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name);
+          setActiveResult({
+            name: cnnResult.topIngredient.name,
+            nameMalay: cnnResult.topIngredient.nameMalay || (local ? local.nameMalay : cnnResult.topIngredient.name),
+            emoji: cnnResult.topIngredient.emoji,
+            confidence: cnnResult.confidence,
+            topRankings: cnnResult.topRankings,
+            engineUsed: "Hybrid (MobileNet v4 Fallback)",
+          });
+          return;
         }
 
         setActiveResult({
@@ -645,7 +667,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
       {testImageParam && (
         <div className="flex items-center justify-between p-2 px-3 rounded-xl bg-zinc-950 border border-zinc-800 text-xs">
           <Link
-            href="/test_01/tester"
+            href={pathname.startsWith("/test_02") ? "/test_02/gallery" : "/test_01/tester"}
             className="flex items-center space-x-1.5 text-zinc-300 hover:text-white transition font-semibold"
           >
             <span>&larr;</span>
