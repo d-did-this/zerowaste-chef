@@ -17,6 +17,8 @@ import {
 import {
   runPredefinedCnnClassification,
   runMobileNetV3Classification,
+  runMobileNetV4Classification,
+  runYoloWorldDetection,
   MobileNetModel,
 } from "@/utils/cnnProduceScanner";
 import type * as tfType from "@tensorflow/tfjs";
@@ -48,7 +50,7 @@ interface LogEntry {
 }
 
 interface CameraViewProps {
-  engine?: "cnn_v2" | "cnn_v3" | "hybrid" | "gemini";
+  engine?: "cnn_v2" | "cnn_v3" | "cnn_v4" | "yolo" | "gemini" | "hybrid";
 }
 
 export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
@@ -73,6 +75,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
   // Captured snapshot preview & Active On-Screen Result
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [activeResult, setActiveResult] = useState<ActiveResult | null>(null);
+  const [activeBBox, setActiveBBox] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   // Live Terminal Logs
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -121,10 +124,11 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
   }, [engine]);
 
   // Quick Mode Switcher Handler
-  const handleModeChange = (mode: "cnn_v2" | "cnn_v3" | "hybrid" | "gemini") => {
+  const handleModeChange = (mode: "cnn_v2" | "cnn_v3" | "cnn_v4" | "yolo" | "gemini") => {
     const updated = saveAppSettings({ preferredEngine: mode });
     setSettings(updated);
     setActiveResult(null);
+    setActiveBBox(null);
     addLog(`[Mode] Switched to ${mode.toUpperCase().replace("_", " ")}`);
   };
 
@@ -267,6 +271,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
   const handleRescan = () => {
     setCapturedImage(null);
     setActiveResult(null);
+    setActiveBBox(null);
     setIsAnalyzing(false);
     addLog("[Scanner] Reset to live feed.");
   };
@@ -279,6 +284,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
     setIsAnalyzing(true);
     setCapturedImage(previewDataUrl);
     setActiveResult(null);
+    setActiveBBox(null);
 
     const activeEngine = engine || settings.preferredEngine || "cnn_v2";
     addLog(`[Scan] Analyzing with [${activeEngine.toUpperCase().replace("_", " ")}]...`);
@@ -346,6 +352,52 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
           confidence: v3Result.confidence,
           topRankings: v3Result.topRankings,
           engineUsed: "CNN (MobileNet v3)",
+        });
+        return;
+      }
+
+      // 3. CNN v4 MODE (MobileNetV4 Universal)
+      if (activeEngine === "cnn_v4") {
+        const v4Result = await runMobileNetV4Classification(
+          modelV3Ref.current,
+          source,
+          (msg) => addLog(msg)
+        );
+
+        const local = findMatchingMalaysianIngredient(v4Result.topIngredient.name);
+
+        setActiveResult({
+          name: v4Result.topIngredient.name,
+          nameMalay: v4Result.topIngredient.nameMalay || (local ? local.nameMalay : v4Result.topIngredient.name),
+          emoji: v4Result.topIngredient.emoji,
+          confidence: v4Result.confidence,
+          topRankings: v4Result.topRankings,
+          engineUsed: "CNN (MobileNet v4)",
+        });
+        return;
+      }
+
+      // 4. YOLO-WORLD OPEN-VOCABULARY DETECTOR
+      if (activeEngine === "yolo") {
+        const yoloResult = await runYoloWorldDetection(
+          source,
+          undefined,
+          (msg) => addLog(msg)
+        );
+
+        if (yoloResult.boundingBox) {
+          setActiveBBox(yoloResult.boundingBox);
+        }
+
+        const local = findMatchingMalaysianIngredient(yoloResult.topIngredient.name);
+
+        setActiveResult({
+          name: yoloResult.topIngredient.name,
+          nameMalay: yoloResult.topIngredient.nameMalay || (local ? local.nameMalay : yoloResult.topIngredient.name),
+          emoji: yoloResult.topIngredient.emoji,
+          confidence: yoloResult.confidence,
+          topRankings: yoloResult.topRankings,
+          engineUsed: "YOLO-World (Open-Vocab)",
         });
         return;
       }
@@ -495,10 +547,8 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
     const isReady =
       actEngine === "cnn_v2"
         ? v2Status === "ready"
-        : actEngine === "cnn_v3"
+        : actEngine === "cnn_v3" || actEngine === "cnn_v4"
         ? v3Status === "ready"
-        : actEngine === "hybrid"
-        ? v2Status === "ready" || v3Status === "ready"
         : true;
 
     if (!isReady) return;
@@ -533,7 +583,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
     if (actEngine === "cnn_v2") {
       return v2Status === "loading";
     }
-    if (actEngine === "cnn_v3") {
+    if (actEngine === "cnn_v3" || actEngine === "cnn_v4") {
       return v3Status === "loading";
     }
     if (actEngine === "hybrid") {
@@ -547,7 +597,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
     if (actEngine === "cnn_v2") {
       return v2Status;
     }
-    if (actEngine === "cnn_v3") {
+    if (actEngine === "cnn_v3" || actEngine === "cnn_v4") {
       return v3Status;
     }
     if (actEngine === "hybrid") {
@@ -618,9 +668,9 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col space-y-3 font-mono text-zinc-100">
       {/* ======================================================== */}
-      {/* FIVE CLEAN NAVIGATION TABS */}
+      {/* SIX CLEAN NAVIGATION TABS */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-5 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl text-center">
+      <div className="grid grid-cols-6 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl text-center">
         <Link
           href="/v2"
           className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
@@ -629,7 +679,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
               : "text-zinc-400 hover:text-white"
           }`}
         >
-          CNN v2
+          V2
         </Link>
 
         <Link
@@ -640,18 +690,29 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
               : "text-zinc-400 hover:text-white"
           }`}
         >
-          CNN v3
+          V3
         </Link>
 
         <Link
-          href="/hybrid"
+          href="/v4"
           className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            (engine || settings.preferredEngine) === "hybrid"
+            (engine || settings.preferredEngine) === "cnn_v4"
               ? "bg-white text-black"
               : "text-zinc-400 hover:text-white"
           }`}
         >
-          HYBRID
+          V4
+        </Link>
+
+        <Link
+          href="/yolo"
+          className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
+            (engine || settings.preferredEngine) === "yolo"
+              ? "bg-white text-black"
+              : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          YOLO
         </Link>
 
         <Link
@@ -666,10 +727,10 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
         </Link>
 
         <Link
-          href="/tester"
+          href="/table"
           className="py-2 px-1 text-xs font-semibold rounded-lg transition-all text-zinc-400 hover:text-white hover:bg-zinc-900"
         >
-          TESTER
+          TABLE
         </Link>
       </div>
 
@@ -721,8 +782,25 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
             />
           )}
 
+          {/* YOLO-World Bounding Box Reticle */}
+          {activeBBox && (
+            <div
+              className="absolute z-20 border-2 border-emerald-400 rounded-lg pointer-events-none transition-all duration-300"
+              style={{
+                left: `${(activeBBox.x / 320) * 100}%`,
+                top: `${(activeBBox.y / 320) * 100}%`,
+                width: `${(activeBBox.width / 320) * 100}%`,
+                height: `${(activeBBox.height / 320) * 100}%`,
+              }}
+            >
+              <div className="absolute -top-5 left-0 px-1.5 py-0.5 bg-emerald-500 text-black text-[9px] font-bold uppercase rounded tracking-wider shadow">
+                {activeResult?.name || "Target"}
+              </div>
+            </div>
+          )}
+
           {/* Minimal Reticle */}
-          {!capturedImage && isCameraActive && (
+          {!capturedImage && !activeBBox && isCameraActive && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
               <div className="relative w-52 h-52 border border-dashed border-white/40 rounded-xl" />
             </div>

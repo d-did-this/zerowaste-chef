@@ -407,37 +407,43 @@ export default function TesterPage() {
             </p>
           </div>
 
-          {/* 5 Clean Navigation Tabs */}
-          <div className="grid grid-cols-5 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl text-center w-full md:w-auto">
+          {/* 6 Clean Navigation Tabs */}
+          <div className="grid grid-cols-6 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl text-center w-full md:w-auto">
             <Link
               href="/v2"
-              className="py-1.5 px-3 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
+              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
             >
-              CNN v2
+              V2
             </Link>
             <Link
               href="/v3"
-              className="py-1.5 px-3 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
+              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
             >
-              CNN v3
+              V3
             </Link>
             <Link
-              href="/hybrid"
-              className="py-1.5 px-3 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
+              href="/v4"
+              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
             >
-              HYBRID
+              V4
+            </Link>
+            <Link
+              href="/yolo"
+              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
+            >
+              YOLO
             </Link>
             <Link
               href="/gemini"
-              className="py-1.5 px-3 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
+              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
             >
               GEMINI
             </Link>
             <Link
-              href="/tester"
-              className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-white text-black transition-all"
+              href="/table"
+              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition-all"
             >
-              TESTER
+              TABLE
             </Link>
           </div>
         </div>
