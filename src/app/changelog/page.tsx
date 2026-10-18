@@ -33,8 +33,31 @@ interface ReleaseEntry {
 
 const RELEASES: ReleaseEntry[] = [
   {
-    version: "v2.3.0",
+    version: "v2.3.1",
     tag: "LATEST",
+    date: "19 October 2026",
+    title: "Pure Light-Mode Neumorphism (Reverted Dark Mode & Neon Glows)",
+    summary:
+      "Cleaned and standardized the UI to 100% pure light-mode Soft-UI neumorphism, removing dark mode and all fluorescent glowing shadows per user preference while preserving real captured camera photo pantry cards, deep carved-in crater bottom tabs, smooth tab transitions, wrapped dark green category filter with icons, and relative update time tracking.",
+    highlights: [
+      {
+        type: "Removed",
+        items: [
+          "Dark Mode Theme: Removed dark mode toggle and all darkmorphic CSS overrides to lock the app permanently into clean light mode.",
+          "Fluorescent Glowing Shadows: Removed glowing box-shadows and neon mint borders across buttons and controls.",
+        ],
+      },
+      {
+        type: "Changed",
+        items: [
+          "Natural Crater Navigation: Refined .neo-crater-darkgreen with clean white typography and crisp recessed directional shadows on #f0f4f9 surface.",
+          "Light Surface Standardization: Standardized body background to #f0f4f9 with crisp #1e293b slate typography.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "v2.3.0",
     date: "19 October 2026",
     title: "Captured Photo Thumbnails, Deep Crater Navigation & Dark Mode",
     summary:

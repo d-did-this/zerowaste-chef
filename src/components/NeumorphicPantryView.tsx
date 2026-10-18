@@ -206,22 +206,22 @@ export default function NeumorphicPantryView({
   // If activeSubTab is Cook Now
   if (activeSubTab === "cook-now") {
     return (
-      <div className="flex flex-col w-full pb-20 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22] dark:text-[#f1f5f9]">
+      <div className="flex flex-col w-full pb-20 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22]">
         {/* Banner */}
         <section className="w-full neo-raised rounded-2xl p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full neo-recessed-pill flex items-center justify-center text-[#006948] dark:text-[#68dba9]">
+              <div className="w-8 h-8 rounded-full neo-recessed-pill flex items-center justify-center text-[#006948]">
                 <span className="material-symbols-outlined text-lg">skillet</span>
               </div>
-              <span className="font-bold text-base text-[#161c22] dark:text-white">Smart Recipe Engine</span>
+              <span className="font-bold text-base text-[#161c22]">Smart Recipe Engine</span>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full neo-recessed text-[#006948] dark:text-[#68dba9] text-[10px] font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#006948] dark:bg-[#68dba9] animate-pulse"></span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full neo-recessed text-[#006948] text-[10px] font-bold">
+              <span className="w-2 h-2 rounded-full bg-[#006948] animate-pulse"></span>
               Pantry Matched
             </span>
           </div>
-          <p className="text-xs text-[#3d4a42] dark:text-zinc-300">
+          <p className="text-xs text-[#3d4a42]">
             ZeroWaste Chef analyzed your stored ingredients and generated high-affinity Malaysian dishes with 0% food waste.
           </p>
         </section>
@@ -232,16 +232,16 @@ export default function NeumorphicPantryView({
           <article className="w-full neo-raised rounded-2xl p-4 flex flex-col gap-2.5">
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full neo-recessed text-[#006948] dark:text-[#68dba9] font-bold uppercase tracking-wider">
+                <span className="text-[10px] px-2 py-0.5 rounded-full neo-recessed text-[#006948] font-bold uppercase tracking-wider">
                   100% In Pantry
                 </span>
-                <h3 className="font-bold text-base text-[#161c22] dark:text-white mt-1">Ayam Masak Kicap Manis</h3>
-                <p className="text-xs text-[#3d4a42] dark:text-zinc-300">Classic Malaysian braised sweet soy sauce chicken</p>
+                <h3 className="font-bold text-base text-[#161c22] mt-1">Ayam Masak Kicap Manis</h3>
+                <p className="text-xs text-[#3d4a42]">Classic Malaysian braised sweet soy sauce chicken</p>
               </div>
               <span className="text-3xl p-1 rounded-xl neo-sunken">🍗</span>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-[#3d4a42] dark:text-zinc-300 pt-1 border-t border-[#dde3eb] dark:border-white/10">
+            <div className="flex items-center gap-2 text-xs text-[#3d4a42] pt-1 border-t border-[#dde3eb]">
               <span className="material-symbols-outlined text-sm text-[#006948]">timer</span>
               <span>25 mins</span>
               <span>&bull;</span>
@@ -322,20 +322,20 @@ export default function NeumorphicPantryView({
   // If activeSubTab is Grocery
   if (activeSubTab === "grocery") {
     return (
-      <div className="flex flex-col w-full pb-20 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22] dark:text-[#f1f5f9]">
+      <div className="flex flex-col w-full pb-20 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22]">
         <section className="w-full neo-raised rounded-2xl p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full neo-recessed-pill flex items-center justify-center text-[#006948] dark:text-[#68dba9]">
+              <div className="w-8 h-8 rounded-full neo-recessed-pill flex items-center justify-center text-[#006948]">
                 <span className="material-symbols-outlined text-lg">shopping_basket</span>
               </div>
-              <span className="font-bold text-base text-[#161c22] dark:text-white">Smart Restock Planner</span>
+              <span className="font-bold text-base text-[#161c22]">Smart Restock Planner</span>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full neo-recessed text-[#006948] dark:text-[#68dba9] text-[10px] font-bold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full neo-recessed text-[#006948] text-[10px] font-bold">
               3 Low Items
             </span>
           </div>
-          <p className="text-xs text-[#3d4a42] dark:text-zinc-300">
+          <p className="text-xs text-[#3d4a42]">
             Keep your zero-waste kitchen stocked with essential Malaysian culinary aromatics and staples.
           </p>
         </section>
@@ -357,11 +357,11 @@ export default function NeumorphicPantryView({
                   className="w-4 h-4 rounded text-[#006948] accent-[#006948] cursor-pointer"
                 />
                 <div>
-                  <h4 className="text-xs font-bold text-[#161c22] dark:text-white">{item.name}</h4>
-                  <p className="text-[10px] text-[#3d4a42] dark:text-zinc-400">{item.reason}</p>
+                  <h4 className="text-xs font-bold text-[#161c22]">{item.name}</h4>
+                  <p className="text-[10px] text-[#3d4a42]">{item.reason}</p>
                 </div>
               </div>
-              <span className="text-[10px] font-bold px-2 py-1 rounded-full neo-sunken text-[#006948] dark:text-[#68dba9]">
+              <span className="text-[10px] font-bold px-2 py-1 rounded-full neo-sunken text-[#006948]">
                 {item.qty}
               </span>
             </div>
@@ -373,48 +373,48 @@ export default function NeumorphicPantryView({
 
   // Default: Smart Pantry Tab
   return (
-    <div className="flex flex-col w-full pb-28 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22] dark:text-[#f1f5f9]">
-      {/* 1. Top Stats Live Banner (Digital Pantry with Green Theme) */}
-      <section className="w-full bg-gradient-to-br from-[#006948] via-[#004d34] to-[#003824] rounded-2xl p-4 mb-4 text-white shadow-lg border border-[#007f57]">
+    <div className="flex flex-col w-full pb-28 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22]">
+      {/* 1. Top Stats Live Banner (Digital Pantry with Clean Green Card) */}
+      <section className="w-full bg-gradient-to-br from-[#006948] via-[#004d34] to-[#003824] rounded-2xl p-4 mb-4 text-white shadow-md border border-[#007f57]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-[#003824] border border-[#00855d] flex items-center justify-center text-[#85f8c4] shadow-inner">
+            <div className="w-9 h-9 rounded-full bg-[#003824] border border-[#00855d] flex items-center justify-center text-white shadow-inner">
               <span className="material-symbols-outlined text-lg">eco</span>
             </div>
             <div>
-              <span className="text-base font-extrabold tracking-tight block">Digital Pantry</span>
-              <span className="text-[10px] text-[#c2e7d4] font-medium leading-none block">Zero-Waste Live Inventory</span>
+              <span className="text-base font-extrabold tracking-tight block text-white">Digital Pantry</span>
+              <span className="text-[10px] text-emerald-100 font-medium leading-none block">Zero-Waste Live Inventory</span>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#003824]/90 border border-[#00855d] text-[#85f8c4] text-[10px] font-bold shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse"></span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#003824]/90 border border-[#00855d] text-emerald-200 text-[10px] font-bold shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             Updated {lastUpdatedText}
           </span>
         </div>
 
-        {/* 2 Neomorphic Stat Wells with Dark Green Theme */}
+        {/* 2 Neomorphic Stat Wells with Clean Green Theme */}
         <div className="grid gap-3 grid-cols-2">
           <div className="bg-[#003824]/90 border border-[#005a3c] rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-inner">
             <span className="text-2xl font-black text-white tracking-tight">{items.length}</span>
-            <span className="text-[11px] text-[#c2e7d4] font-medium leading-tight mt-0.5">Stored Items</span>
+            <span className="text-[11px] text-emerald-100 font-medium leading-tight mt-0.5">Stored Items</span>
           </div>
           <div className="bg-[#003824]/90 border border-[#005a3c] rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-inner">
-            <span className="text-2xl font-black text-[#85f8c4] tracking-tight">
+            <span className="text-2xl font-black text-white tracking-tight">
               {Math.max(3, Math.floor(items.length * 0.7))}
             </span>
-            <span className="text-[11px] text-[#85f8c4] font-semibold leading-tight mt-0.5">Ready Meals</span>
+            <span className="text-[11px] text-emerald-200 font-semibold leading-tight mt-0.5">Ready Meals</span>
           </div>
         </div>
       </section>
 
       {/* 2. Filter Chips Wrapped Section with Dark Green Theme */}
-      <section className="w-full bg-[#004d34] dark:bg-[#003622] rounded-2xl p-3 mb-4 shadow-lg border border-[#006948]/60 flex flex-col gap-2">
+      <section className="w-full bg-[#004d34] rounded-2xl p-3 mb-4 shadow-md border border-[#006948]/60 flex flex-col gap-2">
         <div className="flex items-center justify-between px-1">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#85f8c4] flex items-center gap-1.5">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-200 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-sm">tune</span>
             Categories
           </span>
-          <span className="text-[10px] text-[#c2e7d4] font-semibold">
+          <span className="text-[10px] text-emerald-100 font-semibold">
             {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"}
           </span>
         </div>
@@ -435,8 +435,8 @@ export default function NeumorphicPantryView({
                 onClick={() => setSelectedCategory(chip.id)}
                 className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 ${
                   isActive
-                    ? "bg-[#85f8c4] text-[#002114] shadow-md font-extrabold scale-[1.02]"
-                    : "bg-[#006041]/85 hover:bg-[#00704c] text-[#eefbf4] border border-[#007b54]"
+                    ? "bg-white text-[#004d34] shadow-sm font-extrabold scale-[1.02]"
+                    : "bg-[#006041]/85 hover:bg-[#00704c] text-white border border-[#007b54]"
                 }`}
                 type="button"
               >
@@ -452,11 +452,11 @@ export default function NeumorphicPantryView({
       <div className="flex flex-col gap-3 w-full">
         {filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center px-4 neo-recessed rounded-2xl">
-            <div className="w-14 h-14 rounded-full neo-raised flex items-center justify-center text-[#006948] dark:text-[#68dba9] mb-2">
+            <div className="w-14 h-14 rounded-full neo-raised flex items-center justify-center text-[#006948] mb-2">
               <span className="material-symbols-outlined text-3xl">shopping_basket</span>
             </div>
-            <h4 className="text-sm font-bold text-[#161c22] dark:text-white">No items in this category</h4>
-            <p className="text-xs text-[#576574] dark:text-zinc-400 mt-1 max-w-xs">
+            <h4 className="text-sm font-bold text-[#161c22]">No items in this category</h4>
+            <p className="text-xs text-[#576574] mt-1 max-w-xs">
               Tap the camera button to scan fresh produce or seasonings.
             </p>
           </div>
@@ -481,7 +481,7 @@ export default function NeumorphicPantryView({
                 </div>
                 <div className="flex flex-col min-w-0 flex-1 justify-center">
                   <div className="flex items-center justify-between gap-1">
-                    <h3 className="text-sm font-bold text-[#161c22] dark:text-white truncate">
+                    <h3 className="text-sm font-bold text-[#161c22] truncate">
                       {item.name}
                     </h3>
                     <button
@@ -494,7 +494,7 @@ export default function NeumorphicPantryView({
                     </button>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[10px] text-[#576574] dark:text-zinc-400 truncate">
+                    <span className="text-[10px] text-[#576574] truncate">
                       {item.category || "Pantry"}
                     </span>
                   </div>
@@ -557,17 +557,17 @@ export default function NeumorphicPantryView({
       {/* Manual Entry Bottom Sheet / Modal */}
       {isManualModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm transition-opacity">
-          <div className="w-full max-w-md bg-[#f0f4f9] dark:bg-[#161e2a] neo-raised rounded-t-3xl p-5 shadow-2xl flex flex-col gap-4 animate-in slide-in-from-bottom duration-200 border-t border-transparent dark:border-white/10">
+          <div className="w-full max-w-md bg-[#f0f4f9] neo-raised rounded-t-3xl p-5 shadow-2xl flex flex-col gap-4 animate-in slide-in-from-bottom duration-200">
             <div className="w-12 h-1.5 neo-recessed-pill rounded-full mx-auto"></div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[#006948] dark:text-[#68dba9] text-2xl">add_circle</span>
-                <h2 className="text-base font-bold text-[#161c22] dark:text-white">Add Ingredient Manually</h2>
+                <span className="material-symbols-outlined text-[#006948] text-2xl">add_circle</span>
+                <h2 className="text-base font-bold text-[#161c22]">Add Ingredient Manually</h2>
               </div>
               <button
                 onClick={() => setIsManualModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full neo-raised-button text-[#576574] dark:text-zinc-300"
+                className="w-8 h-8 flex items-center justify-center rounded-full neo-raised-button text-[#576574]"
                 type="button"
               >
                 <span className="material-symbols-outlined text-base">close</span>
@@ -577,30 +577,30 @@ export default function NeumorphicPantryView({
             <form onSubmit={handleManualSubmit} className="flex flex-col gap-3.5">
               {/* Item Name */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase font-bold text-[#576574] dark:text-zinc-400">Ingredient Name</label>
+                <label className="text-[10px] uppercase font-bold text-[#576574]">Ingredient Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Kicap Pekat, Bell Pepper, Halia"
                   value={manualName}
                   onChange={(e) => setManualName(e.target.value)}
-                  className="h-11 px-3.5 rounded-xl neo-recessed bg-transparent border-0 outline-none text-xs text-[#161c22] dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                  className="h-11 px-3.5 rounded-xl neo-recessed bg-transparent border-0 outline-none text-xs text-[#161c22] placeholder:text-zinc-400"
                 />
               </div>
 
               {/* Quantity & Unit */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-bold text-[#576574] dark:text-zinc-400">Quantity</label>
+                  <label className="text-[10px] uppercase font-bold text-[#576574]">Quantity</label>
                   <div className="h-11 rounded-xl neo-recessed flex items-center justify-between px-2">
                     <button
                       type="button"
                       onClick={() => setManualQty((q) => Math.max(1, q - 1))}
-                      className="w-7 h-7 rounded-lg neo-raised-button flex items-center justify-center text-xs dark:text-white"
+                      className="w-7 h-7 rounded-lg neo-raised-button flex items-center justify-center text-xs text-[#161c22]"
                     >
                       -
                     </button>
-                    <span className="text-xs font-bold text-[#161c22] dark:text-white">{manualQty}</span>
+                    <span className="text-xs font-bold text-[#161c22]">{manualQty}</span>
                     <button
                       type="button"
                       onClick={() => setManualQty((q) => q + 1)}
@@ -612,33 +612,33 @@ export default function NeumorphicPantryView({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-bold text-[#576574] dark:text-zinc-400">Unit Type</label>
+                  <label className="text-[10px] uppercase font-bold text-[#576574]">Unit Type</label>
                   <select
                     value={manualUnit}
                     onChange={(e) => setManualUnit(e.target.value)}
-                    className="h-11 px-3 rounded-xl neo-recessed bg-transparent dark:bg-[#111722] border-0 outline-none text-xs font-semibold text-[#161c22] dark:text-white"
+                    className="h-11 px-3 rounded-xl neo-recessed bg-transparent border-0 outline-none text-xs font-semibold text-[#161c22]"
                   >
-                    <option value="biji" className="dark:bg-[#161e2a] dark:text-white">biji (seeds / small fruits / eggs)</option>
-                    <option value="buah" className="dark:bg-[#161e2a] dark:text-white">buah (large fruits / items)</option>
-                    <option value="batang" className="dark:bg-[#161e2a] dark:text-white">batang (stalks / roots)</option>
-                    <option value="ikat" className="dark:bg-[#161e2a] dark:text-white">ikat (bunches / bundles)</option>
-                    <option value="ketul" className="dark:bg-[#161e2a] dark:text-white">ketul (pieces / blocks / meat)</option>
-                    <option value="labu" className="dark:bg-[#161e2a] dark:text-white">labu (heads / bulbs)</option>
-                    <option value="ulas" className="dark:bg-[#161e2a] dark:text-white">ulas (cloves / segments)</option>
-                    <option value="botol" className="dark:bg-[#161e2a] dark:text-white">botol (bottles)</option>
-                    <option value="tin" className="dark:bg-[#161e2a] dark:text-white">tin (cans)</option>
-                    <option value="bungkus" className="dark:bg-[#161e2a] dark:text-white">bungkus (packets / packs)</option>
-                    <option value="pcs" className="dark:bg-[#161e2a] dark:text-white">pcs (pieces)</option>
-                    <option value="g" className="dark:bg-[#161e2a] dark:text-white">g (grams)</option>
-                    <option value="kg" className="dark:bg-[#161e2a] dark:text-white">kg (kilograms)</option>
-                    <option value="ml" className="dark:bg-[#161e2a] dark:text-white">ml (milliliters)</option>
+                    <option value="biji">biji (seeds / small fruits / eggs)</option>
+                    <option value="buah">buah (large fruits / items)</option>
+                    <option value="batang">batang (stalks / roots)</option>
+                    <option value="ikat">ikat (bunches / bundles)</option>
+                    <option value="ketul">ketul (pieces / blocks / meat)</option>
+                    <option value="labu">labu (heads / bulbs)</option>
+                    <option value="ulas">ulas (cloves / segments)</option>
+                    <option value="botol">botol (bottles)</option>
+                    <option value="tin">tin (cans)</option>
+                    <option value="bungkus">bungkus (packets / packs)</option>
+                    <option value="pcs">pcs (pieces)</option>
+                    <option value="g">g (grams)</option>
+                    <option value="kg">kg (kilograms)</option>
+                    <option value="ml">ml (milliliters)</option>
                   </select>
                 </div>
               </div>
 
               {/* Category */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase font-bold text-[#576574] dark:text-zinc-400">Category</label>
+                <label className="text-[10px] uppercase font-bold text-[#576574]">Category</label>
                 <div className="flex flex-wrap gap-2">
                   {["produce", "proteins", "seasoning", "dairy", "staples"].map((c) => (
                     <button
@@ -647,8 +647,8 @@ export default function NeumorphicPantryView({
                       onClick={() => setManualCat(c)}
                       className={`px-3 py-1 rounded-full text-xs font-semibold capitalize transition-all ${
                         manualCat === c
-                          ? "neo-recessed-active text-[#006948] dark:text-[#85f8c4] font-bold"
-                          : "neo-raised-button text-[#576574] dark:text-zinc-300"
+                          ? "neo-recessed-active text-[#006948] font-bold"
+                          : "neo-raised-button text-[#576574]"
                       }`}
                     >
                       {c}
@@ -659,10 +659,10 @@ export default function NeumorphicPantryView({
 
               <button
                 type="submit"
-                className="mt-2 w-full h-11 rounded-full neo-raised-primary text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-98 transition-transform"
+                className="w-full mt-2 py-3.5 rounded-full neo-raised-primary text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
               >
-                <span className="material-symbols-outlined text-base">check</span>
-                <span>Save to Pantry</span>
+                <span className="material-symbols-outlined text-lg">save</span>
+                <span>Save to Digital Pantry</span>
               </button>
             </form>
           </div>

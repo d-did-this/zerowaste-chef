@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.3.1] - 2026-10-19
+
+### Removed
+- **Dark Mode System & Neon Glowing Shadows:** Reverted dark mode theme and all fluorescent glowing drop shadows per user request, locking the entire application to clean, pure light-mode Google Stitch Soft-UI neumorphism.
+
+### Changed
+- **Natural Light Crater Active Tab:** Calibrated `.neo-crater-darkgreen` to use `#004d34` with clean white typography and crisp recessed directional shadows, removing fluorescent neon mint accents.
+- **Root Background Standardization:** Standardized `body` and `:root` background strictly to `#f0f4f9` across `layout.tsx` and `globals.css`.
+
+---
+
 ## [2.3.0] - 2026-10-19
 
 ### Added

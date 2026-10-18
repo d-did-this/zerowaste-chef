@@ -54,7 +54,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 select-none">
+      <body className="min-h-full flex flex-col bg-[#f0f4f9] text-[#1e293b] select-none">
         {children}
       </body>
     </html>
