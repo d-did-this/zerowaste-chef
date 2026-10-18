@@ -641,6 +641,22 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
       {/* Unified Top Navigation */}
       <NavigationHeader />
 
+      {/* Benchmark Testing Active Banner */}
+      {testImageParam && (
+        <div className="flex items-center justify-between p-2 px-3 rounded-xl bg-zinc-950 border border-zinc-800 text-xs">
+          <Link
+            href="/test_01/tester"
+            className="flex items-center space-x-1.5 text-zinc-300 hover:text-white transition font-semibold"
+          >
+            <span>&larr;</span>
+            <span>Back to Benchmark Gallery</span>
+          </Link>
+          <span className="text-[10px] text-zinc-500 font-mono truncate max-w-[160px]">
+            {testImageParam.split("/").pop()}
+          </span>
+        </div>
+      )}
+
       {/* ======================================================== */}
       {/* 1. TOP HALF: THE SCANNER */}
       {/* ======================================================== */}

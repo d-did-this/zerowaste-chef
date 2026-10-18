@@ -346,11 +346,6 @@ export default function TesterPage() {
     router.push(`/test_01/v4?testImage=${encodeURIComponent(imgSrc)}`);
   };
 
-  // Navigate to parallel compare with benchmark image
-  const testInCompare = (imgSrc: string) => {
-    router.push(`/test_02?testImage=${encodeURIComponent(imgSrc)}`);
-  };
-
   // Lightbox handlers
   const openLightbox = (index: number) => {
     setLightboxIndex(index);
@@ -594,41 +589,32 @@ export default function TesterPage() {
                 </div>
 
                 {/* Test Action Buttons */}
-                <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-zinc-900">
+                <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-zinc-900">
                   <button
                     onClick={() => testInV2(item.img_src)}
-                    className="py-1 px-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-white hover:bg-white hover:text-black text-[10px] font-semibold transition-all flex items-center justify-center space-x-0.5 text-zinc-300"
-                    title={`Run inference with CNN v2 on ${item.title}`}
+                    className="py-1.5 px-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-white hover:bg-white hover:text-black text-[11px] font-semibold transition-all flex items-center justify-center space-x-1 text-zinc-300 shadow-sm"
+                    title={`Upload to V2: Run inference on ${item.title}`}
                   >
-                    <Play className="w-2.5 h-2.5 fill-current" />
-                    <span>v2</span>
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>Test v2</span>
                   </button>
 
                   <button
                     onClick={() => testInV3(item.img_src)}
-                    className="py-1 px-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-white hover:bg-white hover:text-black text-[10px] font-semibold transition-all flex items-center justify-center space-x-0.5 text-zinc-300"
-                    title={`Run inference with CNN v3 on ${item.title}`}
+                    className="py-1.5 px-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-white hover:bg-white hover:text-black text-[11px] font-semibold transition-all flex items-center justify-center space-x-1 text-zinc-300 shadow-sm"
+                    title={`Upload to V3: Run inference on ${item.title}`}
                   >
-                    <Play className="w-2.5 h-2.5 fill-current" />
-                    <span>v3</span>
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>Test v3</span>
                   </button>
 
                   <button
                     onClick={() => testInV4(item.img_src)}
-                    className="py-1 px-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-white hover:bg-white hover:text-black text-[10px] font-semibold transition-all flex items-center justify-center space-x-0.5 text-zinc-300"
-                    title={`Run inference with CNN v4 on ${item.title}`}
+                    className="py-1.5 px-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-white hover:bg-white hover:text-black text-[11px] font-semibold transition-all flex items-center justify-center space-x-1 text-zinc-300 shadow-sm"
+                    title={`Upload to V4: Run inference on ${item.title}`}
                   >
-                    <Play className="w-2.5 h-2.5 fill-current" />
-                    <span>v4</span>
-                  </button>
-
-                  <button
-                    onClick={() => testInCompare(item.img_src)}
-                    className="py-1 px-1 rounded-lg bg-white text-black hover:bg-zinc-200 text-[10px] font-bold transition-all flex items-center justify-center space-x-0.5 shadow-sm"
-                    title={`Run all 3 models in parallel on ${item.title}`}
-                  >
-                    <Play className="w-2.5 h-2.5 fill-current" />
-                    <span>3x</span>
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>Test v4</span>
                   </button>
                 </div>
               </div>
@@ -748,34 +734,26 @@ export default function TesterPage() {
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => testInV2(currentItem.img_src)}
-                className="py-2 px-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-white hover:text-black text-xs font-semibold transition flex items-center space-x-1.5"
+                className="py-2.5 px-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-white hover:text-black text-xs font-semibold transition flex items-center space-x-2"
               >
                 <Camera className="w-3.5 h-3.5" />
-                <span>v2</span>
+                <span>Test in CNN v2</span>
               </button>
 
               <button
                 onClick={() => testInV3(currentItem.img_src)}
-                className="py-2 px-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-white hover:text-black text-xs font-semibold transition flex items-center space-x-1.5"
+                className="py-2.5 px-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-white hover:text-black text-xs font-semibold transition flex items-center space-x-2"
               >
                 <Camera className="w-3.5 h-3.5" />
-                <span>v3</span>
+                <span>Test in CNN v3</span>
               </button>
 
               <button
                 onClick={() => testInV4(currentItem.img_src)}
-                className="py-2 px-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-white hover:text-black text-xs font-semibold transition flex items-center space-x-1.5"
+                className="py-2.5 px-4 rounded-xl bg-white text-black hover:bg-zinc-200 text-xs font-bold transition flex items-center space-x-2 shadow-sm"
               >
                 <Camera className="w-3.5 h-3.5" />
-                <span>v4</span>
-              </button>
-
-              <button
-                onClick={() => testInCompare(currentItem.img_src)}
-                className="py-2 px-4 rounded-xl bg-white text-black hover:bg-zinc-200 text-xs font-bold transition flex items-center space-x-1.5 shadow-sm"
-              >
-                <Camera className="w-3.5 h-3.5" />
-                <span>Compare (3x)</span>
+                <span>Test in CNN v4</span>
               </button>
             </div>
           </div>

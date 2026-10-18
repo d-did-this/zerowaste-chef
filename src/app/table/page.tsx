@@ -426,7 +426,7 @@ export default function ProduceTablePage() {
   );
 
   const testItem = (enginePath: string, testImage?: string) => {
-    const route = enginePath === "test_02" ? "/test_02" : `/test_01/${enginePath}`;
+    const route = `/test_01/${enginePath}`;
     if (testImage) {
       router.push(`${route}?testImage=${encodeURIComponent(testImage)}`);
     } else {
@@ -578,13 +578,6 @@ export default function ProduceTablePage() {
                         title="Test in V4"
                       >
                         V4
-                      </button>
-                      <button
-                        onClick={() => testItem("test_02", row.testImage)}
-                        className="px-2 py-1 rounded bg-white text-black hover:bg-zinc-200 font-bold transition shadow-sm"
-                        title="Compare V2, V3, and V4 simultaneously"
-                      >
-                        3x
                       </button>
                     </div>
                   </td>

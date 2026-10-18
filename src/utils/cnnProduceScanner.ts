@@ -342,14 +342,16 @@ export function createCroppedCanvas(
   const ctx = canvas.getContext("2d");
   if (!ctx) return canvas;
 
-  const srcWidth = (source as HTMLVideoElement).videoWidth || source.width;
-  const srcHeight = (source as HTMLVideoElement).videoHeight || source.height;
+  const imgElem = source as HTMLImageElement;
+  const vidElem = source as HTMLVideoElement;
+  const srcWidth = vidElem.videoWidth || imgElem.naturalWidth || source.width || 640;
+  const srcHeight = vidElem.videoHeight || imgElem.naturalHeight || source.height || 640;
 
   const baseSize = Math.min(srcWidth, srcHeight);
-  const cropSize = baseSize * scale;
+  const cropSize = Math.max(1, baseSize * scale);
 
-  const startX = (srcWidth - cropSize) / 2;
-  const startY = (srcHeight - cropSize) / 2;
+  const startX = Math.max(0, (srcWidth - cropSize) / 2);
+  const startY = Math.max(0, (srcHeight - cropSize) / 2);
 
   ctx.drawImage(source, startX, startY, cropSize, cropSize, 0, 0, targetSize, targetSize);
   return canvas;
