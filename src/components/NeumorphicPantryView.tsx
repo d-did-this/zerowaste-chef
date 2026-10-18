@@ -21,8 +21,8 @@ const DEFAULT_INITIAL_ITEMS: Omit<PantryItem, "id" | "dateAdded">[] = [
     nameMalay: "Bayam Hijau",
     emoji: "🥬",
     category: "Produce",
-    quantity: 200,
-    unit: "g",
+    quantity: 1,
+    unit: "ikat",
     culinaryNote: "Fresh crisp green leaves from local grocer",
   },
   {
@@ -31,7 +31,7 @@ const DEFAULT_INITIAL_ITEMS: Omit<PantryItem, "id" | "dateAdded">[] = [
     emoji: "🥚",
     category: "Dairy",
     quantity: 6,
-    unit: "pcs",
+    unit: "biji",
     culinaryNote: "Rich in protein, best for sunny side up or fried rice",
   },
   {
@@ -39,8 +39,8 @@ const DEFAULT_INITIAL_ITEMS: Omit<PantryItem, "id" | "dateAdded">[] = [
     nameMalay: "Dada Ayam Segar",
     emoji: "🍗",
     category: "Proteins",
-    quantity: 450,
-    unit: "g",
+    quantity: 2,
+    unit: "ketul",
     culinaryNote: "Lean protein, refrigerated",
   },
   {
@@ -49,7 +49,7 @@ const DEFAULT_INITIAL_ITEMS: Omit<PantryItem, "id" | "dateAdded">[] = [
     emoji: "🍅",
     category: "Produce",
     quantity: 4,
-    unit: "pcs",
+    unit: "biji",
     culinaryNote: "Plump ripe red tomatoes",
   },
   {
@@ -58,7 +58,7 @@ const DEFAULT_INITIAL_ITEMS: Omit<PantryItem, "id" | "dateAdded">[] = [
     emoji: "🧄",
     category: "Staples",
     quantity: 1,
-    unit: "bulb",
+    unit: "labu",
     culinaryNote: "Aromatic foundation for Malaysian stir-fries",
   },
   {
@@ -83,7 +83,7 @@ export default function NeumorphicPantryView({
   // Manual Form States
   const [manualName, setManualName] = useState<string>("");
   const [manualQty, setManualQty] = useState<number>(1);
-  const [manualUnit, setManualUnit] = useState<string>("pcs");
+  const [manualUnit, setManualUnit] = useState<string>("biji");
   const [manualCat, setManualCat] = useState<string>("produce");
 
   // Load items from local storage
@@ -429,7 +429,7 @@ export default function NeumorphicPantryView({
                 <div className="flex flex-col min-w-0 flex-1 justify-center">
                   <div className="flex items-center justify-between gap-1">
                     <h3 className="text-sm font-bold text-[#161c22] truncate">
-                      {item.nameMalay || item.name}
+                      {item.name}
                     </h3>
                     <button
                       aria-label="Remove item"
@@ -442,7 +442,7 @@ export default function NeumorphicPantryView({
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="text-[10px] text-[#576574] truncate">
-                      {item.name} &bull; {item.category || "Pantry"}
+                      {item.category || "Pantry"}
                     </span>
                   </div>
                 </div>
@@ -565,13 +565,20 @@ export default function NeumorphicPantryView({
                     onChange={(e) => setManualUnit(e.target.value)}
                     className="h-11 px-3 rounded-xl neo-recessed bg-transparent border-0 outline-none text-xs font-semibold text-[#161c22]"
                   >
-                    <option value="pcs">Pieces (pcs)</option>
-                    <option value="g">Grams (g)</option>
-                    <option value="ml">Milliliters (ml)</option>
-                    <option value="botol">Botol (Bottle)</option>
-                    <option value="batang">Batang (Stalk)</option>
-                    <option value="ikat">Ikat (Bunch)</option>
-                    <option value="bulb">Bulb / Head</option>
+                    <option value="biji">biji (seeds / small fruits / eggs)</option>
+                    <option value="buah">buah (large fruits / items)</option>
+                    <option value="batang">batang (stalks / roots)</option>
+                    <option value="ikat">ikat (bunches / bundles)</option>
+                    <option value="ketul">ketul (pieces / blocks / meat)</option>
+                    <option value="labu">labu (heads / bulbs)</option>
+                    <option value="ulas">ulas (cloves / segments)</option>
+                    <option value="botol">botol (bottles)</option>
+                    <option value="tin">tin (cans)</option>
+                    <option value="bungkus">bungkus (packets / packs)</option>
+                    <option value="pcs">pcs (pieces)</option>
+                    <option value="g">g (grams)</option>
+                    <option value="kg">kg (kilograms)</option>
+                    <option value="ml">ml (milliliters)</option>
                   </select>
                 </div>
               </div>

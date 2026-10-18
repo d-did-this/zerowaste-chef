@@ -252,14 +252,17 @@ export default function NeumorphicScannerView({
         cnnResult.topIngredient.id !== "potato";
 
       if (isConfidentEdge && cnnResult) {
-        const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name, "Vegetables & Greens");
+        const local = findMatchingMalaysianIngredient(
+          cnnResult.topIngredient.name,
+          cnnResult.topIngredient.category
+        );
         setActiveResult({
           name: cnnResult.topIngredient.name,
           nameMalay: cnnResult.topIngredient.nameMalay || (local ? local.nameMalay : cnnResult.topIngredient.name),
           emoji: cnnResult.topIngredient.emoji,
           confidence: cnnResult.confidence,
-          suggestedUnit: local?.defaultUnit || "pcs",
-          category: local?.category || "Produce",
+          suggestedUnit: local?.defaultUnit || (cnnResult.topIngredient.category === "Fruit" ? "biji" : "pcs"),
+          category: local?.category || (cnnResult.topIngredient.category === "Fruit" ? "Citrus & Fruits" : "Produce"),
           engineUsed: "MobileNet v4 Edge",
         });
         setPortionCount(1);
@@ -279,14 +282,17 @@ export default function NeumorphicScannerView({
   const runV4Classification = async (source: HTMLCanvasElement | HTMLImageElement) => {
     if (modelV4Ref.current) {
       const v4Result = await runMobileNetV4Classification(modelV4Ref.current, source);
-      const local = findMatchingMalaysianIngredient(v4Result.topIngredient.name, "Vegetables & Greens");
+      const local = findMatchingMalaysianIngredient(
+        v4Result.topIngredient.name,
+        v4Result.topIngredient.category
+      );
       setActiveResult({
         name: v4Result.topIngredient.name,
         nameMalay: v4Result.topIngredient.nameMalay || (local ? local.nameMalay : v4Result.topIngredient.name),
         emoji: v4Result.topIngredient.emoji,
         confidence: v4Result.confidence,
-        suggestedUnit: local?.defaultUnit || "pcs",
-        category: local?.category || "Produce",
+        suggestedUnit: local?.defaultUnit || (v4Result.topIngredient.category === "Fruit" ? "biji" : "pcs"),
+        category: local?.category || (v4Result.topIngredient.category === "Fruit" ? "Citrus & Fruits" : "Produce"),
         engineUsed: "MobileNet v4",
       });
       setPortionCount(1);
@@ -319,7 +325,7 @@ export default function NeumorphicScannerView({
             emoji: json.data.emoji || "🥗",
             confidence: json.data.confidence,
             category: json.data.category || "Pantry & Seasonings",
-            suggestedUnit: json.data.suggestedUnit || "pcs",
+            suggestedUnit: json.data.suggestedUnit || "biji",
             culinaryNote: json.data.culinaryNote,
             engineUsed: "Gemini Vision AI",
           });
@@ -333,13 +339,17 @@ export default function NeumorphicScannerView({
 
     // Graceful fallback to local CNN if available
     if (fallbackCnn) {
-      const local = findMatchingMalaysianIngredient(fallbackCnn.topIngredient.name);
+      const local = findMatchingMalaysianIngredient(
+        fallbackCnn.topIngredient.name,
+        fallbackCnn.topIngredient.category
+      );
       setActiveResult({
         name: fallbackCnn.topIngredient.name,
         nameMalay: fallbackCnn.topIngredient.nameMalay || (local ? local.nameMalay : fallbackCnn.topIngredient.name),
         emoji: fallbackCnn.topIngredient.emoji,
         confidence: fallbackCnn.confidence,
-        suggestedUnit: local?.defaultUnit || "pcs",
+        suggestedUnit: local?.defaultUnit || (fallbackCnn.topIngredient.category === "Fruit" ? "biji" : "pcs"),
+        category: local?.category || (fallbackCnn.topIngredient.category === "Fruit" ? "Citrus & Fruits" : "Produce"),
         engineUsed: "MobileNet v4 Fallback",
       });
     }
@@ -463,12 +473,14 @@ export default function NeumorphicScannerView({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Torch Toggle */}
+          {/* Torch Toggle (Yellow Accent) */}
           <button
             aria-label="Toggle Flashlight"
             onClick={toggleTorch}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-              isTorchOn ? "neo-sunken text-[#006948]" : "neo-raised text-[#3d4a42] hover:text-[#161c22]"
+              isTorchOn
+                ? "bg-amber-400 text-amber-950 shadow-[0_0_14px_rgba(251,191,36,0.9)] neo-sunken"
+                : "neo-raised text-amber-500 hover:text-amber-600 active:scale-95 bg-amber-50/40 border border-amber-300/40"
             }`}
             type="button"
           >
@@ -538,7 +550,7 @@ export default function NeumorphicScannerView({
           {/* Animated Laser Scanline */}
           <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#85f8c4] to-transparent opacity-90 animate-scan-move pointer-events-none"></div>
 
-          {/* HUD Reticle Target Box (100% Crystal-Clear Transparent) */}
+          {/* HUD Reticle Target Box (100% Crystal-Clear Transparent, No Obstructing Pills) */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
             <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-3xl border border-emerald-400/40 !bg-transparent p-1 shadow-[0_0_15px_rgba(104,219,169,0.15)]">
               {/* Corner Brackets */}
@@ -546,14 +558,6 @@ export default function NeumorphicScannerView({
               <div className="absolute -top-1.5 -right-1.5 w-6 h-6 border-t-4 border-r-4 border-[#006948] rounded-tr-lg"></div>
               <div className="absolute -bottom-1.5 -left-1.5 w-6 h-6 border-b-4 border-l-4 border-[#006948] rounded-bl-lg"></div>
               <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 border-b-4 border-r-4 border-[#006948] rounded-br-xl"></div>
-
-              {/* Tag Pill */}
-              <div className="absolute top-2 left-2 bg-[#161c22]/80 backdrop-blur-md px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                <span className="material-symbols-outlined text-[#85f8c4] text-xs">local_florist</span>
-                <span className="text-[10px] text-[#f5fff7] font-semibold">
-                  {activeResult?.category || "Fresh Produce"}
-                </span>
-              </div>
 
               {/* Center Crosshair */}
               <div className="absolute inset-0 flex items-center justify-center opacity-60">
@@ -598,30 +602,29 @@ export default function NeumorphicScannerView({
       <div className="w-full rounded-2xl p-4 neo-raised flex flex-col gap-3">
         {activeResult ? (
           <>
-            {/* Header: Identity & Verified Match */}
-            <div className="flex items-start justify-between gap-2 border-b border-[#dde3eb] pb-2.5">
-              <div className="flex items-center space-x-2.5 min-w-0">
-                <span className="text-3xl p-1 rounded-xl neo-sunken shrink-0">{activeResult.emoji}</span>
+            {/* Header: Identity & Verified Match (Dark Green Background Row) */}
+            <div className="w-full bg-[#004d34] text-white p-3.5 rounded-xl shadow-inner flex items-center justify-between gap-2 border border-[#006948]">
+              <div className="flex items-center space-x-3 min-w-0">
+                <span className="text-3xl p-1.5 rounded-xl bg-[#003824] shadow-inner shrink-0">{activeResult.emoji}</span>
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="material-symbols-outlined text-[#006948] text-sm">check_circle</span>
-                    <span className="text-[10px] text-[#006948] uppercase font-bold tracking-wider">
+                    <span className="material-symbols-outlined text-[#68dba9] text-sm">check_circle</span>
+                    <span className="text-[10px] text-[#85f8c4] uppercase font-bold tracking-wider">
                       Identified Perfectly
                     </span>
                   </div>
-                  <h2 className="text-base font-bold text-[#161c22] tracking-tight truncate">
-                    {activeResult.nameMalay || activeResult.name}
-                  </h2>
-                  <p className="text-[11px] text-[#3d4a42] truncate">
+                  <h2 className="text-base font-extrabold text-white tracking-tight truncate">
                     {activeResult.name}
-                    {activeResult.brand ? ` (${activeResult.brand})` : ""} &bull; {activeResult.engineUsed}
+                  </h2>
+                  <p className="text-[11px] text-[#c2e7d4] truncate">
+                    {activeResult.category} &bull; {activeResult.brand ? `${activeResult.brand} • ` : ""}{activeResult.engineUsed}
                   </p>
                 </div>
               </div>
 
-              <div className="px-2.5 py-1 rounded-full neo-sunken flex items-center gap-1 shrink-0">
-                <span className="material-symbols-outlined text-[#006948] text-xs">verified</span>
-                <span className="text-[10px] text-[#161c22] font-bold">{activeResult.confidence}% Match</span>
+              <div className="px-2.5 py-1 rounded-full bg-[#003824] border border-[#006948] flex items-center gap-1 shrink-0">
+                <span className="material-symbols-outlined text-[#68dba9] text-xs">verified</span>
+                <span className="text-[10px] text-white font-bold">{activeResult.confidence}% Match</span>
               </div>
             </div>
 
@@ -682,7 +685,7 @@ export default function NeumorphicScannerView({
               </button>
             )}
 
-            {/* Option C: 1-Tap Gemini Vision Escalation Pill */}
+            {/* Option C: 1-Tap Gemini Vision Escalation Pill (Light Galaxy Gradient Blue) */}
             {!activeResult.engineUsed.toLowerCase().includes("gemini") && (
               <div className="w-full p-2.5 rounded-xl neo-sunken flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 min-w-0">
@@ -693,7 +696,7 @@ export default function NeumorphicScannerView({
                   type="button"
                   onClick={handleOptionCEscalate}
                   disabled={isAnalyzing}
-                  className="px-3 py-1 rounded-full neo-raised text-[#006948] text-[10px] font-bold flex items-center gap-1 shrink-0 active:scale-95 transition-transform disabled:opacity-50"
+                  className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#93c5fd] via-[#bfdbfe] to-[#c7d2fe] hover:from-[#60a5fa] hover:to-[#a5b4fc] text-[#1e3a8a] text-[10px] font-bold flex items-center gap-1.5 shrink-0 active:scale-95 transition-all shadow-[0_2px_10px_rgba(147,197,253,0.65)] border border-[#93c5fd]/70 disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-xs">psychology</span>
                   <span>{isAnalyzing ? "Consulting..." : "Gemini Vision"}</span>
@@ -701,14 +704,12 @@ export default function NeumorphicScannerView({
               </div>
             )}
 
-            {/* Primary Action: Confirm & Add to Pantry */}
+            {/* Primary Action: Confirm & Add to Pantry (Bulging 3D Button) */}
             <button
               onClick={handleConfirmPantry}
               disabled={isAddedSuccess}
-              className={`w-full py-3.5 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md ${
-                isAddedSuccess
-                  ? "bg-[#00855d] text-[#f5fff7]"
-                  : "bg-[#006948] hover:bg-[#005137] text-white"
+              className={`w-full py-4 px-5 rounded-full font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all neo-bulge-primary text-white tracking-wide ${
+                isAddedSuccess ? "!bg-[#00855d] text-[#f5fff7]" : ""
               }`}
               type="button"
             >
@@ -718,23 +719,23 @@ export default function NeumorphicScannerView({
               <span>{isAddedSuccess ? "Added to Fridge!" : "Confirm & Add to Pantry"}</span>
             </button>
 
-            {/* Secondary Action Grid: Rescan & Scan Next */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* Secondary Action Grid: Rescan (Warm Amber/Coral) & Scan Next (Vivid Sky Blue/Indigo) */}
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 onClick={handleRescan}
-                className="w-full py-2.5 px-3 rounded-full neo-raised text-[#161c22] text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                className="w-full py-3 px-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-transform shadow-[2px_2px_10px_rgba(245,158,11,0.4)]"
                 type="button"
               >
-                <span className="material-symbols-outlined text-base text-[#3d4a42]">replay</span>
+                <span className="material-symbols-outlined text-base">replay</span>
                 <span>Rescan</span>
               </button>
 
               <button
                 onClick={handleRescan}
-                className="w-full py-2.5 px-3 rounded-full neo-raised text-[#161c22] text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                className="w-full py-3 px-3 rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-transform shadow-[2px_2px_10px_rgba(14,165,233,0.4)]"
                 type="button"
               >
-                <span className="material-symbols-outlined text-base text-[#3d4a42]">qr_code_scanner</span>
+                <span className="material-symbols-outlined text-base">qr_code_scanner</span>
                 <span>Scan Next</span>
               </button>
             </div>
@@ -744,7 +745,7 @@ export default function NeumorphicScannerView({
           <div className="flex flex-col space-y-3">
             <div className="flex items-center justify-between text-xs text-[#3d4a42] px-1">
               <span className="font-semibold">Ready to Scan</span>
-              <span className="text-[10px] text-zinc-500">Center produce inside the frame</span>
+              <span className="text-[10px] text-zinc-500">Center item inside the frame</span>
             </div>
 
             {/* Shutter Button & Upload */}
@@ -759,7 +760,7 @@ export default function NeumorphicScannerView({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAnalyzing}
-                className="py-3 px-3.5 rounded-2xl neo-raised text-[#3d4a42] hover:text-[#161c22] text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all"
+                className="py-3.5 px-4 rounded-2xl neo-raised text-[#3d4a42] hover:text-[#161c22] text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all"
                 type="button"
                 title="Upload Photo"
               >
@@ -769,13 +770,13 @@ export default function NeumorphicScannerView({
               <button
                 onClick={handleSnapAndScan}
                 disabled={!isCameraActive || isAnalyzing}
-                className="flex-1 py-3.5 px-4 rounded-2xl bg-[#006948] hover:bg-[#005137] text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-md disabled:opacity-40"
+                className="flex-1 py-4 px-5 rounded-2xl neo-bulge-primary text-white font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform tracking-wide disabled:opacity-40"
                 type="button"
               >
                 {isAnalyzing ? (
                   <>
                     <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Analyzing Produce...</span>
+                    <span>Analyzing Item...</span>
                   </>
                 ) : (
                   <>

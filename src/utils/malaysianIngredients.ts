@@ -4,7 +4,7 @@ export interface LocalIngredient {
   nameMalay: string;   // Malaysian / Local name
   emoji: string;
   category: "Aromatics & Spices" | "Herbs & Leaves" | "Vegetables & Greens" | "Proteins & Seafood" | "Pantry & Seasonings" | "Citrus & Fruits";
-  defaultUnit: "biji" | "batang" | "ikat" | "helai" | "ketul" | "ekor" | "g" | "kg" | "bungkus" | "kotak" | "tin" | "papan" | "keping" | "botol" | "sikat" | "pcs";
+  defaultUnit: "biji" | "buah" | "batang" | "ikat" | "helai" | "ketul" | "ekor" | "g" | "kg" | "bungkus" | "kotak" | "tin" | "papan" | "keping" | "botol" | "sikat" | "pcs";
   keywords: string[];
 }
 
@@ -71,7 +71,7 @@ export const MALAYSIAN_INGREDIENTS_DB: LocalIngredient[] = [
     emoji: "🌾",
     category: "Aromatics & Spices",
     defaultUnit: "batang",
-    keywords: ["lemongrass", "serai", "citronella", "lemon grass"],
+    keywords: ["lemongrass", "serai", "citronella", "serai wangi"],
   },
   {
     id: "cili_padi",
@@ -543,6 +543,15 @@ export const MALAYSIAN_INGREDIENTS_DB: LocalIngredient[] = [
 
   // --- CITRUS & FRUITS ---
   {
+    id: "lemon",
+    name: "Lemon",
+    nameMalay: "Lemon",
+    emoji: "🍋",
+    category: "Citrus & Fruits",
+    defaultUnit: "biji",
+    keywords: ["lemon", "yellow lemon", "citron", "fresh lemon", "buah lemon"],
+  },
+  {
     id: "limau_nipis",
     name: "Key Lime",
     nameMalay: "Limau Nipis",
@@ -561,6 +570,24 @@ export const MALAYSIAN_INGREDIENTS_DB: LocalIngredient[] = [
     keywords: ["calamansi", "limau kasturi", "calamondin"],
   },
   {
+    id: "orange",
+    name: "Orange",
+    nameMalay: "Oren",
+    emoji: "🍊",
+    category: "Citrus & Fruits",
+    defaultUnit: "biji",
+    keywords: ["orange", "oren", "citrus sinensis", "sweet orange", "buah oren"],
+  },
+  {
+    id: "epal",
+    name: "Apple",
+    nameMalay: "Epal",
+    emoji: "🍎",
+    category: "Citrus & Fruits",
+    defaultUnit: "biji",
+    keywords: ["apple", "epal", "red apple", "green apple", "buah epal"],
+  },
+  {
     id: "pisang",
     name: "Banana",
     nameMalay: "Pisang",
@@ -575,8 +602,26 @@ export const MALAYSIAN_INGREDIENTS_DB: LocalIngredient[] = [
     nameMalay: "Nanas",
     emoji: "🍍",
     category: "Citrus & Fruits",
-    defaultUnit: "biji",
-    keywords: ["pineapple", "nanas", "ananas"],
+    defaultUnit: "buah",
+    keywords: ["pineapple", "nanas", "ananas", "buah nanas"],
+  },
+  {
+    id: "tembikai",
+    name: "Watermelon",
+    nameMalay: "Tembikai",
+    emoji: "🍉",
+    category: "Citrus & Fruits",
+    defaultUnit: "buah",
+    keywords: ["watermelon", "tembikai", "buah tembikai"],
+  },
+  {
+    id: "betik",
+    name: "Papaya",
+    nameMalay: "Betik",
+    emoji: "🍈",
+    category: "Citrus & Fruits",
+    defaultUnit: "buah",
+    keywords: ["papaya", "betik", "pawpaw", "buah betik"],
   },
   {
     id: "mangga",
@@ -585,7 +630,7 @@ export const MALAYSIAN_INGREDIENTS_DB: LocalIngredient[] = [
     emoji: "🥭",
     category: "Citrus & Fruits",
     defaultUnit: "biji",
-    keywords: ["mango", "mangga", "mangga muda"],
+    keywords: ["mango", "mangga", "mangga muda", "buah mangga"],
   },
 ];
 
@@ -618,8 +663,12 @@ export function findMatchingMalaysianIngredient(
 
   // Helper: score a candidate by exact match or length of matched term
   const scoreCandidate = (item: LocalIngredient): number => {
-    // Exact full match gets highest priority
-    if (lower === item.name.toLowerCase() || lower === item.nameMalay.toLowerCase()) {
+    // Exact full match or exact keyword match gets highest priority
+    if (
+      lower === item.name.toLowerCase() ||
+      lower === item.nameMalay.toLowerCase() ||
+      item.keywords.some((kw) => kw.toLowerCase().trim() === lower)
+    ) {
       return 1000 + item.name.length;
     }
 

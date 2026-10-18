@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.2.0] - 2026-10-19
+
+### Added
+- **Malaysian Quantifier System (Penjodoh Bilangan):** Full integration of authentic Malaysian penjodoh bilangan across the app (`biji`, `buah`, `batang`, `ikat`, `botol`, `ketul`, `labu`, `ulas`, `tin`, `bungkus`). Lemon defaults to `biji`, Watermelon/Papaya to `buah`, Garlic to `labu`.
+- **First-Class Citrus & Fruits Catalog:** Added dedicated database entries for `Lemon` (`biji`), `Orange` (`biji`), `Apple` (`biji`), `Watermelon` (`buah`), and `Papaya` (`buah`) under `Citrus & Fruits`.
+- **Light Galaxy Gradient Blue Gemini Button:** Option C 1-tap AI escalation button styled with an eye-catching galaxy blue gradient (`#93c5fd` via `#bfdbfe` to `#c7d2fe`) with soft ambient blue glow.
+- **Bulging 3D Convex Neumorphic Buttons:** Added `.neo-bulge-primary` with pronounced multi-layer convex shadows (`6px 6px 15px rgba(0,40,25,0.45), -5px -5px 12px #ffffff`) for "Confirm & Add to Pantry" and "Snap & Identify".
+- **Unique Vibrant Action Button Palettes:** Rescan button styled in Warm Amber/Coral (`from-amber-500 to-orange-500`), and Scan Next in Vivid Sky Blue/Indigo (`from-sky-500 to-indigo-600`).
+- **Carved-In Dark Green Bottom Navigation:** Active navigation tabs in bottom dock now feature deep recessed inner shadows with dark green background (`#004d34`, `.neo-recessed-darkgreen`).
+
+### Changed
+- **English-First UI & Ingredient Naming:** Standardized all UI copy, ingredient titles, instructions, and category labels to English, while preserving authentic Malaysian classifiers for quantity.
+- **Dark Green Result Header:** Redesigned the top row of the scanner result card with a rich `#004d34` dark green background and mint green verified badge.
+- **Yellow Flashlight Button:** Updated camera torch button to a bright amber-yellow theme (`text-amber-500` / `bg-amber-400`).
+
+### Fixed
+- **Lemon Misclassification ("Aromatics & Spices" Bug):** Fixed root cause where scanning Lemon matched the `lemon grass` subword in `serai` (Lemongrass) under Aromatics & Spices. Added prioritized exact-keyword scoring ($1000+$ boost) and passed CNN predicted categories directly to candidate search.
+- **Viewfinder Reticle Cleanliness:** Removed lingering "Fresh Produce" pill from inside the camera reticle, ensuring 100% crystal-clear viewfinder visibility.
+
+---
+
 ## [2.1.0] - 2026-10-19
 
 ### Added

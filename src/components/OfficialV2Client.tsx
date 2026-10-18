@@ -108,7 +108,7 @@ export default function OfficialV2Client() {
             onClick={() => setActiveTab("scanner")}
             className={`h-14 flex flex-col items-center justify-center gap-1 rounded-2xl mx-1 transition-all ${
               activeTab === "scanner"
-                ? "neo-recessed-pill text-[#006948] font-bold"
+                ? "neo-recessed-darkgreen font-bold text-white shadow-inner"
                 : "text-[#576574] hover:text-[#1e293b]"
             }`}
             type="button"
@@ -122,7 +122,7 @@ export default function OfficialV2Client() {
             onClick={() => setActiveTab("pantry")}
             className={`h-14 flex flex-col items-center justify-center gap-1 rounded-2xl mx-1 transition-all ${
               activeTab === "pantry"
-                ? "neo-recessed-pill text-[#006948] font-bold"
+                ? "neo-recessed-darkgreen font-bold text-white shadow-inner"
                 : "text-[#576574] hover:text-[#1e293b]"
             }`}
             type="button"
@@ -136,7 +136,7 @@ export default function OfficialV2Client() {
             onClick={() => setActiveTab("cook-now")}
             className={`h-14 flex flex-col items-center justify-center gap-1 rounded-2xl mx-1 transition-all ${
               activeTab === "cook-now"
-                ? "neo-recessed-pill text-[#006948] font-bold"
+                ? "neo-recessed-darkgreen font-bold text-white shadow-inner"
                 : "text-[#576574] hover:text-[#1e293b]"
             }`}
             type="button"
@@ -155,7 +155,7 @@ export default function OfficialV2Client() {
             onClick={() => setActiveTab("grocery")}
             className={`h-14 flex flex-col items-center justify-center gap-1 rounded-2xl mx-1 transition-all ${
               activeTab === "grocery"
-                ? "neo-recessed-pill text-[#006948] font-bold"
+                ? "neo-recessed-darkgreen font-bold text-white shadow-inner"
                 : "text-[#576574] hover:text-[#1e293b]"
             }`}
             type="button"

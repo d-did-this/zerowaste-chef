@@ -33,8 +33,43 @@ interface ReleaseEntry {
 
 const RELEASES: ReleaseEntry[] = [
   {
-    version: "v2.1.0",
+    version: "v2.2.0",
     tag: "LATEST",
+    date: "19 October 2026",
+    title: "Tactile UI Polish, Malaysian Quantifiers & Lemon Classification Fix",
+    summary:
+      "Major UI/UX refinement delivering bulging 3D convex neumorphic buttons, dark green identification card header, carved-in dark green bottom navigation active tab, light galaxy gradient blue Gemini Vision button, yellow camera torch, authentic Malaysian penjodoh bilangan (biji, buah, batang, etc.) with English ingredient names, and permanent resolution of the Lemon misclassification bug.",
+    highlights: [
+      {
+        type: "Added",
+        items: [
+          "Malaysian Quantifier System (Penjodoh Bilangan): Integrated biji, buah, batang, ikat, botol, ketul, labu, ulas, tin, and bungkus across the Pantry and Scanner interfaces (Lemon defaults to biji).",
+          "Citrus & Fruits Catalog Additions: Added dedicated entries for Lemon, Orange, Apple, Watermelon, and Papaya with default unit classifiers and high-priority matching.",
+          "Light Galaxy Gradient Blue Gemini Button: Option C 1-tap AI escalation button styled with a luminous gradient (#93c5fd to #c7d2fe) and tactile glow.",
+          "Bulging 3D Convex Neumorphic Buttons: Added high-contrast dual convex drop shadows to 'Confirm & Add to Pantry' and 'Snap & Identify'.",
+          "Vibrant Secondary Action Buttons: Distinct color palettes with Warm Amber/Coral for 'Rescan' and Vivid Sky Blue/Indigo for 'Scan Next'.",
+          "Carved-In Dark Green Selected Tab: Bottom navigation dock active tab now renders in deep recessed dark green (#004d34).",
+        ],
+      },
+      {
+        type: "Changed",
+        items: [
+          "English-First UI: Standardized all ingredient names and app interface copy to English while retaining Malaysian culinary classifiers.",
+          "Dark Green Card Header: High-contrast #004d34 header row for identified ingredients with mint green verified badge.",
+          "Yellow Flashlight Toggle: Camera torch button restyled with bright amber-yellow accents and radiant active glow.",
+        ],
+      },
+      {
+        type: "Fixed",
+        items: [
+          "Lemon Misclassification: Fixed root cause where scanning Lemon matched 'lemon grass' subword in serai (Lemongrass) under Aromatics & Spices by introducing exact-keyword scoring priority and passing CNN predicted categories.",
+          "Clean Viewfinder Reticle: Removed all obstructing pills ('Fresh Produce') from inside the camera reticle.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "v2.1.0",
     date: "19 October 2026",
     title: "Google Stitch Bottom Navigation, Zoom Controls & Smart Pantry Release",
     summary:
