@@ -4,6 +4,22 @@ All notable changes to the **ZeroWaste Chef** (UTeM Workshop 2, BAXU 3923, Group
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-10-19 (Official v2.1)
+
+### Added
+- **Skeuomorphic + Neomorphic Fusion:** Implemented physical tactical depth with darker, more obvious contrast shadows (`rgba(115, 138, 168, 0.55)`), beveled edges, physical dial wells (`.skeuo-bevel-well`), and concentric metallic shutter rings (`.skeuo-shutter-ring`).
+- **Coming Soon Sections:** Labeled "Cook Now" and "Grocery" with amber `SOON` navigation badges and redesigned both pages with clean, uncluttered, skeuomorphic "Coming Soon" roadmap cards.
+- **1-Tap In-App Fullscreen Toggle:** Added an instant Fullscreen trigger in the header using HTML5 Fullscreen API alongside universal PWA standalone/fullscreen manifest overrides for mobile & desktop.
+
+### Changed
+- **Redesigned Ready to Scan Control Deck:** Replaced basic buttons with a physical camera console featuring a central metallic shutter button, recessed gallery upload button, single tactile manual entry button, and clean status indicators.
+- **Darker Shadows Across the App:** Increased shadow darkness, contrast, and depth across all cards, buttons, steppers, and containers for maximum tactile punch.
+
+### Removed
+- **Redundant Manual Buttons:** Removed the manual button from the pantry (leaving only the floating camera FAB) and removed the duplicate manual button from the scanner viewfinder bar, keeping a single, dedicated manual button in the camera shutter deck.
+
+---
+
 ## [2.4.0] - 2026-10-19
 
 ### Added

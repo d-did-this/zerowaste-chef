@@ -79,14 +79,7 @@ export default function NeumorphicPantryView({
 }: NeumorphicPantryViewProps) {
   const [items, setItems] = useState<PantryItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [isManualModalOpen, setIsManualModalOpen] = useState<boolean>(false);
   const [lastUpdatedText, setLastUpdatedText] = useState<string>("just now");
-
-  // Manual Form States
-  const [manualName, setManualName] = useState<string>("");
-  const [manualQty, setManualQty] = useState<number>(1);
-  const [manualUnit, setManualUnit] = useState<string>("biji");
-  const [manualCat, setManualCat] = useState<string>("produce");
 
   const refreshRelativeTime = () => {
     if (typeof window === "undefined") return;
@@ -165,207 +158,81 @@ export default function NeumorphicPantryView({
     refreshItems();
   };
 
-  // Submit Manual Add
-  const handleManualSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!manualName.trim()) return;
 
-    savePantryItem({
-      name: manualName.trim(),
-      nameMalay: manualName.trim(),
-      emoji: getCategoryEmoji(manualCat),
-      category: manualCat.charAt(0).toUpperCase() + manualCat.slice(1),
-      quantity: manualQty,
-      unit: manualUnit,
-      culinaryNote: "Manually added to pantry",
-    });
 
-    setManualName("");
-    setManualQty(1);
-    setIsManualModalOpen(false);
-    refreshItems();
-  };
-
-  function getCategoryEmoji(cat: string): string {
-    switch (cat.toLowerCase()) {
-      case "produce":
-        return "🥬";
-      case "proteins":
-        return "🍗";
-      case "seasoning":
-        return "🍶";
-      case "dairy":
-        return "🥚";
-      case "staples":
-        return "🌾";
-      default:
-        return "🥗";
-    }
-  }
-
-  // If activeSubTab is Cook Now
+  // If activeSubTab is Cook Now (Coming Soon in v2.1)
   if (activeSubTab === "cook-now") {
     return (
-      <div className="flex flex-col w-full pb-20 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22]">
-        {/* Banner */}
-        <section className="w-full neo-raised rounded-2xl p-4 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full neo-recessed-pill flex items-center justify-center text-[#006948]">
-                <span className="material-symbols-outlined text-lg">skillet</span>
-              </div>
-              <span className="font-bold text-base text-[#161c22]">Smart Recipe Engine</span>
-            </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full neo-recessed text-[#006948] text-[10px] font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#006948] animate-pulse"></span>
-              Pantry Matched
-            </span>
+      <div className="flex flex-col w-full pb-28 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22]">
+        <div className="w-full bg-[#f0f4f9] rounded-3xl p-6 flex flex-col items-center text-center shadow-[6px_6px_18px_rgba(115,138,168,0.55),-5px_-5px_14px_rgba(255,255,255,0.98)] border border-[#004d34]/20 my-auto">
+          {/* Skeuomorphic Embossed Pan Dial */}
+          <div className="w-20 h-20 rounded-full skeuo-shutter-ring flex items-center justify-center mb-4 text-[#006948]">
+            <span className="material-symbols-outlined text-4xl">skillet</span>
           </div>
-          <p className="text-xs text-[#3d4a42]">
-            ZeroWaste Chef analyzed your stored ingredients and generated high-affinity Malaysian dishes with 0% food waste.
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300/60 text-amber-800 text-[10px] font-black uppercase tracking-wider mb-2 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            Coming Soon
+          </div>
+
+          <h2 className="text-lg font-extrabold text-[#161c22] tracking-tight mb-1">
+            Smart Recipe Engine
+          </h2>
+          <span className="text-xs text-[#006948] font-bold uppercase tracking-wider mb-3">
+            v2.1 Feature
+          </span>
+
+          <p className="text-xs text-[#576574] leading-relaxed max-w-xs mb-6">
+            ZeroWaste Chef is training high-affinity Malaysian culinary models to generate zero-waste recipes directly from your live pantry inventory.
           </p>
-        </section>
 
-        {/* Recipe Cards List */}
-        <div className="flex flex-col gap-3">
-          {/* Recipe 1 */}
-          <article className="w-full neo-raised rounded-2xl p-4 flex flex-col gap-2.5">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full neo-recessed text-[#006948] font-bold uppercase tracking-wider">
-                  100% In Pantry
-                </span>
-                <h3 className="font-bold text-base text-[#161c22] mt-1">Ayam Masak Kicap Manis</h3>
-                <p className="text-xs text-[#3d4a42]">Classic Malaysian braised sweet soy sauce chicken</p>
-              </div>
-              <span className="text-3xl p-1 rounded-xl neo-sunken">🍗</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-[#3d4a42] pt-1 border-t border-[#dde3eb]">
-              <span className="material-symbols-outlined text-sm text-[#006948]">timer</span>
-              <span>25 mins</span>
-              <span>&bull;</span>
-              <span>Using: Chicken Breast, Kicap Manis, Garlic</span>
-            </div>
-
-            <button
-              onClick={() => alert("Recipe: Heat oil, sauté crushed garlic, sear chicken cubes, glaze generously with Kicap Manis Cap Kipas Udang, simmer until caramelized. Enjoy with steamed rice!")}
-              className="mt-1 w-full py-2.5 rounded-xl neo-raised-primary text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition-transform"
-            >
-              <span className="material-symbols-outlined text-base">soup_kitchen</span>
-              <span>Start Cooking</span>
-            </button>
-          </article>
-
-          {/* Recipe 2 */}
-          <article className="w-full neo-raised rounded-2xl p-4 flex flex-col gap-2.5">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full neo-recessed text-[#006948] font-bold uppercase tracking-wider">
-                  100% In Pantry
-                </span>
-                <h3 className="font-bold text-base text-[#161c22] mt-1">Sayur Bayam Tumis Bawang Putih</h3>
-                <p className="text-xs text-[#3d4a42]">Quick garlic wok-tossed green spinach</p>
-              </div>
-              <span className="text-3xl p-1 rounded-xl neo-sunken">🥬</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-[#3d4a42] pt-1 border-t border-[#dde3eb]">
-              <span className="material-symbols-outlined text-sm text-[#006948]">timer</span>
-              <span>10 mins</span>
-              <span>&bull;</span>
-              <span>Using: Organic Spinach, Garlic, Pinch of Salt</span>
-            </div>
-
-            <button
-              onClick={() => alert("Recipe: Heat wok on high flame with 1 tbsp cooking oil. Sauté crushed garlic until golden. Toss in fresh spinach leaves for 90 seconds until tender. Serve immediately!")}
-              className="mt-1 w-full py-2.5 rounded-xl neo-raised-primary text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition-transform"
-            >
-              <span className="material-symbols-outlined text-base">soup_kitchen</span>
-              <span>Start Cooking</span>
-            </button>
-          </article>
-
-          {/* Recipe 3 */}
-          <article className="w-full neo-raised rounded-2xl p-4 flex flex-col gap-2.5">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full neo-recessed text-[#825100] font-bold uppercase tracking-wider">
-                  Quick Breakfast
-                </span>
-                <h3 className="font-bold text-base text-[#161c22] mt-1">Telur Mata Goyang Kicap Cili</h3>
-                <p className="text-xs text-[#3d4a42]">Sunny-side up eggs with aromatic sweet soy drizzle</p>
-              </div>
-              <span className="text-3xl p-1 rounded-xl neo-sunken">🍳</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-[#3d4a42] pt-1 border-t border-[#dde3eb]">
-              <span className="material-symbols-outlined text-sm text-[#006948]">timer</span>
-              <span>5 mins</span>
-              <span>&bull;</span>
-              <span>Using: Eggs, Sweet Soy Sauce</span>
-            </div>
-
-            <button
-              onClick={() => alert("Recipe: Fry fresh eggs with crispy edges and runny yolk. Plate and drizzle 1 tbsp of Kicap Manis over the yolks. Perfect comfort food!")}
-              className="mt-1 w-full py-2.5 rounded-xl neo-raised-primary text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition-transform"
-            >
-              <span className="material-symbols-outlined text-base">soup_kitchen</span>
-              <span>Start Cooking</span>
-            </button>
-          </article>
+          <button
+            onClick={onOpenScanner}
+            className="w-full max-w-xs py-3.5 px-5 rounded-2xl neo-bulge-primary text-white font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-lg">photo_camera</span>
+            <span>Scan Ingredients to Pantry</span>
+          </button>
         </div>
       </div>
     );
   }
 
-  // If activeSubTab is Grocery
+  // If activeSubTab is Grocery (Coming Soon in v2.1)
   if (activeSubTab === "grocery") {
     return (
-      <div className="flex flex-col w-full pb-20 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22]">
-        <section className="w-full neo-raised rounded-2xl p-4 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full neo-recessed-pill flex items-center justify-center text-[#006948]">
-                <span className="material-symbols-outlined text-lg">shopping_basket</span>
-              </div>
-              <span className="font-bold text-base text-[#161c22]">Smart Restock Planner</span>
-            </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full neo-recessed text-[#006948] text-[10px] font-bold">
-              3 Low Items
-            </span>
+      <div className="flex flex-col w-full pb-28 font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22]">
+        <div className="w-full bg-[#f0f4f9] rounded-3xl p-6 flex flex-col items-center text-center shadow-[6px_6px_18px_rgba(115,138,168,0.55),-5px_-5px_14px_rgba(255,255,255,0.98)] border border-[#004d34]/20 my-auto">
+          {/* Skeuomorphic Embossed Basket Dial */}
+          <div className="w-20 h-20 rounded-full skeuo-shutter-ring flex items-center justify-center mb-4 text-[#006948]">
+            <span className="material-symbols-outlined text-4xl">shopping_basket</span>
           </div>
-          <p className="text-xs text-[#3d4a42]">
-            Keep your zero-waste kitchen stocked with essential Malaysian culinary aromatics and staples.
-          </p>
-        </section>
 
-        <div className="flex flex-col gap-2.5">
-          {[
-            { name: "Serai (Lemongrass)", reason: "Essential for Tom Yam & Rendang", qty: "3 stalks" },
-            { name: "Cili Padi (Bird's Eye Chili)", reason: "Low stock in fridge", qty: "100g" },
-            { name: "Bawang Merah (Shallots)", reason: "Daily Malaysian aroma base", qty: "500g" },
-            { name: "Santan Kelapa (Coconut Milk)", reason: "Curry & Laksa staple", qty: "1 box (200ml)" },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="w-full neo-raised rounded-2xl p-3.5 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded text-[#006948] accent-[#006948] cursor-pointer"
-                />
-                <div>
-                  <h4 className="text-xs font-bold text-[#161c22]">{item.name}</h4>
-                  <p className="text-[10px] text-[#3d4a42]">{item.reason}</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-1 rounded-full neo-sunken text-[#006948]">
-                {item.qty}
-              </span>
-            </div>
-          ))}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300/60 text-amber-800 text-[10px] font-black uppercase tracking-wider mb-2 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            Coming Soon
+          </div>
+
+          <h2 className="text-lg font-extrabold text-[#161c22] tracking-tight mb-1">
+            Smart Grocery Restock
+          </h2>
+          <span className="text-xs text-[#006948] font-bold uppercase tracking-wider mb-3">
+            v2.1 Feature
+          </span>
+
+          <p className="text-xs text-[#576574] leading-relaxed max-w-xs mb-6">
+            Automated threshold restock planner will forecast when your Malaysian aromatics and staples run low and create smart shopping lists.
+          </p>
+
+          <button
+            onClick={onOpenScanner}
+            className="w-full max-w-xs py-3.5 px-5 rounded-2xl neo-bulge-primary text-white font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-lg">kitchen</span>
+            <span>Check Digital Pantry</span>
+          </button>
         </div>
       </div>
     );
@@ -533,145 +400,18 @@ export default function NeumorphicPantryView({
         )}
       </div>
 
-      {/* Floating Action Buttons at Right Bottom */}
-      <div className="fixed bottom-24 right-4 z-40 flex flex-col items-end gap-2.5">
-        {/* Quick Manual Entry Floating Pill */}
-        <button
-          onClick={() => setIsManualModalOpen(true)}
-          className="h-9 px-3 rounded-full bg-[#f0f4f9] text-[#006948] text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-[3px_3px_10px_rgba(15,30,22,0.15),-2px_-2px_8px_rgba(255,255,255,0.9)] border border-[#004d34]/20 hover:bg-emerald-50"
-          type="button"
-          title="Manual Add Ingredient"
-        >
-          <span className="material-symbols-outlined text-base">edit_note</span>
-          <span>+ Manual</span>
-        </button>
-
-        {/* Floating Circular Camera Scan Button */}
+      {/* Floating Circular Camera Scan Button at Right Bottom */}
+      <div className="fixed bottom-24 right-5 z-40">
         <button
           onClick={onOpenScanner}
           aria-label="Scan Ingredients"
-          className="w-14 h-14 rounded-full neo-bulge-primary text-white flex items-center justify-center active:scale-90 transition-all shadow-[6px_6px_18px_rgba(0,40,25,0.4),-4px_-4px_12px_rgba(255,255,255,0.95)] border-2 border-white/60 hover:scale-105"
+          className="w-14 h-14 rounded-full neo-bulge-primary text-white flex items-center justify-center active:scale-90 transition-all shadow-[6px_6px_20px_rgba(0,40,25,0.5),-4px_-4px_12px_rgba(255,255,255,0.95)] border-2 border-white/70 hover:scale-105"
           type="button"
           title="Scan Produce with Camera"
         >
           <span className="material-symbols-outlined text-2xl">photo_camera</span>
         </button>
       </div>
-
-      {/* Manual Entry Bottom Sheet / Modal */}
-      {isManualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm transition-opacity">
-          <div className="w-full max-w-md bg-[#f0f4f9] neo-raised rounded-t-3xl p-5 shadow-2xl flex flex-col gap-4 animate-in slide-in-from-bottom duration-200">
-            <div className="w-12 h-1.5 neo-recessed-pill rounded-full mx-auto"></div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[#006948] text-2xl">add_circle</span>
-                <h2 className="text-base font-bold text-[#161c22]">Add Ingredient Manually</h2>
-              </div>
-              <button
-                onClick={() => setIsManualModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full neo-raised-button text-[#576574]"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-base">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleManualSubmit} className="flex flex-col gap-3.5">
-              {/* Item Name */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase font-bold text-[#576574]">Ingredient Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Kicap Pekat, Bell Pepper, Halia"
-                  value={manualName}
-                  onChange={(e) => setManualName(e.target.value)}
-                  className="h-11 px-3.5 rounded-xl neo-recessed bg-transparent border-0 outline-none text-xs text-[#161c22] placeholder:text-zinc-400"
-                />
-              </div>
-
-              {/* Quantity & Unit */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-bold text-[#576574]">Quantity</label>
-                  <div className="h-11 rounded-xl neo-recessed flex items-center justify-between px-2">
-                    <button
-                      type="button"
-                      onClick={() => setManualQty((q) => Math.max(1, q - 1))}
-                      className="w-7 h-7 rounded-lg neo-raised-button flex items-center justify-center text-xs text-[#161c22]"
-                    >
-                      -
-                    </button>
-                    <span className="text-xs font-bold text-[#161c22]">{manualQty}</span>
-                    <button
-                      type="button"
-                      onClick={() => setManualQty((q) => q + 1)}
-                      className="w-7 h-7 rounded-lg neo-raised-primary text-white flex items-center justify-center text-xs"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-bold text-[#576574]">Unit Type</label>
-                  <select
-                    value={manualUnit}
-                    onChange={(e) => setManualUnit(e.target.value)}
-                    className="h-11 px-3 rounded-xl neo-recessed bg-transparent border-0 outline-none text-xs font-semibold text-[#161c22]"
-                  >
-                    <option value="biji">biji (seeds / small fruits / eggs)</option>
-                    <option value="buah">buah (large fruits / items)</option>
-                    <option value="batang">batang (stalks / roots)</option>
-                    <option value="ikat">ikat (bunches / bundles)</option>
-                    <option value="ketul">ketul (pieces / blocks / meat)</option>
-                    <option value="labu">labu (heads / bulbs)</option>
-                    <option value="ulas">ulas (cloves / segments)</option>
-                    <option value="botol">botol (bottles)</option>
-                    <option value="tin">tin (cans)</option>
-                    <option value="bungkus">bungkus (packets / packs)</option>
-                    <option value="pcs">pcs (pieces)</option>
-                    <option value="g">g (grams)</option>
-                    <option value="kg">kg (kilograms)</option>
-                    <option value="ml">ml (milliliters)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Category */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase font-bold text-[#576574]">Category</label>
-                <div className="flex flex-wrap gap-2">
-                  {["produce", "proteins", "seasoning", "dairy", "staples"].map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setManualCat(c)}
-                      className={`px-3 py-1 rounded-full text-xs font-semibold capitalize transition-all ${
-                        manualCat === c
-                          ? "neo-recessed-active text-[#006948] font-bold"
-                          : "neo-raised-button text-[#576574]"
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full mt-2 py-3.5 rounded-full neo-raised-primary text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
-              >
-                <span className="material-symbols-outlined text-lg">save</span>
-                <span>Save to Digital Pantry</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

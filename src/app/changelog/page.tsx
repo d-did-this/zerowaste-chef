@@ -33,8 +33,38 @@ interface ReleaseEntry {
 
 const RELEASES: ReleaseEntry[] = [
   {
+    version: "v2.1",
+    tag: "LATEST (OFFICIAL v2.1)",
+    date: "19 October 2026",
+    title: "Skeuomorphic & Neomorphic Tactical Redesign (Clean & Neat Official Release)",
+    summary:
+      "A clean, neat, uncluttered release combining Neomorphism (Soft UI) and Skeuomorphic tactile design with darker, more prominent shadows. Redesigned the Ready to Scan control deck with a physical camera shutter ring, removed redundant manual buttons, labeled Cook Now and Grocery as Coming Soon with dedicated roadmap cards, and added an in-app Fullscreen trigger.",
+    highlights: [
+      {
+        type: "Added",
+        items: [
+          "Skeuomorphic Camera Shutter Deck: Precision camera console with a metallic dual-ring shutter button, recessed gallery upload well, and tactile manual button.",
+          "Coming Soon Roadmap Sections: Labeled Cook Now and Grocery with amber 'Soon' badges in bottom nav and replaced mock lists with clean, uncluttered Coming Soon cards.",
+          "1-Tap In-App Fullscreen Toggle: Header button using HTML5 Fullscreen API with universal PWA standalone/fullscreen overrides.",
+        ],
+      },
+      {
+        type: "Changed",
+        items: [
+          "Darker & More Obvious Shadows: Upgraded all Neumorphic box-shadows to deeper, richer contrast values for tactile physical depth.",
+          "Clean & Neat Layout: Purged clutter across pantry and scanner views, harmonizing soft-UI and skeuomorphism.",
+        ],
+      },
+      {
+        type: "Removed",
+        items: [
+          "Redundant Manual Buttons: Removed the manual button from the pantry (retaining the floating circular camera FAB) and removed duplicate manual button from the scanner viewfinder bar.",
+        ],
+      },
+    ],
+  },
+  {
     version: "v2.4.0",
-    tag: "LATEST",
     date: "19 October 2026",
     title: "Fullscreen PWA, Floating Camera FAB, Deeper Tactile Shadows & Nav Redesign",
     summary:

@@ -522,18 +522,6 @@ export default function NeumorphicScannerView({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Manual Entry Button */}
-          <button
-            aria-label="Add Ingredient Manually"
-            onClick={() => setIsManualModalOpen(true)}
-            className="h-9 px-2.5 rounded-full neo-raised flex items-center gap-1 text-[#006948] hover:text-[#004d34] active:scale-95 transition-all border border-[#006948]/20 bg-white/60 text-[11px] font-bold shadow-sm"
-            type="button"
-            title="Manual Entry"
-          >
-            <span className="material-symbols-outlined text-base">edit_note</span>
-            <span className="hidden sm:inline">Manual</span>
-          </button>
-
           {/* Torch Toggle (Yellow Accent) */}
           <button
             aria-label="Toggle Flashlight"
@@ -802,15 +790,22 @@ export default function NeumorphicScannerView({
             </div>
           </>
         ) : (
-          /* Live Shutter Controls (When waiting for scan - with Darker Shadow Container) */
-          <div className="flex flex-col space-y-3">
-            <div className="flex items-center justify-between text-xs text-[#3d4a42] px-1">
-              <span className="font-bold text-[#161c22]">Ready to Scan</span>
-              <span className="text-[10px] text-[#576574]">Center ingredient inside the frame</span>
+          /* Skeuomorphic & Neumorphic Precision Camera Control Deck */
+          <div className="flex flex-col gap-3.5">
+            {/* Tactical Status Ribbon */}
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[#006948] text-sm">camera</span>
+                <span className="font-extrabold text-xs text-[#161c22] tracking-tight">Camera Shutter Deck</span>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#006948]/10 text-[#006948] border border-[#006948]/20">
+                AI Vision Active
+              </span>
             </div>
 
-            {/* Shutter Button, Upload & Manual Entry */}
-            <div className="flex items-center gap-2">
+            {/* Skeuomorphic Physical Control Console */}
+            <div className="w-full skeuo-bevel-well rounded-2xl p-3 flex items-center justify-between gap-3">
+              {/* 1. Recessed Camera Roll Upload Button */}
               <input
                 type="file"
                 ref={fileInputRef}
@@ -821,41 +816,52 @@ export default function NeumorphicScannerView({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAnalyzing}
-                className="py-3.5 px-3.5 rounded-2xl neo-raised text-[#3d4a42] hover:text-[#161c22] text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all shadow-sm"
+                className="w-14 h-14 rounded-2xl neo-raised-button flex flex-col items-center justify-center text-[#3d4a42] hover:text-[#006948] active:scale-95 transition-all shrink-0"
                 type="button"
-                title="Upload Photo"
+                title="Upload Photo from Gallery"
               >
-                <span className="material-symbols-outlined text-lg">upload</span>
+                <span className="material-symbols-outlined text-xl">photo_library</span>
+                <span className="text-[9px] font-bold mt-0.5">Upload</span>
               </button>
 
+              {/* 2. Central Skeuomorphic Shutter Button with Metallic Bezel */}
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <button
+                  onClick={handleSnapAndScan}
+                  disabled={!isCameraActive || isAnalyzing}
+                  className="w-16 h-16 rounded-full skeuo-shutter-ring flex items-center justify-center active:scale-90 transition-all cursor-pointer disabled:opacity-40 select-none group"
+                  type="button"
+                  title="Snap & Identify Ingredient"
+                >
+                  <div className="w-12 h-12 rounded-full neo-bulge-primary flex items-center justify-center text-white shadow-inner group-hover:scale-105 transition-transform">
+                    {isAnalyzing ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <span className="material-symbols-outlined text-2xl">photo_camera</span>
+                    )}
+                  </div>
+                </button>
+                <span className="text-[10px] font-extrabold text-[#161c22] mt-1 tracking-tight">
+                  {isAnalyzing ? "Analyzing..." : "Snap & Identify"}
+                </span>
+              </div>
+
+              {/* 3. The Single Tactile Manual Entry Button */}
               <button
                 onClick={() => setIsManualModalOpen(true)}
-                className="py-3.5 px-3.5 rounded-2xl neo-raised text-[#006948] hover:text-[#004d34] text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all border border-[#006948]/25 shadow-sm"
+                className="w-14 h-14 rounded-2xl neo-raised-button flex flex-col items-center justify-center text-[#006948] hover:text-[#004d34] active:scale-95 transition-all shrink-0 border border-[#006948]/20"
                 type="button"
-                title="Manual Entry"
+                title="Add Ingredient Manually"
               >
-                <span className="material-symbols-outlined text-lg">edit_note</span>
-                <span className="text-[11px] font-bold">Manual</span>
+                <span className="material-symbols-outlined text-xl">edit_note</span>
+                <span className="text-[9px] font-bold mt-0.5">Manual</span>
               </button>
+            </div>
 
-              <button
-                onClick={handleSnapAndScan}
-                disabled={!isCameraActive || isAnalyzing}
-                className="flex-1 py-4 px-4 rounded-2xl neo-bulge-primary text-white font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform tracking-wide disabled:opacity-40"
-                type="button"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Analyzing Item...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-lg">photo_camera</span>
-                    <span>Snap &amp; Identify</span>
-                  </>
-                )}
-              </button>
+            {/* Bottom Clear & Neat Guidance Cue */}
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#576574] text-center">
+              <span className="material-symbols-outlined text-xs text-[#006948]">adjust</span>
+              <span>Keep ingredient centered inside reticle &bull; Tap shutter to identify</span>
             </div>
           </div>
         )}

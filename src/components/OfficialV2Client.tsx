@@ -6,6 +6,19 @@ import NeumorphicScannerView from "@/components/NeumorphicScannerView";
 import NeumorphicPantryView from "@/components/NeumorphicPantryView";
 
 export default function OfficialV2Client() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+        setIsFullscreen(false);
+      }
+    }
+  };
+
   const [activeTab, setActiveTab] = useState<"scanner" | "pantry" | "cook-now" | "grocery">("scanner");
 
   // Force pure light mode
@@ -35,7 +48,7 @@ export default function OfficialV2Client() {
                   {activeTab === "grocery" && "Grocery Restock"}
                 </span>
                 <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-[#006948]/15 text-[#006948] font-black border border-[#006948]/25">
-                  v2.0
+                  v2.1
                 </span>
               </span>
               <span className="text-[10px] text-[#006948] uppercase font-bold tracking-wider truncate">
@@ -46,6 +59,17 @@ export default function OfficialV2Client() {
 
           {/* Right: Quick actions (Changelog & Test Suite) */}
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={toggleFullscreen}
+              aria-label="Toggle Fullscreen"
+              className="min-h-[42px] min-w-[42px] rounded-2xl neo-raised flex items-center justify-center text-[#576574] hover:text-[#006948] active:scale-95 transition-transform"
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              type="button"
+            >
+              <span className="material-symbols-outlined text-lg">
+                {isFullscreen ? "fullscreen_exit" : "fullscreen"}
+              </span>
+            </button>
             <Link
               href="/changelog"
               aria-label="View Changelog"
@@ -136,10 +160,10 @@ export default function OfficialV2Client() {
             <span className="text-[11px] leading-tight">Pantry</span>
           </button>
 
-          {/* 3. Cook Now Tab */}
+          {/* 3. Cook Now Tab (Coming Soon) */}
           <button
             onClick={() => setActiveTab("cook-now")}
-            className={`h-14 flex flex-col items-center justify-center gap-1 rounded-2xl transition-all ${
+            className={`h-14 flex flex-col items-center justify-center gap-0.5 rounded-2xl transition-all relative ${
               activeTab === "cook-now"
                 ? "neo-crater-darkgreen font-bold"
                 : "text-[#576574] hover:text-[#1e293b] active:scale-95"
@@ -147,13 +171,20 @@ export default function OfficialV2Client() {
             type="button"
           >
             <span className="material-symbols-outlined text-2xl">skillet</span>
-            <span className="text-[11px] leading-tight font-semibold">Cook Now</span>
+            <span className="text-[10px] leading-tight font-semibold">Cook Now</span>
+            <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full ${
+              activeTab === "cook-now"
+                ? "bg-white/20 text-white"
+                : "bg-amber-100 text-amber-800 border border-amber-300/50"
+            }`}>
+              Soon
+            </span>
           </button>
 
-          {/* 4. Grocery Tab */}
+          {/* 4. Grocery Tab (Coming Soon) */}
           <button
             onClick={() => setActiveTab("grocery")}
-            className={`h-14 flex flex-col items-center justify-center gap-1 rounded-2xl transition-all ${
+            className={`h-14 flex flex-col items-center justify-center gap-0.5 rounded-2xl transition-all relative ${
               activeTab === "grocery"
                 ? "neo-crater-darkgreen font-bold"
                 : "text-[#576574] hover:text-[#1e293b] active:scale-95"
@@ -161,7 +192,14 @@ export default function OfficialV2Client() {
             type="button"
           >
             <span className="material-symbols-outlined text-2xl">shopping_cart</span>
-            <span className="text-[11px] leading-tight font-semibold">Grocery</span>
+            <span className="text-[10px] leading-tight font-semibold">Grocery</span>
+            <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full ${
+              activeTab === "grocery"
+                ? "bg-white/20 text-white"
+                : "bg-amber-100 text-amber-800 border border-amber-300/50"
+            }`}>
+              Soon
+            </span>
           </button>
         </div>
       </nav>

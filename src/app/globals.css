@@ -18,79 +18,101 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Neumorphic Soft UI Utilities (Google Stitch Design System - Pure Clean Light Mode) */
+/* Neumorphic Soft UI & Skeuomorphic Tactical Utilities (Clean & Neat Pure Light Mode) */
 .neo-raised {
   background: #f0f4f9;
-  box-shadow: 6px 6px 14px rgba(166, 180, 200, 0.45), -6px -6px 14px rgba(255, 255, 255, 0.95);
+  box-shadow: 6px 6px 16px rgba(115, 138, 168, 0.55), -5px -5px 14px rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.85);
 }
 .neo-raised-sm {
   background: #f0f4f9;
-  box-shadow: 3px 3px 8px rgba(166, 180, 200, 0.42), -3px -3px 8px rgba(255, 255, 255, 0.95);
+  box-shadow: 4px 4px 10px rgba(115, 138, 168, 0.5), -3px -3px 8px rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 .neo-raised-button {
-  background: linear-gradient(145deg, #f7faff, #e6edf5);
-  box-shadow: 4px 4px 9px rgba(166, 180, 200, 0.48), -4px -4px 9px rgba(255, 255, 255, 0.95);
+  background: linear-gradient(145deg, #ffffff, #e1eaf3);
+  box-shadow: 5px 5px 12px rgba(115, 138, 168, 0.6), -4px -4px 10px rgba(255, 255, 255, 0.98);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(175, 192, 212, 0.6);
 }
 .neo-raised-button:active {
-  box-shadow: inset 2px 2px 5px rgba(166, 180, 200, 0.55), inset -2px -2px 5px rgba(255, 255, 255, 0.9);
+  box-shadow: inset 3px 3px 6px rgba(115, 138, 168, 0.7), inset -2px -2px 6px rgba(255, 255, 255, 0.9);
   transform: scale(0.97);
 }
 .neo-raised-primary {
-  background: linear-gradient(145deg, #007752, #005a3e);
-  box-shadow: 4px 4px 10px rgba(0, 105, 72, 0.35), -3px -3px 8px rgba(255, 255, 255, 0.8);
+  background: linear-gradient(145deg, #00855d, #004d34);
+  box-shadow: 5px 5px 14px rgba(0, 50, 30, 0.45), -3px -3px 9px rgba(255, 255, 255, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  border-bottom: 2px solid rgba(0, 30, 18, 0.6);
 }
 .neo-raised-primary:active {
-  box-shadow: inset 2px 2px 6px rgba(0, 45, 30, 0.6), inset -2px -2px 6px rgba(104, 219, 169, 0.4);
+  box-shadow: inset 3px 3px 7px rgba(0, 35, 22, 0.75), inset -2px -2px 6px rgba(104, 219, 169, 0.3);
   transform: scale(0.97);
 }
 .neo-raised-danger {
-  background: linear-gradient(145deg, #f4f7fc, #e8eff7);
-  box-shadow: 3px 3px 8px rgba(166, 180, 200, 0.45), -3px -3px 8px rgba(255, 255, 255, 0.95);
+  background: linear-gradient(145deg, #ffffff, #e8eff7);
+  box-shadow: 4px 4px 10px rgba(115, 138, 168, 0.55), -3px -3px 8px rgba(255, 255, 255, 0.98);
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid rgba(217, 48, 37, 0.25);
 }
 .neo-raised-danger:active {
-  box-shadow: inset 2px 2px 5px rgba(217, 48, 37, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.9);
+  box-shadow: inset 3px 3px 6px rgba(217, 48, 37, 0.4), inset -2px -2px 5px rgba(255, 255, 255, 0.9);
 }
 .neo-recessed {
-  background: #e9eff6;
-  box-shadow: inset 3px 3px 6px rgba(166, 180, 200, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.95);
+  background: #e4edf6;
+  box-shadow: inset 4px 4px 8px rgba(120, 145, 175, 0.75), inset -3px -3px 7px rgba(255, 255, 255, 0.98);
 }
 .neo-recessed-pill {
-  background: #e8eef6;
-  box-shadow: inset 2px 2px 5px rgba(166, 180, 200, 0.55), inset -2px -2px 5px rgba(255, 255, 255, 0.9);
+  background: #e2ebf4;
+  box-shadow: inset 3px 3px 6px rgba(120, 145, 175, 0.75), inset -2px -2px 5px rgba(255, 255, 255, 0.95);
 }
 .neo-recessed-active {
-  background: #e3ecf5;
-  box-shadow: inset 3px 3px 6px rgba(0, 105, 72, 0.25), inset -3px -3px 6px rgba(255, 255, 255, 0.95);
+  background: #deebf7;
+  box-shadow: inset 4px 4px 8px rgba(0, 105, 72, 0.35), inset -3px -3px 6px rgba(255, 255, 255, 0.95);
 }
 .neo-recessed-darkgreen {
   background: #004d34;
-  box-shadow: inset 3px 3px 7px rgba(0, 25, 15, 0.9), inset -2px -2px 5px rgba(104, 219, 169, 0.35);
+  box-shadow: inset 4px 4px 9px rgba(0, 20, 10, 0.95), inset -2px -2px 6px rgba(104, 219, 169, 0.35);
   color: #ffffff;
 }
 .neo-crater-darkgreen {
-  background: #004d34;
-  box-shadow: inset 4px 4px 9px rgba(0, 20, 10, 0.85), inset -2px -2px 6px rgba(255, 255, 255, 0.35);
-  border: 1px solid rgba(0, 40, 22, 0.6);
+  background: linear-gradient(145deg, #003e2a, #005439);
+  box-shadow: inset 5px 5px 12px rgba(0, 18, 9, 0.95), inset -2px -2px 7px rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(0, 30, 16, 0.8);
+  border-top: 1.5px solid rgba(0, 20, 10, 0.9);
   color: #ffffff;
   transform: scale(0.95) translateY(2px);
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .neo-bulge-primary {
-  background: linear-gradient(145deg, #00855d, #004d34);
-  box-shadow: 5px 5px 12px rgba(0, 40, 25, 0.35), -4px -4px 10px rgba(255, 255, 255, 0.9);
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(145deg, #008d62, #004a32);
+  box-shadow: 6px 6px 16px rgba(0, 45, 28, 0.48), -5px -5px 12px rgba(255, 255, 255, 0.95);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 2.5px solid rgba(0, 30, 18, 0.8);
 }
 .neo-bulge-primary:active {
-  box-shadow: inset 3px 3px 6px rgba(0, 30, 18, 0.6), inset -2px -2px 4px rgba(104, 219, 169, 0.2);
+  box-shadow: inset 4px 4px 8px rgba(0, 30, 18, 0.75), inset -2px -2px 5px rgba(104, 219, 169, 0.3);
   transform: scale(0.97);
 }
 .neo-sunken {
-  background: #eef2f6;
-  box-shadow: inset 3px 3px 6px rgba(184, 197, 214, 0.8), inset -3px -3px 6px #ffffff;
+  background: #e5edf5;
+  box-shadow: inset 4px 4px 9px rgba(120, 145, 175, 0.8), inset -3px -3px 7px #ffffff;
 }
 .neo-bar-top {
-  background: rgba(240, 244, 249, 0.94);
-  box-shadow: 0 4px 14px rgba(166, 180, 200, 0.45);
+  background: rgba(240, 244, 249, 0.95);
+  box-shadow: 0 4px 18px rgba(120, 145, 175, 0.55);
+}
+
+/* Skeuomorphic Tactical Elements */
+.skeuo-bevel-well {
+  background: linear-gradient(145deg, #e4ebf3, #edf3fa);
+  box-shadow: inset 3px 3px 7px rgba(120, 145, 175, 0.7), inset -3px -3px 7px #ffffff;
+  border: 1px solid rgba(180, 195, 215, 0.5);
+}
+.skeuo-shutter-ring {
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #e2ecf5 55%, #c8d8e8 100%);
+  box-shadow: 6px 6px 16px rgba(115, 138, 168, 0.65), -4px -4px 12px #ffffff, inset 1px 1px 2px #ffffff;
+  border: 2px solid #b8ccd8;
 }
 
 @keyframes scanMove {

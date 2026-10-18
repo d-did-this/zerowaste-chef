@@ -1,10 +1,15 @@
 {
   "name": "ZeroWaste Chef",
   "short_name": "ZeroWaste",
-  "description": "Smart Neumorphic AI Kitchen & Digital Pantry Assistant",
+  "description": "Smart Neumorphic & Skeuomorphic AI Kitchen & Digital Pantry Assistant",
   "start_url": "/official_v2.0",
-  "display": "fullscreen",
-  "orientation": "portrait-primary",
+  "display": "standalone",
+  "display_override": [
+    "fullscreen",
+    "standalone",
+    "window-controls-overlay"
+  ],
+  "orientation": "portrait",
   "background_color": "#f0f4f9",
   "theme_color": "#f0f4f9",
   "scope": "/",
