@@ -33,6 +33,7 @@ import NavigationHeader from "@/components/NavigationHeader";
 interface ActiveResult {
   name: string;
   nameMalay?: string;
+  brand?: string;
   emoji: string;
   confidence: number;
   engineUsed: string;
@@ -301,6 +302,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
           setActiveResult({
             name: json.data.name,
             nameMalay: json.data.nameMalay,
+            brand: json.data.brand,
             emoji: json.data.emoji || "🥗",
             confidence: json.data.confidence,
             engineUsed: "Gemini Vision (Option C)",
@@ -439,6 +441,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
               setActiveResult({
                 name: json.data.name,
                 nameMalay: json.data.nameMalay,
+                brand: json.data.brand,
                 emoji: json.data.emoji || "🥗",
                 confidence: json.data.confidence,
                 engineUsed: "Gemini Vision",
@@ -528,6 +531,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
               setActiveResult({
                 name: json.data.name,
                 nameMalay: json.data.nameMalay,
+                brand: json.data.brand,
                 emoji: json.data.emoji || "🥗",
                 confidence: json.data.confidence,
                 engineUsed: "Hybrid (Gemini Cloud)",
@@ -912,7 +916,8 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
                     )}
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    {activeResult.name} • {activeResult.engineUsed}
+                    {activeResult.name}
+                    {activeResult.brand ? ` (${activeResult.brand})` : ""} • {activeResult.engineUsed}
                   </p>
                 </div>
               </div>

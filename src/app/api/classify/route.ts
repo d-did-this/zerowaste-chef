@@ -39,15 +39,17 @@ export async function POST(req: NextRequest) {
                       text: `You are an expert Malaysian culinary inventory and vision AI for the "ZeroWaste Chef" system in Malaysia.
 Analyze this kitchen photograph. The image may contain raw produce (e.g. Serai, Bawang, Cili, Bendi, Halia, Sayur) OR packaged grocery/pantry essentials (e.g. bottles of Kicap Manis, Sos Tiram, Minyak Masak, Santan kotak, Belacan, Susu Pekat).
 
-Utilize multimodal visual inspection and Optical Character Recognition (OCR) to read product labels, brand names, and bottle text if present (e.g. Habhal's, Kipas Udang, Adabi, Maggi, Ayam Brand, Kara).
-
-Identify the exact item according to Malaysian cooking & market terminology.
+CRITICAL INSTRUCTION - DEFENSE-IN-DEPTH FOOD vs BRAND SEPARATION:
+1. Identify the GENERIC food/ingredient name. DO NOT include commercial brand names, manufacturer logos, or slogans in "name" or "nameMalay" (e.g. for "Habhal's Cap Kipas Udang Kicap Manis", the food name is strictly "Sweet Soy Sauce" and "Kicap Manis", NEVER Udang!).
+2. Extract the brand name separately into the "brand" field (e.g. "Habhal's Cap Kipas Udang", "Ayam Brand", "Adabi", "Maggi", or null if unbranded fresh produce).
+3. Set "category" to one of: "Pantry & Seasonings", "Vegetables & Greens", "Aromatics & Spices", "Proteins & Seafood", "Citrus & Fruits", "Herbs & Leaves".
 
 Respond with STRICT JSON only (no markdown, no backticks, no markdown codeblock). Format:
 {
   "id": "kicap_manis",
   "name": "Sweet Soy Sauce",
   "nameMalay": "Kicap Manis",
+  "brand": "Habhal's Cap Kipas Udang",
   "emoji": "🍾",
   "category": "Pantry & Seasonings",
   "confidence": 98,
@@ -80,11 +82,15 @@ Respond with STRICT JSON only (no markdown, no backticks, no markdown codeblock)
             const cleanJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
             const parsed = JSON.parse(cleanJson);
 
-            // Cross-reference with our Malaysian DB for consistency if possible
-            const matchedDb = findMatchingMalaysianIngredient(parsed.name || parsed.nameMalay);
+            // Layer 2 & 3: Match against Malaysian DB using Longest Match + Category Domain
+            const queryCandidate = parsed.nameMalay || parsed.name;
+            const matchedDb = findMatchingMalaysianIngredient(queryCandidate, parsed.category);
             if (matchedDb) {
+              parsed.id = matchedDb.id;
               parsed.emoji = matchedDb.emoji;
               parsed.nameMalay = matchedDb.nameMalay;
+              parsed.name = matchedDb.name;
+              parsed.category = matchedDb.category;
               parsed.suggestedUnit = parsed.suggestedUnit || matchedDb.defaultUnit;
             }
 

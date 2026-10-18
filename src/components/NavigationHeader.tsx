@@ -21,7 +21,7 @@ export default function NavigationHeader() {
             </span>
             <span className="text-xs font-bold text-white tracking-wider flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              OFFICIAL v1.0
+              OFFICIAL v1.1
             </span>
           </div>
           <div className="flex items-center space-x-2 text-[10px] text-zinc-400">

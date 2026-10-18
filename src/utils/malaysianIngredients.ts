@@ -605,22 +605,92 @@ export function searchIngredients(query: string): LocalIngredient[] {
 }
 
 /**
- * Match a raw string prediction to the Malaysian DB
+ * Match a raw string prediction to the Malaysian DB using Defense-in-Depth:
+ * Layer 2: Longest-match & specificity scoring (e.g. multi-word 'kicap manis' (11) beats 'udang' (5))
+ * Layer 3: Two-Pass Search (Category prioritization: checks preferredCategory before others)
  */
-export function findMatchingMalaysianIngredient(rawText: string): LocalIngredient | null {
+export function findMatchingMalaysianIngredient(
+  rawText: string,
+  preferredCategory?: string
+): LocalIngredient | null {
   if (!rawText) return null;
   const lower = rawText.toLowerCase().trim();
 
-  // 1. Direct or keyword match
-  for (const item of MALAYSIAN_INGREDIENTS_DB) {
-    if (
-      lower.includes(item.name.toLowerCase()) ||
-      lower.includes(item.nameMalay.toLowerCase()) ||
-      item.keywords.some((kw) => lower.includes(kw))
-    ) {
-      return item;
+  // Helper: score a candidate by exact match or length of matched term
+  const scoreCandidate = (item: LocalIngredient): number => {
+    // Exact full match gets highest priority
+    if (lower === item.name.toLowerCase() || lower === item.nameMalay.toLowerCase()) {
+      return 1000 + item.name.length;
+    }
+
+    let maxScore = 0;
+    const terms = [item.nameMalay, item.name, ...item.keywords];
+
+    for (const term of terms) {
+      const tLower = term.toLowerCase().trim();
+      if (tLower.length < 3) continue;
+
+      // Check if rawText contains term or term contains rawText
+      if (lower.includes(tLower) || (lower.length >= 4 && tLower.includes(lower))) {
+        // Multi-word / longer terms get higher score (e.g. 'kicap manis' (11) > 'udang' (5))
+        if (tLower.length > maxScore) {
+          maxScore = tLower.length;
+        }
+      }
+    }
+
+    return maxScore;
+  };
+
+  // Layer 3: Partition database into Primary (Preferred Category) and Secondary pools
+  let primaryPool = MALAYSIAN_INGREDIENTS_DB;
+  let secondaryPool: LocalIngredient[] = [];
+
+  if (preferredCategory) {
+    const pref = preferredCategory.toLowerCase().trim();
+    primaryPool = MALAYSIAN_INGREDIENTS_DB.filter((item) => {
+      const c = item.category.toLowerCase();
+      return (
+        c.includes(pref) ||
+        pref.includes(c) ||
+        (pref.includes("pantry") && c.includes("pantry")) ||
+        (pref.includes("season") && c.includes("season")) ||
+        (pref.includes("vegetable") && c.includes("vegetable")) ||
+        (pref.includes("fruit") && c.includes("fruit")) ||
+        (pref.includes("protein") && c.includes("protein")) ||
+        (pref.includes("seafood") && c.includes("seafood"))
+      );
+    });
+
+    const primarySet = new Set(primaryPool);
+    secondaryPool = MALAYSIAN_INGREDIENTS_DB.filter((item) => !primarySet.has(item));
+  }
+
+  // Pass 1: Search within preferred category pool (Layer 3) with longest-match scoring (Layer 2)
+  let bestItem: LocalIngredient | null = null;
+  let highestScore = 0;
+
+  for (const item of primaryPool) {
+    const score = scoreCandidate(item);
+    if (score > highestScore) {
+      highestScore = score;
+      bestItem = item;
     }
   }
 
-  return null;
+  // If match found in category pool, return it immediately
+  if (bestItem && highestScore >= 3) {
+    return bestItem;
+  }
+
+  // Pass 2: Fallback across remaining categories only if Pass 1 yielded nothing
+  for (const item of secondaryPool) {
+    const score = scoreCandidate(item);
+    if (score > highestScore) {
+      highestScore = score;
+      bestItem = item;
+    }
+  }
+
+  return highestScore >= 3 ? bestItem : null;
 }

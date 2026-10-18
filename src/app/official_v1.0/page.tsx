@@ -16,11 +16,11 @@ export default function OfficialV1Page() {
             <h1 className="text-sm font-mono font-bold tracking-widest uppercase text-zinc-100 flex items-center gap-1.5">
               <span>ZeroWaste Chef</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30">
-                v1.0
+                v1.1
               </span>
             </h1>
             <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-              UTeM Workshop 2 &bull; Group 23 &bull; Official Hybrid Production
+              UTeM Workshop 2 &bull; Group 23 &bull; Official Hybrid Production v1.1
             </p>
           </div>
           <div className="text-right">
