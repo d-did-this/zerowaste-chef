@@ -593,7 +593,7 @@ export async function runMobileNetV4Classification(
     if (item.id === "cauliflower" && metrics.colorLabel === "Neutral" && metrics.avgVal > 0.60) {
       logit += 1.5;
     }
-    if (item.id === "orange" && metrics.colorLabel === "Orange") {
+    if (item.id === "orange" && metrics.colorLabel === "Orange" && metrics.shapeLabel === "Compact") {
       logit += 1.2;
     }
     if (item.id === "lemon" && metrics.colorLabel === "Yellow") {

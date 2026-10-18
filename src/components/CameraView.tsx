@@ -13,6 +13,7 @@ import {
   X,
   Terminal,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import {
   runPredefinedCnnClassification,
@@ -274,6 +275,48 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
     addLog("[Scanner] Reset to live feed.");
   };
 
+  // Option C: Manual Escalation to Gemini Vision
+  const handleEscalateToGemini = async () => {
+    if (!capturedImage) return;
+    setIsAnalyzing(true);
+    addLog("[Option C] Manual escalation to Gemini Vision requested by user...");
+
+    try {
+      const res = await fetch("/api/classify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-gemini-key": settings.apiKey || "",
+        },
+        body: JSON.stringify({
+          image: capturedImage,
+          apiKey: settings.apiKey,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          addLog(`[Gemini Cloud] Verified: ${json.data.name} (${json.data.confidence}%)`);
+          setActiveResult({
+            name: json.data.name,
+            nameMalay: json.data.nameMalay,
+            emoji: json.data.emoji || "🥗",
+            confidence: json.data.confidence,
+            engineUsed: "Gemini Vision (Option C)",
+          });
+          return;
+        }
+      }
+      addLog("[Gemini Warning] Cloud response unavailable or rate limited.");
+    } catch (err) {
+      console.warn("Manual escalation failed:", err);
+      addLog("[Gemini Error] Cloud call failed: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   // 3. Process Frame
   const processFrame = async (
     source: HTMLCanvasElement | HTMLImageElement,
@@ -438,13 +481,19 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
         }
 
         // Check if edge prediction is confident and in catalog
+        const topConfidence = cnnResult?.confidence ?? 0;
+        const runnerUpConfidence = cnnResult?.topRankings?.[1]?.confidence ?? 0;
+        const marginGap = topConfidence - runnerUpConfidence;
+
+        // Raised Decision Gate: Requires >= 80% confidence AND >= 20% margin gap over #2
         const isConfidentEdge =
           cnnResult &&
-          cnnResult.confidence >= 60 &&
+          topConfidence >= 80 &&
+          marginGap >= 20 &&
           cnnResult.topIngredient.id !== "potato";
 
         if (isConfidentEdge && cnnResult) {
-          addLog(`[Hybrid] High edge confidence (${cnnResult.confidence}%). Verified by MobileNet v4.`);
+          addLog(`[Hybrid Gate] High edge confidence (${topConfidence}%, gap: +${marginGap}%). Accepted by MobileNet v4.`);
           const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name);
           setActiveResult({
             name: cnnResult.topIngredient.name,
@@ -456,7 +505,7 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
           });
           return;
         } else {
-          addLog(`[Hybrid] Low or uncatalogued confidence (${cnnResult?.confidence ?? 0}%). Escalating to Gemini Vision...`);
+          addLog(`[Hybrid Gate] Edge uncertain (${topConfidence}%, gap: +${marginGap}% < 80% threshold). Auto-escalating to Gemini Vision...`);
         }
 
         // Auto-escalate to Gemini
@@ -894,6 +943,24 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
                 ))}
               </div>
             )}
+
+            {/* Option C: 1-Tap Manual Escalation to Gemini Vision */}
+            {activeResult &&
+              !activeResult.engineUsed.toLowerCase().includes("gemini") &&
+              capturedImage && (
+                <button
+                  onClick={handleEscalateToGemini}
+                  disabled={isAnalyzing}
+                  className="w-full py-2 px-3 rounded-lg bg-blue-950/70 hover:bg-blue-900 border border-blue-500/50 text-blue-200 hover:text-white text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                  <span>
+                    {isAnalyzing
+                      ? "Consulting Gemini Vision..."
+                      : "Not what you expected? Ask Gemini Vision"}
+                  </span>
+                </button>
+              )}
 
             {/* Rescan Button */}
             <button
