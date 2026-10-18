@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import Link from "next/link";
 import CameraView from "@/components/CameraView";
 
 export const metadata = {
@@ -23,7 +24,15 @@ export default function OfficialV1Page() {
               UTeM Workshop 2 &bull; Group 23 &bull; Official Hybrid Production v1.1
             </p>
           </div>
-          <div className="text-right">
+          <div className="flex items-center space-x-1.5">
+            <Link
+              href="/changelog"
+              className="text-[10px] font-mono text-zinc-300 hover:text-white bg-zinc-900 hover:bg-zinc-800 px-2 py-1 rounded border border-zinc-800 flex items-center gap-1 transition shadow-sm"
+              title="View Complete Project Development Changelog"
+            >
+              <span>📜</span>
+              <span>Changelog</span>
+            </Link>
             <span className="text-[10px] font-mono text-emerald-400 font-medium bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
               HYBRID ONLY
             </span>

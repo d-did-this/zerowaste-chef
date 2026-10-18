@@ -24,12 +24,18 @@ export default function NavigationHeader() {
               OFFICIAL v1.1
             </span>
           </div>
-          <div className="flex items-center space-x-2 text-[10px] text-zinc-400">
+          <div className="flex items-center space-x-1.5 text-[10px] text-zinc-400">
+            <Link
+              href="/changelog"
+              className="px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white font-mono flex items-center gap-1 transition shadow-sm"
+              title="View Complete Project Development Changelog"
+            >
+              <span>📜</span>
+              <span>Changelog</span>
+            </Link>
             <span className="px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 font-semibold uppercase tracking-wider">
               Hybrid Only
             </span>
-            <span className="hidden sm:inline text-zinc-600">&bull;</span>
-            <span className="hidden sm:inline text-zinc-400">V4 Edge &rarr; Gemini Cloud</span>
           </div>
         </div>
       </div>

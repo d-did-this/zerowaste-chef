@@ -241,7 +241,16 @@ export default function Test02GalleryPage() {
           <h1 className="text-xs font-mono font-bold tracking-widest uppercase text-zinc-200">
             ZeroWaste Chef
           </h1>
-          <span className="text-[10px] font-mono text-zinc-500">UTeM Group 23 &bull; Test 02 &bull; Gallery</span>
+          <div className="flex items-center space-x-2 text-[10px] font-mono text-zinc-500">
+            <span>Test 02 &bull; Gallery</span>
+            <Link
+              href="/changelog"
+              className="text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-800 transition"
+              title="Changelog"
+            >
+              📜 Log
+            </Link>
+          </div>
         </header>
 
         {/* 3-Tab Test 02 Navigation Header */}

@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import Link from "next/link";
 import CameraView from "@/components/CameraView";
 
 export const metadata = {
@@ -13,7 +14,16 @@ export default function Test02GeminiPage() {
           <h1 className="text-xs font-mono font-bold tracking-widest uppercase text-zinc-200">
             ZeroWaste Chef
           </h1>
-          <span className="text-[10px] font-mono text-zinc-500">UTeM Group 23 &bull; Test 02 &bull; GEMINI</span>
+          <div className="flex items-center space-x-2 text-[10px] font-mono text-zinc-500">
+            <span>Test 02 &bull; GEMINI</span>
+            <Link
+              href="/changelog"
+              className="text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-800 transition"
+              title="Changelog"
+            >
+              📜 Log
+            </Link>
+          </div>
         </header>
 
         <Suspense fallback={<div className="text-zinc-500 font-mono text-xs text-center py-10">Loading Gemini Vision...</div>}>
