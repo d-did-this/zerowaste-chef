@@ -10,10 +10,12 @@ export interface PantryItem {
   confidence?: number;
   engineUsed?: string;
   culinaryNote?: string;
+  imageUrl?: string;
 }
 
 const STORAGE_KEY = "zerowaste_chef_pantry_items_v1";
 const SETTINGS_KEY = "zerowaste_chef_settings_v1";
+export const LAST_UPDATED_KEY = "zerowaste_chef_pantry_last_updated";
 
 export interface AppSettings {
   apiKey: string;
@@ -46,6 +48,9 @@ export function savePantryItem(
 
   if (existingIdx >= 0) {
     current[existingIdx].quantity = Number(current[existingIdx].quantity) + Number(item.quantity);
+    if (item.imageUrl) {
+      current[existingIdx].imageUrl = item.imageUrl;
+    }
     savedRecord = current[existingIdx];
     updatedList = [...current];
   } else {
@@ -59,6 +64,7 @@ export function savePantryItem(
 
   if (typeof window !== "undefined") {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedList));
+    localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
   }
   return savedRecord;
 }
@@ -70,6 +76,7 @@ export function updatePantryItemQuantity(id: string, quantity: number): void {
     .map((item) => (item.id === id ? { ...item, quantity: Math.max(0, quantity) } : item))
     .filter((item) => item.quantity > 0);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
 }
 
 export function deletePantryItem(id: string): void {
@@ -77,6 +84,7 @@ export function deletePantryItem(id: string): void {
   const current = getPantryItems();
   const filtered = current.filter((item) => item.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
 }
 
 export function clearPantry(): void {

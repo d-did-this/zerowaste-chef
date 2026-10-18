@@ -448,6 +448,7 @@ export default function NeumorphicScannerView({
       confidence: activeResult.confidence,
       engineUsed: activeResult.engineUsed,
       culinaryNote: itemNote || activeResult.culinaryNote || "",
+      imageUrl: capturedImage || undefined,
     });
 
     setIsAddedSuccess(true);
@@ -459,15 +460,15 @@ export default function NeumorphicScannerView({
   const unitLabel = activeResult?.suggestedUnit || "pcs";
 
   return (
-    <div className="w-full flex flex-col font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22]">
+    <div className="w-full flex flex-col font-['Plus_Jakarta_Sans',sans-serif] text-[#161c22] dark:text-[#f1f5f9]">
       {/* 1. Viewfinder Control Bar */}
       <div className="flex items-center justify-between mb-3 pt-1">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full neo-raised">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#68dba9] opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#006948]"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#006948] dark:bg-[#68dba9]"></span>
           </span>
-          <span className="text-[10px] font-bold tracking-wider uppercase text-[#161c22]">
+          <span className="text-[10px] font-bold tracking-wider uppercase text-[#161c22] dark:text-white">
             {isAnalyzing ? "Analyzing Frame..." : "Live AI Vision Scanner"}
           </span>
         </div>
@@ -493,7 +494,7 @@ export default function NeumorphicScannerView({
           <button
             aria-label="Flip Camera"
             onClick={toggleCameraFacing}
-            className="w-9 h-9 rounded-full neo-raised flex items-center justify-center text-[#3d4a42] hover:text-[#161c22] active:scale-95 transition-all"
+            className="w-9 h-9 rounded-full neo-raised flex items-center justify-center text-[#3d4a42] hover:text-[#161c22] dark:text-zinc-300 dark:hover:text-white active:scale-95 transition-all"
             type="button"
           >
             <span className="material-symbols-outlined text-lg">flip_camera_ios</span>
@@ -503,7 +504,7 @@ export default function NeumorphicScannerView({
 
       {/* 2. Neumorphic Camera Viewfinder (Expanded Bigger Grid) */}
       <div className="relative w-full rounded-2xl p-2 neo-sunken overflow-hidden mb-2">
-        <div className="relative w-full aspect-[3/4] sm:aspect-square min-h-[380px] max-h-[500px] rounded-xl overflow-hidden bg-[#e3e9f1] flex items-center justify-center">
+        <div className="relative w-full aspect-[3/4] sm:aspect-square min-h-[380px] max-h-[500px] rounded-xl overflow-hidden bg-[#e3e9f1] dark:bg-[#161e2a] flex items-center justify-center">
           {/* Live Video Element with Smooth Digital/Hardware Zoom */}
           <video
             ref={videoRef}
@@ -570,7 +571,7 @@ export default function NeumorphicScannerView({
           </div>
 
           {/* Tactile In-Viewfinder Zoom Controls */}
-          <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1 p-1 rounded-full neo-raised bg-[#f0f4f9]/90 backdrop-blur-md shadow-md">
+          <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1 p-1 rounded-full neo-raised bg-[#f0f4f9]/90 dark:bg-[#161e2a]/90 backdrop-blur-md shadow-md border border-transparent dark:border-white/10">
             {[1, 1.5, 2, 3].map((z) => (
               <button
                 key={z}
@@ -578,8 +579,8 @@ export default function NeumorphicScannerView({
                 onClick={() => handleZoomChange(z)}
                 className={`h-7 px-2.5 rounded-full text-[11px] font-bold transition-all ${
                   zoomLevel === z
-                    ? "bg-[#006948] text-white shadow-sm"
-                    : "text-[#3d4a42] hover:text-[#161c22]"
+                    ? "bg-[#006948] dark:bg-[#00855d] text-white shadow-sm"
+                    : "text-[#3d4a42] dark:text-zinc-300 hover:text-[#161c22] dark:hover:text-white"
                 }`}
                 title={`Zoom ${z}x`}
               >
@@ -643,13 +644,13 @@ export default function NeumorphicScannerView({
                 >
                   <span className="material-symbols-outlined text-base font-bold">remove</span>
                 </button>
-                <span className="text-xs font-bold text-[#161c22] w-14 text-center select-none">
+                <span className="text-xs font-bold text-[#161c22] dark:text-white w-14 text-center select-none">
                   {portionCount} {unitLabel}
                 </span>
                 <button
                   aria-label="Increase quantity"
                   onClick={handlePortionPlus}
-                  className="w-8 h-8 rounded-full neo-raised flex items-center justify-center text-[#006948] active:scale-95 transition-all"
+                  className="w-8 h-8 rounded-full neo-raised flex items-center justify-center text-[#006948] dark:text-[#68dba9] active:scale-95 transition-all"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-base font-bold">add</span>
@@ -660,26 +661,26 @@ export default function NeumorphicScannerView({
             {/* Add Item Note Section */}
             {isNoteOpen ? (
               <div className="p-3 rounded-xl neo-sunken flex flex-col space-y-1.5">
-                <label className="text-[10px] font-bold text-[#3d4a42]">Pantry / Expiration Note:</label>
+                <label className="text-[10px] font-bold text-[#3d4a42] dark:text-zinc-300">Pantry / Expiration Note:</label>
                 <input
                   type="text"
                   value={itemNote}
                   onChange={(e) => setItemNote(e.target.value)}
                   placeholder="e.g. Bought from Lotus, best by Friday"
-                  className="w-full text-xs p-2 rounded-lg bg-white border border-[#bccac0] text-[#161c22] focus:outline-[#006948]"
+                  className="w-full text-xs p-2 rounded-lg bg-white dark:bg-[#111722] border border-[#bccac0] dark:border-white/10 text-[#161c22] dark:text-white focus:outline-[#006948]"
                 />
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => setIsNoteOpen(true)}
-                className="w-full py-2.5 px-3.5 rounded-xl neo-raised flex items-center justify-between text-[#3d4a42] hover:text-[#161c22] active:scale-95 transition-all"
+                className="w-full py-2.5 px-3.5 rounded-xl neo-raised flex items-center justify-between text-[#3d4a42] dark:text-zinc-300 hover:text-[#161c22] dark:hover:text-white active:scale-95 transition-all"
               >
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#006948] text-base">edit_note</span>
-                  <span className="text-xs font-semibold text-[#161c22]">Add Item Note</span>
+                  <span className="material-symbols-outlined text-[#006948] dark:text-[#68dba9] text-base">edit_note</span>
+                  <span className="text-xs font-semibold text-[#161c22] dark:text-white">Add Item Note</span>
                 </div>
-                <span className="text-[10px] text-[#006948] font-bold flex items-center gap-0.5">
+                <span className="text-[10px] text-[#006948] dark:text-[#68dba9] font-bold flex items-center gap-0.5">
                   <span className="material-symbols-outlined text-xs">add</span> Note
                 </span>
               </button>
@@ -689,8 +690,8 @@ export default function NeumorphicScannerView({
             {!activeResult.engineUsed.toLowerCase().includes("gemini") && (
               <div className="w-full p-2.5 rounded-xl neo-sunken flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="material-symbols-outlined text-[#006948] text-sm">auto_awesome</span>
-                  <span className="text-[10px] text-[#3d4a42] font-medium truncate">Not what you expected?</span>
+                  <span className="material-symbols-outlined text-[#006948] dark:text-[#68dba9] text-sm">auto_awesome</span>
+                  <span className="text-[10px] text-[#3d4a42] dark:text-zinc-300 font-medium truncate">Not what you expected?</span>
                 </div>
                 <button
                   type="button"
@@ -743,9 +744,9 @@ export default function NeumorphicScannerView({
         ) : (
           /* Live Shutter Controls (When waiting for scan) */
           <div className="flex flex-col space-y-3">
-            <div className="flex items-center justify-between text-xs text-[#3d4a42] px-1">
+            <div className="flex items-center justify-between text-xs text-[#3d4a42] dark:text-zinc-300 px-1">
               <span className="font-semibold">Ready to Scan</span>
-              <span className="text-[10px] text-zinc-500">Center item inside the frame</span>
+              <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Center item inside the frame</span>
             </div>
 
             {/* Shutter Button & Upload */}
@@ -760,7 +761,7 @@ export default function NeumorphicScannerView({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAnalyzing}
-                className="py-3.5 px-4 rounded-2xl neo-raised text-[#3d4a42] hover:text-[#161c22] text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all"
+                className="py-3.5 px-4 rounded-2xl neo-raised text-[#3d4a42] hover:text-[#161c22] dark:text-zinc-300 dark:hover:text-white text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all"
                 type="button"
                 title="Upload Photo"
               >

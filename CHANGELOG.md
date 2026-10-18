@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.3.0] - 2026-10-19
+
+### Added
+- **Real Photo Pantry Cards:** When ingredients are scanned or snapped, the captured camera photo is saved directly into the pantry inventory and displayed as the card thumbnail instead of static emojis.
+- **Deep Crater Neumorphic Active Tab:** Re-engineered the bottom navigation active tab with `.neo-crater-darkgreen` featuring directional dark inner shadows (`inset 6px 6px 12px`), radial dark pit gradient, physical depression (`translateY(3px)`), and mint rim reflection, looking like a real crater.
+- **Smooth Tab Switch Transitions:** Added `.animate-tab-content` with `@keyframes tabSwitchFadeSlide` for seamless fluid animation when navigating between Scanner, Pantry, Cook Now, and Grocery tabs.
+- **Full-App Dark Mode System:** Implemented full Dark Neumorphic ("Darkmorphic") styling across all pages with a header toggle button (☀️ / 🌙) and persistent theme synchronization with local storage.
+- **Wrapped Dark Green Category Filter Section:** Enclosed pantry filter chips in a dedicated `#004d34` dark green container with icons for each category (`inventory_2`, `nutrition`, `set_meal`, `soup_kitchen`, `egg_alt`, `rice_bowl`).
+- **Dynamic Relative "Updated ... ago" Live Time:** Replaced static status with dynamic live time calculation ("Updated just now", "Updated 2m ago", etc.) tracked across all inventory operations.
+
+### Changed
+- **Digital Pantry Rebranding:** Rebranded "Pantry Vitality" to "Digital Pantry" with rich emerald/dark green styling and recessed stat wells.
+- **Clean Cook Now Navigation:** Removed the "READY" notification badge from the Cook Now button in the bottom dock for a cleaner aesthetic.
+
+---
+
 ## [2.2.0] - 2026-10-19
 
 ### Added

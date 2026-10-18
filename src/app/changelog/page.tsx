@@ -33,8 +33,35 @@ interface ReleaseEntry {
 
 const RELEASES: ReleaseEntry[] = [
   {
-    version: "v2.2.0",
+    version: "v2.3.0",
     tag: "LATEST",
+    date: "19 October 2026",
+    title: "Captured Photo Thumbnails, Deep Crater Navigation & Dark Mode",
+    summary:
+      "Major feature release delivering automatic saving of captured camera snapshots into pantry inventory cards, deep carved-in crater active tabs in bottom navigation, fluid tab-switching animations, full dark mode support across the app, wrapped dark green category filter section with icons, and dynamic relative last-updated tracking.",
+    highlights: [
+      {
+        type: "Added",
+        items: [
+          "Captured Camera Photo in Pantry: When items are added to pantry, the live camera snapshot is stored as the visual picture on the pantry card, replacing static emojis with the real photo.",
+          "Deep Crater Neumorphic Active Tab: Re-engineered active navigation state with .neo-crater-darkgreen featuring directional inner shadows (inset 6px 6px 12px), radial dark gradient pit, physical depression (translateY 3px), and mint rim reflection.",
+          "Fluid Tab Switch Animations: Added .animate-tab-content with smooth fade-slide-in keyframes when navigating between Scanner, Pantry, Cook Now, and Grocery views.",
+          "Full-App Dark Mode System: Complete darkmorphic theme support with sun/moon header toggle and automatic localStorage synchronization.",
+          "Wrapped Dark Green Filter Section: Isolated filter chips into a distinct #004d34 container with icons for each category (inventory_2, nutrition, set_meal, soup_kitchen, egg_alt, rice_bowl).",
+          "Dynamic Relative 'Updated ... ago' Badge: Automatically computes and updates relative time since last pantry modification.",
+        ],
+      },
+      {
+        type: "Changed",
+        items: [
+          "Digital Pantry Rebranding: Rebranded 'Pantry Vitality' to 'Digital Pantry' with rich emerald/dark green styling and recessed stat wells.",
+          "Clean Cook Now Tab: Removed the 'READY' badge from Cook Now in the bottom dock.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "v2.2.0",
     date: "19 October 2026",
     title: "Tactile UI Polish, Malaysian Quantifiers & Lemon Classification Fix",
     summary:
