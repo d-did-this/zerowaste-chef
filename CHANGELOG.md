@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.0.0] - 2026-10-19
+
+### Added
+- **Official Flagship Neumorphic Scanner HUD (`/official_v2.0`):** Deployed a complete redesign based on Google Stitch Soft-UI design language (`#eef2f6` surface, dual soft shadows, and `#006948` Malaysian kitchen emerald green).
+- **Targeting Reticle & Animated Scanline:** Added an in-viewfinder HUD featuring corner reticle brackets in emerald green, center crosshair target, and smooth laser scanline animation (`animate-scan-move`).
+- **Interactive Portion Counter:** Integrated interactive `[-]` and `[+]` portion quantity steppers dynamically synchronized with Malaysian culinary unit standards (`botol` for sauces, `batang` for aromatics, `ikat` for greens, `kg`, `pcs`).
+- **Add to Pantry / Fridge Persistence:** Connected `Confirm & Add to Pantry` directly to local storage (`savePantryItem`) with animated `[ Added to Fridge! ]` feedback.
+- **Pantry & Shelf-Life Notes:** Added an expandable item note input for recording custom storage reminders, expiration dates, or purchase sources.
+- **Hardware Torch & Camera Controls:** Mounted neumorphic floating action buttons for native flashlight torch toggling and front/back camera switching.
+- **Integrated Option C Gemini Pill:** Embedded 1-tap `Not what you expected? [ Gemini Vision ]` escalation pill directly on the result card.
+- **Primary Flagship Redirect:** Set root `/` and `/official` to automatically launch `/official_v2.0`.
+
+---
+
 ## [1.1.0] - 2026-10-19
 
 ### Added

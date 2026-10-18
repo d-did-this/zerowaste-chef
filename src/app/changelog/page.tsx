@@ -33,8 +33,30 @@ interface ReleaseEntry {
 
 const RELEASES: ReleaseEntry[] = [
   {
-    version: "v1.1.0",
+    version: "v2.0.0",
     tag: "LATEST",
+    date: "19 October 2026",
+    title: "Official Flagship Neumorphic Scanner HUD Release",
+    summary:
+      "Major frontend and hardware integration milestone deploying the Stitch Neumorphic Soft-UI design system (#eef2f6 with dual soft shadows & #006948 Malaysian kitchen emerald green). Integrated live in-viewfinder reticle targeting, laser scanline animation, interactive portion quantity steppers, local pantry persistence, and hardware camera & torch controls.",
+    highlights: [
+      {
+        type: "Added",
+        items: [
+          "Neumorphic Scanner HUD (/official_v2.0): Full Soft-UI redesign based on Google Stitch design tokens, featuring soft dual shadows, custom emerald corner reticle brackets, and center crosshair.",
+          "Animated Laser Scanline: Real-time scanline pulse animation (animate-scan-move) inside the viewfinder simulating continuous sensor acquisition.",
+          "Interactive Portion Steppers: Added [-] and [+] quantity adjusters synchronized with standard Malaysian units (botol for sauces, batang for aromatics, ikat for greens, kg, pcs).",
+          "Persistent Fridge / Pantry Storage: Connected 'Confirm & Add to Pantry' to local storage (savePantryItem) with animated 'Added to Fridge!' confirmation feedback.",
+          "Expandable Item Notes: Added quick shelf-life, purchase date, or pantry notes input field.",
+          "Hardware Torch & Camera Controls: Mounted neumorphic floating toggle buttons for camera flip (front/back) and device flashlight torch.",
+          "Embedded Option C Pill: Seamlessly integrated 'Not what you expected? [Gemini Vision]' escalation button inside the result card.",
+          "Primary Flagship Redirect: Root (/) and /official routes now directly launch the v2.0 Neumorphic HUD.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "v1.1.0",
     date: "19 October 2026",
     title: "Defense-in-Depth Brand Disambiguation & Intelligent Escalation",
     summary:
@@ -207,7 +229,7 @@ export default function ChangelogPage() {
                 Project Changelog
               </h1>
               <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
-                v1.1.0
+                v2.0.0
               </span>
             </div>
             <p className="text-xs text-zinc-400 mt-1">

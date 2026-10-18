@@ -33,8 +33,16 @@ export default function NavigationHeader() {
               <span>📜</span>
               <span>Changelog</span>
             </Link>
+            <Link
+              href="/official_v2.0"
+              className="px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 hover:text-white font-mono flex items-center gap-1 transition shadow-sm font-bold"
+              title="Launch v2.0 Neumorphic Scanner HUD"
+            >
+              <span>✨</span>
+              <span>v2.0 HUD</span>
+            </Link>
             <span className="px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 font-semibold uppercase tracking-wider">
-              Hybrid Only
+              Hybrid
             </span>
           </div>
         </div>
