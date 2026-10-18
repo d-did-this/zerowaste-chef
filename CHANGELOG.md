@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.1.0] - 2026-10-19
+
+### Added
+- **Google Stitch Tactile Bottom Navigation Dock:** Integrated the official 4-tab mobile navigation bar (`Scanner`, `Pantry`, `Cook Now`, `Grocery`) featuring neumorphic recessed pills (`.neo-recessed-pill`), emerald active states (`#006948`), and the `Ready` badge on Cook Now.
+- **Smart Pantry AI View:** Added full-featured Pantry management with live Vitality stats (Stored Items, Ready Meals), category filter chips (`All`, `Produce`, `Proteins`, `Seasoning`, `Dairy`, `Staples`), interactive portion steppers (`[-]` and `[+]`), individual delete actions, and floating quick-action dock (`+ Manual` and `Scan`).
+- **Manual Ingredient Entry Modal Sheet:** Tactile bottom sheet modal to quickly log uncatalogued ingredients with quantity stepper, Malaysian unit selector (`pcs`, `g`, `ml`, `botol`, `batang`, `ikat`, `bulb`), and category pills.
+- **Hardware & Digital Camera Zoom:** Added multi-level zoom controls (`1x`, `1.5x`, `2x`, `3x`) with real-time video scaling and proportional coordinate cropping in canvas snapshot processing, ensuring accurate detection at any zoom level.
+- **Cook Now & Smart Restock:** Added Malaysian ZeroWaste recipe engine matched to pantry inventory (e.g. *Ayam Masak Kicap*, *Sayur Bayam Tumis Bawang Putih*) and grocery restock checklist.
+
+### Changed
+- **Expanded Camera Grid Viewport:** Enlarged camera container to an expansive `aspect-[3/4] / sm:aspect-square` layout with `min-h-[380px]` for immersive smartphone scanning.
+- **Unobstructed Viewfinder Guidance:** Relocated "Keep ingredients centered for optimal detection" below the camera viewport, keeping 100% of the live camera feed clear.
+- **Standardized Branding:** Replaced all instances of "ZeroWaste Kitchen" with "ZeroWaste Chef" and removed "Hybrid" labels from client headers and badges for a cleaner, unified presentation.
+
+### Fixed
+- **Transparent Scanning Reticle:** Fixed camera obstruction caused by `.neo-raised-sm` background fill by enforcing `!bg-transparent` with crisp emerald corner brackets and subtle center crosshair.
+- **Viewfinder Clutter:** Removed "HD 60FPS" badge from camera viewfinder.
+
+---
+
 ## [2.0.0] - 2026-10-19
 
 ### Added

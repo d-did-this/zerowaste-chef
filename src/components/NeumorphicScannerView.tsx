@@ -65,6 +65,33 @@ export default function NeumorphicScannerView({
   const [itemNote, setItemNote] = useState<string>("");
   const [isNoteOpen, setIsNoteOpen] = useState<boolean>(false);
   const [isAddedSuccess, setIsAddedSuccess] = useState<boolean>(false);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+
+  // Handle Zoom change (hardware + digital)
+  const handleZoomChange = async (level: number) => {
+    setZoomLevel(level);
+    if (streamRef.current) {
+      const track = streamRef.current.getVideoTracks()[0];
+      if (track) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const capabilities = (track.getCapabilities ? track.getCapabilities() : {}) as any;
+          if (capabilities && capabilities.zoom) {
+            const clamped = Math.max(
+              capabilities.zoom.min || 1,
+              Math.min(level, capabilities.zoom.max || 5)
+            );
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (track as any).applyConstraints({
+              advanced: [{ zoom: clamped }],
+            });
+          }
+        } catch (e) {
+          console.warn("Hardware zoom error:", e);
+        }
+      }
+    }
+  };
 
   // App Settings
   const [settings] = useState<AppSettings>(() => getAppSettings());
@@ -233,7 +260,7 @@ export default function NeumorphicScannerView({
           confidence: cnnResult.confidence,
           suggestedUnit: local?.defaultUnit || "pcs",
           category: local?.category || "Produce",
-          engineUsed: "Hybrid (MobileNet v4 Edge)",
+          engineUsed: "MobileNet v4 Edge",
         });
         setPortionCount(1);
         return;
@@ -294,7 +321,7 @@ export default function NeumorphicScannerView({
             category: json.data.category || "Pantry & Seasonings",
             suggestedUnit: json.data.suggestedUnit || "pcs",
             culinaryNote: json.data.culinaryNote,
-            engineUsed: engine === "hybrid" ? "Hybrid (Gemini Cloud)" : "Gemini Vision AI",
+            engineUsed: "Gemini Vision AI",
           });
           setPortionCount(json.data.suggestedQuantity || 1);
           return;
@@ -313,7 +340,7 @@ export default function NeumorphicScannerView({
         emoji: fallbackCnn.topIngredient.emoji,
         confidence: fallbackCnn.confidence,
         suggestedUnit: local?.defaultUnit || "pcs",
-        engineUsed: "Hybrid (MobileNet v4 Fallback)",
+        engineUsed: "MobileNet v4 Fallback",
       });
     }
   };
@@ -326,22 +353,24 @@ export default function NeumorphicScannerView({
     setIsAnalyzing(false);
   };
 
-  // Capture Frame from Live Camera
+  // Capture Frame from Live Camera (with Zoom crop support)
   const handleSnapAndScan = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
     const canvas = document.createElement("canvas");
-    const size = Math.min(video.videoWidth || 640, video.videoHeight || 640);
+    const fullSize = Math.min(video.videoWidth || 640, video.videoHeight || 640);
     canvas.width = 640;
     canvas.height = 640;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const startX = ((video.videoWidth || 640) - size) / 2;
-    const startY = ((video.videoHeight || 640) - size) / 2;
+    // Zoom crop: divide crop size by zoomLevel so captured image matches viewport
+    const cropSize = fullSize / zoomLevel;
+    const startX = ((video.videoWidth || 640) - cropSize) / 2;
+    const startY = ((video.videoHeight || 640) - cropSize) / 2;
 
-    ctx.drawImage(video, startX, startY, size, size, 0, 0, 640, 640);
+    ctx.drawImage(video, startX, startY, cropSize, cropSize, 0, 0, 640, 640);
     const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
     processFrame(canvas, dataUrl);
   };
@@ -460,15 +489,20 @@ export default function NeumorphicScannerView({
         </div>
       </div>
 
-      {/* 2. Neumorphic Camera Viewfinder */}
-      <div className="relative w-full rounded-2xl p-2 neo-sunken overflow-hidden mb-4">
-        <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-[#e3e9f1] flex items-center justify-center">
-          {/* Live Video Element */}
+      {/* 2. Neumorphic Camera Viewfinder (Expanded Bigger Grid) */}
+      <div className="relative w-full rounded-2xl p-2 neo-sunken overflow-hidden mb-2">
+        <div className="relative w-full aspect-[3/4] sm:aspect-square min-h-[380px] max-h-[500px] rounded-xl overflow-hidden bg-[#e3e9f1] flex items-center justify-center">
+          {/* Live Video Element with Smooth Digital/Hardware Zoom */}
           <video
             ref={videoRef}
             playsInline
             muted
             autoPlay
+            style={{
+              transform: `scale(${zoomLevel})`,
+              transformOrigin: "center center",
+              transition: "transform 0.2s ease-out",
+            }}
             className={`w-full h-full object-cover transition-opacity duration-200 ${
               isCameraActive && !capturedImage ? "opacity-100" : "opacity-0"
             }`}
@@ -499,22 +533,22 @@ export default function NeumorphicScannerView({
           )}
 
           {/* Subtle Ambient Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/15 pointer-events-none"></div>
 
           {/* Animated Laser Scanline */}
           <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#85f8c4] to-transparent opacity-90 animate-scan-move pointer-events-none"></div>
 
-          {/* HUD Reticle Target Box */}
-          <div className="absolute inset-4 pointer-events-none flex items-center justify-center">
-            <div className="relative w-44 h-44 rounded-2xl neo-raised-sm bg-transparent p-1">
+          {/* HUD Reticle Target Box (100% Crystal-Clear Transparent) */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
+            <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-3xl border border-emerald-400/40 !bg-transparent p-1 shadow-[0_0_15px_rgba(104,219,169,0.15)]">
               {/* Corner Brackets */}
-              <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-tl-lg bg-[#006948]"></div>
-              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-tr-lg bg-[#006948]"></div>
-              <div className="absolute -bottom-1.5 -left-1.5 w-5 h-5 rounded-bl-lg bg-[#006948]"></div>
-              <div className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded-br-lg bg-[#006948]"></div>
+              <div className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-tl-lg border-t-4 border-l-4 border-[#006948]"></div>
+              <div className="absolute -top-1.5 -right-1.5 w-6 h-6 border-t-4 border-r-4 border-[#006948] rounded-tr-lg"></div>
+              <div className="absolute -bottom-1.5 -left-1.5 w-6 h-6 border-b-4 border-l-4 border-[#006948] rounded-bl-lg"></div>
+              <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 border-b-4 border-r-4 border-[#006948] rounded-br-xl"></div>
 
               {/* Tag Pill */}
-              <div className="absolute top-2 left-2 bg-[#161c22]/85 backdrop-blur-md px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+              <div className="absolute top-2 left-2 bg-[#161c22]/80 backdrop-blur-md px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                 <span className="material-symbols-outlined text-[#85f8c4] text-xs">local_florist</span>
                 <span className="text-[10px] text-[#f5fff7] font-semibold">
                   {activeResult?.category || "Fresh Produce"}
@@ -522,26 +556,42 @@ export default function NeumorphicScannerView({
               </div>
 
               {/* Center Crosshair */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-70">
-                <svg className="w-12 h-12 text-[#85f8c4]" fill="none" viewBox="0 0 48 48">
-                  <circle cx="24" cy="24" fill="currentColor" r="2"></circle>
-                  <path d="M24 10V18M24 30V38M10 24H18M30 24H38" stroke="currentColor" strokeLinecap="round" strokeWidth="2"></path>
+              <div className="absolute inset-0 flex items-center justify-center opacity-60">
+                <svg className="w-10 h-10 text-[#85f8c4]" fill="none" viewBox="0 0 48 48">
+                  <circle cx="24" cy="24" fill="currentColor" r="2.5"></circle>
+                  <path d="M24 10V18M24 30V38M10 24H18M30 24H38" stroke="currentColor" strokeLinecap="round" strokeWidth="2.5"></path>
                 </svg>
               </div>
             </div>
           </div>
 
-          {/* Viewfinder Bottom Status */}
-          <div className="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between text-[#f5fff7] px-3 py-1 rounded-xl bg-[#161c22]/65 backdrop-blur-md">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="material-symbols-outlined text-[#6cf8bb] text-sm">center_focus_strong</span>
-              <span className="text-[10px] font-medium truncate">
-                {isAnalyzing ? "Processing neural features..." : "Keep ingredients centered for optimal detection"}
-              </span>
-            </div>
-            <span className="text-[10px] font-bold text-[#6ffbbe] shrink-0">HD 60FPS</span>
+          {/* Tactile In-Viewfinder Zoom Controls */}
+          <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1 p-1 rounded-full neo-raised bg-[#f0f4f9]/90 backdrop-blur-md shadow-md">
+            {[1, 1.5, 2, 3].map((z) => (
+              <button
+                key={z}
+                type="button"
+                onClick={() => handleZoomChange(z)}
+                className={`h-7 px-2.5 rounded-full text-[11px] font-bold transition-all ${
+                  zoomLevel === z
+                    ? "bg-[#006948] text-white shadow-sm"
+                    : "text-[#3d4a42] hover:text-[#161c22]"
+                }`}
+                title={`Zoom ${z}x`}
+              >
+                {z}x
+              </button>
+            ))}
           </div>
         </div>
+      </div>
+
+      {/* Better Positioned Centered Helper Message (Unobstructed View) */}
+      <div className="flex items-center justify-center gap-1.5 py-1 px-3 text-[#3d4a42] text-center mb-3">
+        <span className="material-symbols-outlined text-[#006948] text-sm">center_focus_strong</span>
+        <span className="text-xs font-medium">
+          {isAnalyzing ? "Processing neural features..." : "Keep ingredients centered for optimal detection"}
+        </span>
       </div>
 
       {/* 3. Neumorphic Output & Action Card */}

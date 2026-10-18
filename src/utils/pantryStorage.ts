@@ -63,6 +63,15 @@ export function savePantryItem(
   return savedRecord;
 }
 
+export function updatePantryItemQuantity(id: string, quantity: number): void {
+  if (typeof window === "undefined") return;
+  const current = getPantryItems();
+  const updated = current
+    .map((item) => (item.id === id ? { ...item, quantity: Math.max(0, quantity) } : item))
+    .filter((item) => item.quantity > 0);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+}
+
 export function deletePantryItem(id: string): void {
   if (typeof window === "undefined") return;
   const current = getPantryItems();

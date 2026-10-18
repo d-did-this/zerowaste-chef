@@ -33,8 +33,42 @@ interface ReleaseEntry {
 
 const RELEASES: ReleaseEntry[] = [
   {
-    version: "v2.0.0",
+    version: "v2.1.0",
     tag: "LATEST",
+    date: "19 October 2026",
+    title: "Google Stitch Bottom Navigation, Zoom Controls & Smart Pantry Release",
+    summary:
+      "Comprehensive refinement of the v2.0 flagship featuring the official Google Stitch 4-tab tactile bottom navigation dock (Scanner, Pantry, Cook Now, Grocery), crystal-clear transparent reticle targeting, multi-level hardware and digital zoom (1x - 3x), expanded camera grid, and full-featured Smart Pantry management with live vitality metrics and Malaysian ZeroWaste recipe matching.",
+    highlights: [
+      {
+        type: "Added",
+        items: [
+          "Google Stitch Tactile Bottom Navigation Dock: Fixed 4-tab navigation dock (Scanner, Pantry, Cook Now, Grocery) with neumorphic recessed active states and Cook Now 'Ready' badge.",
+          "Smart Pantry AI Suite: Full pantry vitality dashboard, category filter chips (Produce, Proteins, Seasoning, Dairy, Staples), tactile portion steppers, and individual item deletion.",
+          "Manual Ingredient Entry Drawer: Tactile bottom sheet modal for logging custom ingredients with quantity steppers and Malaysian culinary units.",
+          "Multi-Level Camera Zoom: Added 1x, 1.5x, 2x, and 3x zoom controls with hardware track constraints and digital viewport scaling.",
+          "Cook Now & Grocery Restock: Intelligent Malaysian ZeroWaste recipe suggestions and kitchen restock planner.",
+        ],
+      },
+      {
+        type: "Changed",
+        items: [
+          "Expanded Camera Grid: Enlarged camera viewport to an expansive aspect-[3/4] / square format for easier framing.",
+          "Unobstructed Viewfinder: Moved centered detection guidance below the camera viewport to preserve full visibility.",
+          "Standardized Branding: Unified app name to 'ZeroWaste Chef' across all headers and badges, removing extraneous labels.",
+        ],
+      },
+      {
+        type: "Fixed",
+        items: [
+          "Transparent Target Reticle: Eliminated opaque background blocking the camera feed by enforcing crystal-clear transparent reticle styling.",
+          "Removed Clutter: Completely removed the 'HD 60FPS' badge from the camera viewfinder.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "v2.0.0",
     date: "19 October 2026",
     title: "Official Flagship Neumorphic Scanner HUD Release",
     summary:
