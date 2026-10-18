@@ -284,6 +284,16 @@ const BENCHMARK_ITEMS: BenchmarkItem[] = [
     model: "MobileNetV3",
     img_src: "/benchmark/v3/chicken.jpg",
   },
+  {
+    id: "potato_v3",
+    num: "16",
+    title: "Fresh Potato (Uncatalogued Test)",
+    scientific: "Solanum tuberosum",
+    category: "Vegetables",
+    scope: "MobileNetV3",
+    model: "MobileNetV3",
+    img_src: "/benchmark/v3/potato.jpg",
+  },
 ];
 
 export default function TesterPage() {

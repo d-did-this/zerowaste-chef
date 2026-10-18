@@ -1,0 +1,1842 @@
+{
+  "cabbage": {
+    "meta": {
+      "id": "cabbage",
+      "name": "Green Cabbage",
+      "file": "cabbage.jpg",
+      "groundTruth": "cabbage"
+    },
+    "v2": {
+      "top": {
+        "id": "cabbage",
+        "name": "Cabbage",
+        "nameMalay": "Kubis",
+        "emoji": "🥬",
+        "confidence": 95,
+        "rawLogit": 8.53026294708252
+      },
+      "top3": [
+        {
+          "id": "cabbage",
+          "name": "Cabbage",
+          "nameMalay": "Kubis",
+          "emoji": "🥬",
+          "confidence": 95,
+          "rawLogit": 8.53026294708252
+        },
+        {
+          "id": "artichoke",
+          "name": "Artichoke",
+          "nameMalay": "Articok",
+          "emoji": "🥬",
+          "confidence": 3,
+          "rawLogit": 5.059413909912109
+        },
+        {
+          "id": "cauliflower",
+          "name": "Cauliflower",
+          "nameMalay": "Kubis Bunga",
+          "emoji": "🥦",
+          "confidence": 1,
+          "rawLogit": 3.8350794315338135
+        }
+      ],
+      "latency": 504
+    },
+    "v3": {
+      "top": {
+        "id": "cabbage",
+        "name": "Cabbage",
+        "nameMalay": "Kubis",
+        "emoji": "🥬",
+        "confidence": 98,
+        "rawLogit": 7.910385608673096
+      },
+      "top3": [
+        {
+          "id": "cabbage",
+          "name": "Cabbage",
+          "nameMalay": "Kubis",
+          "emoji": "🥬",
+          "confidence": 98,
+          "rawLogit": 7.910385608673096
+        },
+        {
+          "id": "cauliflower",
+          "name": "Cauliflower",
+          "nameMalay": "Kubis Bunga",
+          "emoji": "🥦",
+          "confidence": 1,
+          "rawLogit": 3.128288745880127
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 1.0316495895385742
+        }
+      ],
+      "latency": 488
+    },
+    "v4": {
+      "top": {
+        "id": "cabbage",
+        "name": "Cabbage",
+        "nameMalay": "Kubis",
+        "emoji": "🥬",
+        "confidence": 97
+      },
+      "top3": [
+        {
+          "id": "cabbage",
+          "name": "Cabbage",
+          "nameMalay": "Kubis",
+          "emoji": "🥬",
+          "confidence": 97
+        },
+        {
+          "id": "cauliflower",
+          "name": "Cauliflower",
+          "nameMalay": "Kubis Bunga",
+          "emoji": "🥦",
+          "confidence": 1
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0
+        }
+      ],
+      "latency": 505
+    }
+  },
+  "apple": {
+    "meta": {
+      "id": "apple",
+      "name": "Green Apple",
+      "file": "apples.jpg",
+      "groundTruth": "apple"
+    },
+    "v2": {
+      "top": {
+        "id": "apple",
+        "name": "Apple",
+        "nameMalay": "Epal",
+        "emoji": "🍎",
+        "confidence": 100,
+        "rawLogit": 10.924982070922852
+      },
+      "top3": [
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 100,
+          "rawLogit": 10.924982070922852
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 4.480565071105957
+        },
+        {
+          "id": "broccoli",
+          "name": "Broccoli",
+          "nameMalay": "Brokoli",
+          "emoji": "🥦",
+          "confidence": 0,
+          "rawLogit": 1.4818649291992188
+        }
+      ],
+      "latency": 508
+    },
+    "v3": {
+      "top": {
+        "id": "apple",
+        "name": "Apple",
+        "nameMalay": "Epal",
+        "emoji": "🍎",
+        "confidence": 100,
+        "rawLogit": 10.009263038635254
+      },
+      "top3": [
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 100,
+          "rawLogit": 10.009263038635254
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 1.2027196884155273
+        },
+        {
+          "id": "broccoli",
+          "name": "Broccoli",
+          "nameMalay": "Brokoli",
+          "emoji": "🥦",
+          "confidence": 0,
+          "rawLogit": 0.7470719218254089
+        }
+      ],
+      "latency": 518
+    },
+    "v4": {
+      "top": {
+        "id": "apple",
+        "name": "Apple",
+        "nameMalay": "Epal",
+        "emoji": "🍎",
+        "confidence": 100
+      },
+      "top3": [
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 100
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0
+        },
+        {
+          "id": "broccoli",
+          "name": "Broccoli",
+          "nameMalay": "Brokoli",
+          "emoji": "🥦",
+          "confidence": 0
+        }
+      ],
+      "latency": 507
+    }
+  },
+  "banana": {
+    "meta": {
+      "id": "banana",
+      "name": "Cavendish Banana",
+      "file": "bananas.jpg",
+      "groundTruth": "banana"
+    },
+    "v2": {
+      "top": {
+        "id": "banana",
+        "name": "Banana",
+        "nameMalay": "Pisang",
+        "emoji": "🍌",
+        "confidence": 99,
+        "rawLogit": 11.1756591796875
+      },
+      "top3": [
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 99,
+          "rawLogit": 11.1756591796875
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 0.335709810256958
+        },
+        {
+          "id": "broccoli",
+          "name": "Broccoli",
+          "nameMalay": "Brokoli",
+          "emoji": "🥦",
+          "confidence": 0,
+          "rawLogit": -0.8959164619445801
+        }
+      ],
+      "latency": 518
+    },
+    "v3": {
+      "top": {
+        "id": "banana",
+        "name": "Banana",
+        "nameMalay": "Pisang",
+        "emoji": "🍌",
+        "confidence": 94,
+        "rawLogit": 8.266473770141602
+      },
+      "top3": [
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 94,
+          "rawLogit": 8.266473770141602
+        },
+        {
+          "id": "orange",
+          "name": "Orange",
+          "nameMalay": "Oren",
+          "emoji": "🍊",
+          "confidence": 2,
+          "rawLogit": 4.374643802642822
+        },
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 1,
+          "rawLogit": 3.654578447341919
+        }
+      ],
+      "latency": 488
+    },
+    "v4": {
+      "top": {
+        "id": "banana",
+        "name": "Banana",
+        "nameMalay": "Pisang",
+        "emoji": "🍌",
+        "confidence": 91
+      },
+      "top3": [
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 91
+        },
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 2
+        },
+        {
+          "id": "orange",
+          "name": "Orange",
+          "nameMalay": "Oren",
+          "emoji": "🍊",
+          "confidence": 2
+        }
+      ],
+      "latency": 524
+    }
+  },
+  "cucumber": {
+    "meta": {
+      "id": "cucumber",
+      "name": "Mini Cucumber",
+      "file": "cucumber.jpg",
+      "groundTruth": "cucumber"
+    },
+    "v2": {
+      "top": {
+        "id": "cucumber",
+        "name": "Cucumber",
+        "nameMalay": "Timun",
+        "emoji": "🥒",
+        "confidence": 100,
+        "rawLogit": 11.182111740112305
+      },
+      "top3": [
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 100,
+          "rawLogit": 11.182111740112305
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 1.3154959678649902
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 0.07825423032045364
+        }
+      ],
+      "latency": 507
+    },
+    "v3": {
+      "top": {
+        "id": "cucumber",
+        "name": "Cucumber",
+        "nameMalay": "Timun",
+        "emoji": "🥒",
+        "confidence": 100,
+        "rawLogit": 10.80541706085205
+      },
+      "top3": [
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 100,
+          "rawLogit": 10.80541706085205
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 1.3580950498580933
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 1.157950758934021
+        }
+      ],
+      "latency": 494
+    },
+    "v4": {
+      "top": {
+        "id": "cucumber",
+        "name": "Cucumber",
+        "nameMalay": "Timun",
+        "emoji": "🥒",
+        "confidence": 100
+      },
+      "top3": [
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 100
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0
+        }
+      ],
+      "latency": 494
+    }
+  },
+  "lemon": {
+    "meta": {
+      "id": "lemon",
+      "name": "Fresh Lemon",
+      "file": "lemons.jpg",
+      "groundTruth": "lemon"
+    },
+    "v2": {
+      "top": {
+        "id": "lemon",
+        "name": "Lemon",
+        "nameMalay": "Lemon",
+        "emoji": "🍋",
+        "confidence": 100,
+        "rawLogit": 14.635466575622559
+      },
+      "top3": [
+        {
+          "id": "lemon",
+          "name": "Lemon",
+          "nameMalay": "Lemon",
+          "emoji": "🍋",
+          "confidence": 100,
+          "rawLogit": 14.635466575622559
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 3.2857718467712402
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 2.284083843231201
+        }
+      ],
+      "latency": 501
+    },
+    "v3": {
+      "top": {
+        "id": "lemon",
+        "name": "Lemon",
+        "nameMalay": "Lemon",
+        "emoji": "🍋",
+        "confidence": 100,
+        "rawLogit": 10.995988845825195
+      },
+      "top3": [
+        {
+          "id": "lemon",
+          "name": "Lemon",
+          "nameMalay": "Lemon",
+          "emoji": "🍋",
+          "confidence": 100,
+          "rawLogit": 10.995988845825195
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 0.9657502770423889
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 1.755368947982788
+        }
+      ],
+      "latency": 487
+    },
+    "v4": {
+      "top": {
+        "id": "lemon",
+        "name": "Lemon",
+        "nameMalay": "Lemon",
+        "emoji": "🍋",
+        "confidence": 99
+      },
+      "top3": [
+        {
+          "id": "lemon",
+          "name": "Lemon",
+          "nameMalay": "Lemon",
+          "emoji": "🍋",
+          "confidence": 99
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0
+        }
+      ],
+      "latency": 605
+    }
+  },
+  "broccoli": {
+    "meta": {
+      "id": "broccoli",
+      "name": "Fresh Broccoli",
+      "file": "broccoli.jpg",
+      "groundTruth": "broccoli"
+    },
+    "v2": {
+      "top": {
+        "id": "broccoli",
+        "name": "Broccoli",
+        "nameMalay": "Brokoli",
+        "emoji": "🥦",
+        "confidence": 100,
+        "rawLogit": 10.641305923461914
+      },
+      "top3": [
+        {
+          "id": "broccoli",
+          "name": "Broccoli",
+          "nameMalay": "Brokoli",
+          "emoji": "🥦",
+          "confidence": 100,
+          "rawLogit": 10.641305923461914
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": -0.43347737193107605
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": -0.12143582850694656
+        }
+      ],
+      "latency": 502
+    },
+    "v3": {
+      "top": {
+        "id": "broccoli",
+        "name": "Broccoli",
+        "nameMalay": "Brokoli",
+        "emoji": "🥦",
+        "confidence": 99,
+        "rawLogit": 9.122734069824219
+      },
+      "top3": [
+        {
+          "id": "broccoli",
+          "name": "Broccoli",
+          "nameMalay": "Brokoli",
+          "emoji": "🥦",
+          "confidence": 99,
+          "rawLogit": 9.122734069824219
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 0.6649563908576965
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 1.7123526334762573
+        }
+      ],
+      "latency": 486
+    },
+    "v4": {
+      "top": {
+        "id": "broccoli",
+        "name": "Broccoli",
+        "nameMalay": "Brokoli",
+        "emoji": "🥦",
+        "confidence": 100
+      },
+      "top3": [
+        {
+          "id": "broccoli",
+          "name": "Broccoli",
+          "nameMalay": "Brokoli",
+          "emoji": "🥦",
+          "confidence": 100
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0
+        }
+      ],
+      "latency": 509
+    }
+  },
+  "orange": {
+    "meta": {
+      "id": "orange",
+      "name": "Navel Orange",
+      "file": "oranges.jpg",
+      "groundTruth": "orange"
+    },
+    "v2": {
+      "top": {
+        "id": "orange",
+        "name": "Orange",
+        "nameMalay": "Oren",
+        "emoji": "🍊",
+        "confidence": 98,
+        "rawLogit": 12.697999954223633
+      },
+      "top3": [
+        {
+          "id": "orange",
+          "name": "Orange",
+          "nameMalay": "Oren",
+          "emoji": "🍊",
+          "confidence": 98,
+          "rawLogit": 12.697999954223633
+        },
+        {
+          "id": "lemon",
+          "name": "Lemon",
+          "nameMalay": "Lemon",
+          "emoji": "🍋",
+          "confidence": 2,
+          "rawLogit": 8.980823516845703
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 2.2595338821411133
+        }
+      ],
+      "latency": 505
+    },
+    "v3": {
+      "top": {
+        "id": "orange",
+        "name": "Orange",
+        "nameMalay": "Oren",
+        "emoji": "🍊",
+        "confidence": 98,
+        "rawLogit": 9.943094253540039
+      },
+      "top3": [
+        {
+          "id": "orange",
+          "name": "Orange",
+          "nameMalay": "Oren",
+          "emoji": "🍊",
+          "confidence": 98,
+          "rawLogit": 9.943094253540039
+        },
+        {
+          "id": "lemon",
+          "name": "Lemon",
+          "nameMalay": "Lemon",
+          "emoji": "🍋",
+          "confidence": 1,
+          "rawLogit": 5.089864730834961
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 1.996255874633789
+        }
+      ],
+      "latency": 486
+    },
+    "v4": {
+      "top": {
+        "id": "orange",
+        "name": "Orange",
+        "nameMalay": "Oren",
+        "emoji": "🍊",
+        "confidence": 97
+      },
+      "top3": [
+        {
+          "id": "orange",
+          "name": "Orange",
+          "nameMalay": "Oren",
+          "emoji": "🍊",
+          "confidence": 97
+        },
+        {
+          "id": "lemon",
+          "name": "Lemon",
+          "nameMalay": "Lemon",
+          "emoji": "🍋",
+          "confidence": 2
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0
+        }
+      ],
+      "latency": 507
+    }
+  },
+  "corn": {
+    "meta": {
+      "id": "corn",
+      "name": "Sweet Corn",
+      "file": "sweet_corn.jpg",
+      "groundTruth": "corn"
+    },
+    "v2": {
+      "top": {
+        "id": "corn",
+        "name": "Sweet Corn",
+        "nameMalay": "Jagung",
+        "emoji": "🌽",
+        "confidence": 100,
+        "rawLogit": 9.769290924072266
+      },
+      "top3": [
+        {
+          "id": "corn",
+          "name": "Sweet Corn",
+          "nameMalay": "Jagung",
+          "emoji": "🌽",
+          "confidence": 100,
+          "rawLogit": 9.769290924072266
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 0.7220393419265747
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 0.1411191076040268
+        }
+      ],
+      "latency": 506
+    },
+    "v3": {
+      "top": {
+        "id": "corn",
+        "name": "Sweet Corn",
+        "nameMalay": "Jagung",
+        "emoji": "🌽",
+        "confidence": 100,
+        "rawLogit": 9.292311668395996
+      },
+      "top3": [
+        {
+          "id": "corn",
+          "name": "Sweet Corn",
+          "nameMalay": "Jagung",
+          "emoji": "🌽",
+          "confidence": 100,
+          "rawLogit": 9.292311668395996
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 0.20659081637859344
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 0.6340593695640564
+        }
+      ],
+      "latency": 491
+    },
+    "v4": {
+      "top": {
+        "id": "corn",
+        "name": "Sweet Corn",
+        "nameMalay": "Jagung",
+        "emoji": "🌽",
+        "confidence": 100
+      },
+      "top3": [
+        {
+          "id": "corn",
+          "name": "Sweet Corn",
+          "nameMalay": "Jagung",
+          "emoji": "🌽",
+          "confidence": 100
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0
+        }
+      ],
+      "latency": 536
+    }
+  },
+  "peppers": {
+    "meta": {
+      "id": "peppers",
+      "name": "Sweet Pepper",
+      "file": "sweet_peppers.jpg",
+      "groundTruth": "bell_pepper"
+    },
+    "v2": {
+      "top": {
+        "id": "bell_pepper",
+        "name": "Bell Pepper",
+        "nameMalay": "Lada Benggala",
+        "emoji": "🫑",
+        "confidence": 97,
+        "rawLogit": 12.423721313476562
+      },
+      "top3": [
+        {
+          "id": "bell_pepper",
+          "name": "Bell Pepper",
+          "nameMalay": "Lada Benggala",
+          "emoji": "🫑",
+          "confidence": 97,
+          "rawLogit": 12.423721313476562
+        },
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 2,
+          "rawLogit": 8.746479034423828
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 0.35884639620780945
+        }
+      ],
+      "latency": 499
+    },
+    "v3": {
+      "top": {
+        "id": "bell_pepper",
+        "name": "Bell Pepper",
+        "nameMalay": "Lada Benggala",
+        "emoji": "🫑",
+        "confidence": 93,
+        "rawLogit": 9.893012046813965
+      },
+      "top3": [
+        {
+          "id": "bell_pepper",
+          "name": "Bell Pepper",
+          "nameMalay": "Lada Benggala",
+          "emoji": "🫑",
+          "confidence": 93,
+          "rawLogit": 9.893012046813965
+        },
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 6,
+          "rawLogit": 7.211883068084717
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 1.9966166019439697
+        }
+      ],
+      "latency": 495
+    },
+    "v4": {
+      "top": {
+        "id": "bell_pepper",
+        "name": "Bell Pepper",
+        "nameMalay": "Lada Benggala",
+        "emoji": "🫑",
+        "confidence": 95
+      },
+      "top3": [
+        {
+          "id": "bell_pepper",
+          "name": "Bell Pepper",
+          "nameMalay": "Lada Benggala",
+          "emoji": "🫑",
+          "confidence": 95
+        },
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 4
+        },
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 1
+        }
+      ],
+      "latency": 517
+    }
+  },
+  "mushroom": {
+    "meta": {
+      "id": "mushroom",
+      "name": "Button Mushroom",
+      "file": "mushroom.jpg",
+      "groundTruth": "mushroom"
+    },
+    "v2": {
+      "top": {
+        "id": "mushroom",
+        "name": "Mushroom",
+        "nameMalay": "Cendawan",
+        "emoji": "🍄",
+        "confidence": 100,
+        "rawLogit": 8.508803367614746
+      },
+      "top3": [
+        {
+          "id": "mushroom",
+          "name": "Mushroom",
+          "nameMalay": "Cendawan",
+          "emoji": "🍄",
+          "confidence": 100,
+          "rawLogit": 8.508803367614746
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 1.4458125829696655
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": -0.25508958101272583
+        }
+      ],
+      "latency": 504
+    },
+    "v3": {
+      "top": {
+        "id": "mushroom",
+        "name": "Mushroom",
+        "nameMalay": "Cendawan",
+        "emoji": "🍄",
+        "confidence": 100,
+        "rawLogit": 8.687223434448242
+      },
+      "top3": [
+        {
+          "id": "mushroom",
+          "name": "Mushroom",
+          "nameMalay": "Cendawan",
+          "emoji": "🍄",
+          "confidence": 100,
+          "rawLogit": 8.687223434448242
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 0.5476666688919067
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 0.05692499876022339
+        }
+      ],
+      "latency": 493
+    },
+    "v4": {
+      "top": {
+        "id": "mushroom",
+        "name": "Mushroom",
+        "nameMalay": "Cendawan",
+        "emoji": "🍄",
+        "confidence": 100
+      },
+      "top3": [
+        {
+          "id": "mushroom",
+          "name": "Mushroom",
+          "nameMalay": "Cendawan",
+          "emoji": "🍄",
+          "confidence": 100
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0
+        }
+      ],
+      "latency": 517
+    }
+  },
+  "cauliflower": {
+    "meta": {
+      "id": "cauliflower",
+      "name": "White Cauliflower",
+      "file": "cauliflower.jpg",
+      "groundTruth": "cauliflower"
+    },
+    "v2": {
+      "top": {
+        "id": "cauliflower",
+        "name": "Cauliflower",
+        "nameMalay": "Kubis Bunga",
+        "emoji": "🥦",
+        "confidence": 100,
+        "rawLogit": 9.176370620727539
+      },
+      "top3": [
+        {
+          "id": "cauliflower",
+          "name": "Cauliflower",
+          "nameMalay": "Kubis Bunga",
+          "emoji": "🥦",
+          "confidence": 100,
+          "rawLogit": 9.176370620727539
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 0.05152825266122818
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": -0.023540327325463295
+        }
+      ],
+      "latency": 502
+    },
+    "v3": {
+      "top": {
+        "id": "cauliflower",
+        "name": "Cauliflower",
+        "nameMalay": "Kubis Bunga",
+        "emoji": "🥦",
+        "confidence": 99,
+        "rawLogit": 8.854024887084961
+      },
+      "top3": [
+        {
+          "id": "cauliflower",
+          "name": "Cauliflower",
+          "nameMalay": "Kubis Bunga",
+          "emoji": "🥦",
+          "confidence": 99,
+          "rawLogit": 8.854024887084961
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 1.6708329916000366
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": -0.08165276050567627
+        }
+      ],
+      "latency": 495
+    },
+    "v4": {
+      "top": {
+        "id": "cauliflower",
+        "name": "Cauliflower",
+        "nameMalay": "Kubis Bunga",
+        "emoji": "🥦",
+        "confidence": 100
+      },
+      "top3": [
+        {
+          "id": "cauliflower",
+          "name": "Cauliflower",
+          "nameMalay": "Kubis Bunga",
+          "emoji": "🥦",
+          "confidence": 100
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0
+        }
+      ],
+      "latency": 497
+    }
+  },
+  "artichoke": {
+    "meta": {
+      "id": "artichoke",
+      "name": "Globe Artichoke",
+      "file": "artichoke.jpg",
+      "groundTruth": "artichoke"
+    },
+    "v2": {
+      "top": {
+        "id": "artichoke",
+        "name": "Artichoke",
+        "nameMalay": "Articok",
+        "emoji": "🥬",
+        "confidence": 100,
+        "rawLogit": 9.772799491882324
+      },
+      "top3": [
+        {
+          "id": "artichoke",
+          "name": "Artichoke",
+          "nameMalay": "Articok",
+          "emoji": "🥬",
+          "confidence": 100,
+          "rawLogit": 9.772799491882324
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 0.2046004980802536
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": 1.055064082145691
+        }
+      ],
+      "latency": 498
+    },
+    "v3": {
+      "top": {
+        "id": "artichoke",
+        "name": "Artichoke",
+        "nameMalay": "Articok",
+        "emoji": "🥬",
+        "confidence": 100,
+        "rawLogit": 7.962613582611084
+      },
+      "top3": [
+        {
+          "id": "artichoke",
+          "name": "Artichoke",
+          "nameMalay": "Articok",
+          "emoji": "🥬",
+          "confidence": 100,
+          "rawLogit": 7.962613582611084
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": -0.06865798681974411
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0,
+          "rawLogit": -0.21301467716693878
+        }
+      ],
+      "latency": 490
+    },
+    "v4": {
+      "top": {
+        "id": "artichoke",
+        "name": "Artichoke",
+        "nameMalay": "Articok",
+        "emoji": "🥬",
+        "confidence": 99
+      },
+      "top3": [
+        {
+          "id": "artichoke",
+          "name": "Artichoke",
+          "nameMalay": "Articok",
+          "emoji": "🥬",
+          "confidence": 99
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 0
+        }
+      ],
+      "latency": 506
+    }
+  },
+  "squash": {
+    "meta": {
+      "id": "squash",
+      "name": "Spaghetti Squash",
+      "file": "spaghetti_squash.jpg",
+      "groundTruth": "squash"
+    },
+    "v2": {
+      "top": {
+        "id": "squash",
+        "name": "Spaghetti Squash",
+        "nameMalay": "Labu Spageti",
+        "emoji": "🎃",
+        "confidence": 98,
+        "rawLogit": 9.863992691040039
+      },
+      "top3": [
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 98,
+          "rawLogit": 9.863992691040039
+        },
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 1,
+          "rawLogit": 5.462623119354248
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 1.456834077835083
+        }
+      ],
+      "latency": 519
+    },
+    "v3": {
+      "top": {
+        "id": "squash",
+        "name": "Spaghetti Squash",
+        "nameMalay": "Labu Spageti",
+        "emoji": "🎃",
+        "confidence": 94,
+        "rawLogit": 10.729869842529297
+      },
+      "top3": [
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 94,
+          "rawLogit": 10.729869842529297
+        },
+        {
+          "id": "lemon",
+          "name": "Lemon",
+          "nameMalay": "Lemon",
+          "emoji": "🍋",
+          "confidence": 5,
+          "rawLogit": 7.819326877593994
+        },
+        {
+          "id": "apple",
+          "name": "Apple",
+          "nameMalay": "Epal",
+          "emoji": "🍎",
+          "confidence": 0,
+          "rawLogit": 2.3105220794677734
+        }
+      ],
+      "latency": 493
+    },
+    "v4": {
+      "top": {
+        "id": "squash",
+        "name": "Spaghetti Squash",
+        "nameMalay": "Labu Spageti",
+        "emoji": "🎃",
+        "confidence": 98
+      },
+      "top3": [
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 98
+        },
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 1
+        },
+        {
+          "id": "lemon",
+          "name": "Lemon",
+          "nameMalay": "Lemon",
+          "emoji": "🍋",
+          "confidence": 1
+        }
+      ],
+      "latency": 515
+    }
+  },
+  "salmon": {
+    "meta": {
+      "id": "salmon",
+      "name": "Fresh Salmon Fillet",
+      "file": "salmon.jpg",
+      "groundTruth": "salmon"
+    },
+    "v2": {
+      "top": {
+        "id": "orange",
+        "name": "Orange",
+        "nameMalay": "Oren",
+        "emoji": "🍊",
+        "confidence": 56,
+        "rawLogit": 5.663364887237549
+      },
+      "top3": [
+        {
+          "id": "orange",
+          "name": "Orange",
+          "nameMalay": "Oren",
+          "emoji": "🍊",
+          "confidence": 56,
+          "rawLogit": 5.663364887237549
+        },
+        {
+          "id": "cabbage",
+          "name": "Cabbage",
+          "nameMalay": "Kubis",
+          "emoji": "🥬",
+          "confidence": 13,
+          "rawLogit": 4.186430931091309
+        },
+        {
+          "id": "corn",
+          "name": "Sweet Corn",
+          "nameMalay": "Jagung",
+          "emoji": "🌽",
+          "confidence": 13,
+          "rawLogit": 4.21182918548584
+        }
+      ],
+      "latency": 568
+    },
+    "v3": {
+      "top": {
+        "id": "orange",
+        "name": "Orange",
+        "nameMalay": "Oren",
+        "emoji": "🍊",
+        "confidence": 90,
+        "rawLogit": 8.099654197692871
+      },
+      "top3": [
+        {
+          "id": "orange",
+          "name": "Orange",
+          "nameMalay": "Oren",
+          "emoji": "🍊",
+          "confidence": 90,
+          "rawLogit": 8.099654197692871
+        },
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 3,
+          "rawLogit": 4.778801918029785
+        },
+        {
+          "id": "cabbage",
+          "name": "Cabbage",
+          "nameMalay": "Kubis",
+          "emoji": "🥬",
+          "confidence": 2,
+          "rawLogit": 4.410920143127441
+        }
+      ],
+      "latency": 488
+    },
+    "v4": {
+      "top": {
+        "id": "orange",
+        "name": "Orange",
+        "nameMalay": "Oren",
+        "emoji": "🍊",
+        "confidence": 80
+      },
+      "top3": [
+        {
+          "id": "orange",
+          "name": "Orange",
+          "nameMalay": "Oren",
+          "emoji": "🍊",
+          "confidence": 80
+        },
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 7
+        },
+        {
+          "id": "cabbage",
+          "name": "Cabbage",
+          "nameMalay": "Kubis",
+          "emoji": "🥬",
+          "confidence": 3
+        }
+      ],
+      "latency": 541
+    }
+  },
+  "chicken": {
+    "meta": {
+      "id": "chicken",
+      "name": "Whole Raw Chicken",
+      "file": "chicken.jpg",
+      "groundTruth": "chicken"
+    },
+    "v2": {
+      "top": {
+        "id": "cabbage",
+        "name": "Cabbage",
+        "nameMalay": "Kubis",
+        "emoji": "🥬",
+        "confidence": 33,
+        "rawLogit": 2.6964821815490723
+      },
+      "top3": [
+        {
+          "id": "cabbage",
+          "name": "Cabbage",
+          "nameMalay": "Kubis",
+          "emoji": "🥬",
+          "confidence": 33,
+          "rawLogit": 2.6964821815490723
+        },
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 11,
+          "rawLogit": 1.6024246215820312
+        },
+        {
+          "id": "salmon",
+          "name": "Salmon",
+          "nameMalay": "Ikan Salmon",
+          "emoji": "🐟",
+          "confidence": 11,
+          "rawLogit": 1.627044439315796
+        }
+      ],
+      "latency": 597
+    },
+    "v3": {
+      "top": {
+        "id": "cabbage",
+        "name": "Cabbage",
+        "nameMalay": "Kubis",
+        "emoji": "🥬",
+        "confidence": 18,
+        "rawLogit": 3.5455029010772705
+      },
+      "top3": [
+        {
+          "id": "cabbage",
+          "name": "Cabbage",
+          "nameMalay": "Kubis",
+          "emoji": "🥬",
+          "confidence": 18,
+          "rawLogit": 3.5455029010772705
+        },
+        {
+          "id": "mushroom",
+          "name": "Mushroom",
+          "nameMalay": "Cendawan",
+          "emoji": "🍄",
+          "confidence": 16,
+          "rawLogit": 3.3947598934173584
+        },
+        {
+          "id": "artichoke",
+          "name": "Artichoke",
+          "nameMalay": "Articok",
+          "emoji": "🥬",
+          "confidence": 14,
+          "rawLogit": 3.2820425033569336
+        }
+      ],
+      "latency": 494
+    },
+    "v4": {
+      "top": {
+        "id": "artichoke",
+        "name": "Artichoke",
+        "nameMalay": "Articok",
+        "emoji": "🥬",
+        "confidence": 19
+      },
+      "top3": [
+        {
+          "id": "artichoke",
+          "name": "Artichoke",
+          "nameMalay": "Articok",
+          "emoji": "🥬",
+          "confidence": 19
+        },
+        {
+          "id": "cabbage",
+          "name": "Cabbage",
+          "nameMalay": "Kubis",
+          "emoji": "🥬",
+          "confidence": 12
+        },
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 9
+        }
+      ],
+      "latency": 510
+    }
+  },
+  "potato": {
+    "meta": {
+      "id": "potato",
+      "name": "Fresh Potato (Uncatalogued)",
+      "file": "potato.jpg",
+      "groundTruth": "potato (uncatalogued)"
+    },
+    "v2": {
+      "top": {
+        "id": "mushroom",
+        "name": "Mushroom",
+        "nameMalay": "Cendawan",
+        "emoji": "🍄",
+        "confidence": 74,
+        "rawLogit": 7.537195205688477
+      },
+      "top3": [
+        {
+          "id": "mushroom",
+          "name": "Mushroom",
+          "nameMalay": "Cendawan",
+          "emoji": "🍄",
+          "confidence": 74,
+          "rawLogit": 7.537195205688477
+        },
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 18,
+          "rawLogit": 6.130805492401123
+        },
+        {
+          "id": "cucumber",
+          "name": "Cucumber",
+          "nameMalay": "Timun",
+          "emoji": "🥒",
+          "confidence": 3,
+          "rawLogit": 4.447306156158447
+        }
+      ],
+      "latency": 622
+    },
+    "v3": {
+      "top": {
+        "id": "squash",
+        "name": "Spaghetti Squash",
+        "nameMalay": "Labu Spageti",
+        "emoji": "🎃",
+        "confidence": 94,
+        "rawLogit": 8.583654403686523
+      },
+      "top3": [
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 94,
+          "rawLogit": 8.583654403686523
+        },
+        {
+          "id": "mushroom",
+          "name": "Mushroom",
+          "nameMalay": "Cendawan",
+          "emoji": "🍄",
+          "confidence": 4,
+          "rawLogit": 5.3632659912109375
+        },
+        {
+          "id": "cauliflower",
+          "name": "Cauliflower",
+          "nameMalay": "Kubis Bunga",
+          "emoji": "🥦",
+          "confidence": 1,
+          "rawLogit": 3.6633410453796387
+        }
+      ],
+      "latency": 491
+    },
+    "v4": {
+      "top": {
+        "id": "squash",
+        "name": "Spaghetti Squash",
+        "nameMalay": "Labu Spageti",
+        "emoji": "🎃",
+        "confidence": 89
+      },
+      "top3": [
+        {
+          "id": "squash",
+          "name": "Spaghetti Squash",
+          "nameMalay": "Labu Spageti",
+          "emoji": "🎃",
+          "confidence": 89
+        },
+        {
+          "id": "mushroom",
+          "name": "Mushroom",
+          "nameMalay": "Cendawan",
+          "emoji": "🍄",
+          "confidence": 6
+        },
+        {
+          "id": "banana",
+          "name": "Banana",
+          "nameMalay": "Pisang",
+          "emoji": "🍌",
+          "confidence": 1
+        }
+      ],
+      "latency": 506
+    }
+  }
+}

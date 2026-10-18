@@ -42,6 +42,7 @@ const QUICK_BENCHMARKS = [
   { label: "Bell Pepper", emoji: "🫑", src: "/benchmark/v2/sweet_peppers.jpg" },
   { label: "Chicken (Meat)", emoji: "🍗", src: "/benchmark/v3/chicken.jpg" },
   { label: "Salmon (Fillet)", emoji: "🐟", src: "/benchmark/v3/salmon.jpg" },
+  { label: "Potato (New)", emoji: "🥔", src: "/benchmark/v3/potato.jpg" },
 ];
 
 export default function ParallelCompareView() {
