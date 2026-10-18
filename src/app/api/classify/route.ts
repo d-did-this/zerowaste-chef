@@ -36,20 +36,24 @@ export async function POST(req: NextRequest) {
                 {
                   parts: [
                     {
-                      text: `You are an expert Malaysian culinary botanist and food inventory vision AI for the "ZeroWaste Chef" system in Malaysia. 
-Analyze this kitchen ingredient photograph. Identify the specific raw ingredient according to Malaysian market & cooking standards (e.g. specifically recognize Serai, Lengkuas, Halia, Kunyit, Bawang Merah, Bawang Holland, Cili Padi, Cili Merah, Bendi, Kangkung, Daun Kesum, Bunga Kantan, Ikan Bilis, Tauhu, etc.).
+                      text: `You are an expert Malaysian culinary inventory and vision AI for the "ZeroWaste Chef" system in Malaysia.
+Analyze this kitchen photograph. The image may contain raw produce (e.g. Serai, Bawang, Cili, Bendi, Halia, Sayur) OR packaged grocery/pantry essentials (e.g. bottles of Kicap Manis, Sos Tiram, Minyak Masak, Santan kotak, Belacan, Susu Pekat).
+
+Utilize multimodal visual inspection and Optical Character Recognition (OCR) to read product labels, brand names, and bottle text if present (e.g. Habhal's, Kipas Udang, Adabi, Maggi, Ayam Brand, Kara).
+
+Identify the exact item according to Malaysian cooking & market terminology.
 
 Respond with STRICT JSON only (no markdown, no backticks, no markdown codeblock). Format:
 {
-  "id": "serai",
-  "name": "Lemongrass",
-  "nameMalay": "Serai",
-  "emoji": "🌾",
-  "category": "Aromatics & Spices",
-  "confidence": 96,
-  "suggestedQuantity": 3,
-  "suggestedUnit": "batang",
-  "culinaryNote": "Pounded or bruised for fragrant curries, rendang, and tomyam."
+  "id": "kicap_manis",
+  "name": "Sweet Soy Sauce",
+  "nameMalay": "Kicap Manis",
+  "emoji": "🍾",
+  "category": "Pantry & Seasonings",
+  "confidence": 98,
+  "suggestedQuantity": 1,
+  "suggestedUnit": "botol",
+  "culinaryNote": "Essential Malaysian seasoning used for Ayam Masak Kicap, Nasi Goreng, and dipping sauces."
 }`,
                     },
                     {
