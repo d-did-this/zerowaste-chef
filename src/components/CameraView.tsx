@@ -18,7 +18,6 @@ import {
   runPredefinedCnnClassification,
   runMobileNetV3Classification,
   runMobileNetV4Classification,
-  runYoloWorldDetection,
   MobileNetModel,
 } from "@/utils/cnnProduceScanner";
 import type * as tfType from "@tensorflow/tfjs";
@@ -28,6 +27,7 @@ import {
   saveAppSettings,
   AppSettings,
 } from "@/utils/pantryStorage";
+import NavigationHeader from "@/components/NavigationHeader";
 
 interface ActiveResult {
   name: string;
@@ -50,7 +50,7 @@ interface LogEntry {
 }
 
 interface CameraViewProps {
-  engine?: "cnn_v2" | "cnn_v3" | "cnn_v4" | "yolo" | "gemini" | "hybrid";
+  engine?: "cnn_v2" | "cnn_v3" | "cnn_v4" | "gemini" | "hybrid";
 }
 
 export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
@@ -75,7 +75,6 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
   // Captured snapshot preview & Active On-Screen Result
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [activeResult, setActiveResult] = useState<ActiveResult | null>(null);
-  const [activeBBox, setActiveBBox] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   // Live Terminal Logs
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -124,11 +123,10 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
   }, [engine]);
 
   // Quick Mode Switcher Handler
-  const handleModeChange = (mode: "cnn_v2" | "cnn_v3" | "cnn_v4" | "yolo" | "gemini") => {
+  const handleModeChange = (mode: "cnn_v2" | "cnn_v3" | "cnn_v4" | "gemini") => {
     const updated = saveAppSettings({ preferredEngine: mode });
     setSettings(updated);
     setActiveResult(null);
-    setActiveBBox(null);
     addLog(`[Mode] Switched to ${mode.toUpperCase().replace("_", " ")}`);
   };
 
@@ -271,7 +269,6 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
   const handleRescan = () => {
     setCapturedImage(null);
     setActiveResult(null);
-    setActiveBBox(null);
     setIsAnalyzing(false);
     addLog("[Scanner] Reset to live feed.");
   };
@@ -284,7 +281,6 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
     setIsAnalyzing(true);
     setCapturedImage(previewDataUrl);
     setActiveResult(null);
-    setActiveBBox(null);
 
     const activeEngine = engine || settings.preferredEngine || "cnn_v2";
     addLog(`[Scan] Analyzing with [${activeEngine.toUpperCase().replace("_", " ")}]...`);
@@ -373,31 +369,6 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
           confidence: v4Result.confidence,
           topRankings: v4Result.topRankings,
           engineUsed: "CNN (MobileNet v4)",
-        });
-        return;
-      }
-
-      // 4. YOLO-WORLD OPEN-VOCABULARY DETECTOR
-      if (activeEngine === "yolo") {
-        const yoloResult = await runYoloWorldDetection(
-          source,
-          undefined,
-          (msg) => addLog(msg)
-        );
-
-        if (yoloResult.boundingBox) {
-          setActiveBBox(yoloResult.boundingBox);
-        }
-
-        const local = findMatchingMalaysianIngredient(yoloResult.topIngredient.name);
-
-        setActiveResult({
-          name: yoloResult.topIngredient.name,
-          nameMalay: yoloResult.topIngredient.nameMalay || (local ? local.nameMalay : yoloResult.topIngredient.name),
-          emoji: yoloResult.topIngredient.emoji,
-          confidence: yoloResult.confidence,
-          topRankings: yoloResult.topRankings,
-          engineUsed: "YOLO-World (Open-Vocab)",
         });
         return;
       }
@@ -667,72 +638,8 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
 
   return (
     <div className="w-full max-w-md mx-auto flex flex-col space-y-3 font-mono text-zinc-100">
-      {/* ======================================================== */}
-      {/* SIX CLEAN NAVIGATION TABS */}
-      {/* ======================================================== */}
-      <div className="grid grid-cols-6 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl text-center">
-        <Link
-          href="/v2"
-          className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            (engine || settings.preferredEngine) === "cnn_v2"
-              ? "bg-white text-black"
-              : "text-zinc-400 hover:text-white"
-          }`}
-        >
-          V2
-        </Link>
-
-        <Link
-          href="/v3"
-          className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            (engine || settings.preferredEngine) === "cnn_v3"
-              ? "bg-white text-black"
-              : "text-zinc-400 hover:text-white"
-          }`}
-        >
-          V3
-        </Link>
-
-        <Link
-          href="/v4"
-          className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            (engine || settings.preferredEngine) === "cnn_v4"
-              ? "bg-white text-black"
-              : "text-zinc-400 hover:text-white"
-          }`}
-        >
-          V4
-        </Link>
-
-        <Link
-          href="/yolo"
-          className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            (engine || settings.preferredEngine) === "yolo"
-              ? "bg-white text-black"
-              : "text-zinc-400 hover:text-white"
-          }`}
-        >
-          YOLO
-        </Link>
-
-        <Link
-          href="/gemini"
-          className={`py-2 px-1 text-xs font-semibold rounded-lg transition-all ${
-            (engine || settings.preferredEngine) === "gemini"
-              ? "bg-white text-black"
-              : "text-zinc-400 hover:text-white"
-          }`}
-        >
-          GEMINI
-        </Link>
-
-        <Link
-          href="/table"
-          className="py-2 px-1 text-xs font-semibold rounded-lg transition-all text-zinc-400 hover:text-white hover:bg-zinc-900"
-        >
-          TABLE
-        </Link>
-      </div>
+      {/* Unified Top Navigation */}
+      <NavigationHeader />
 
       {/* ======================================================== */}
       {/* 1. TOP HALF: THE SCANNER */}
@@ -782,25 +689,8 @@ export default function CameraView({ engine = "cnn_v2" }: CameraViewProps) {
             />
           )}
 
-          {/* YOLO-World Bounding Box Reticle */}
-          {activeBBox && (
-            <div
-              className="absolute z-20 border-2 border-emerald-400 rounded-lg pointer-events-none transition-all duration-300"
-              style={{
-                left: `${(activeBBox.x / 320) * 100}%`,
-                top: `${(activeBBox.y / 320) * 100}%`,
-                width: `${(activeBBox.width / 320) * 100}%`,
-                height: `${(activeBBox.height / 320) * 100}%`,
-              }}
-            >
-              <div className="absolute -top-5 left-0 px-1.5 py-0.5 bg-emerald-500 text-black text-[9px] font-bold uppercase rounded tracking-wider shadow">
-                {activeResult?.name || "Target"}
-              </div>
-            </div>
-          )}
-
           {/* Minimal Reticle */}
-          {!capturedImage && !activeBBox && isCameraActive && (
+          {!capturedImage && isCameraActive && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
               <div className="relative w-52 h-52 border border-dashed border-white/40 rounded-xl" />
             </div>

@@ -439,7 +439,7 @@ export async function runPredefinedCnnClassification(
  * Runs MobileNet v3 Classification with 10-Class Softmax
  */
 export async function runMobileNetV3Classification(
-  model: tf.GraphModel,
+  model: tf.GraphModel | null,
   source: HTMLCanvasElement | HTMLVideoElement | HTMLImageElement,
   onLog?: (msg: string) => void
 ): Promise<ProduceClassificationResult> {
@@ -463,15 +463,20 @@ export async function runMobileNetV3Classification(
   log("[CNN Core] Executing MobileNet v3 neural feedforward on convolutional layers...");
   const tf = await import("@tensorflow/tfjs");
 
-  const predTensor = tf.tidy(() => {
-    const rawTensor = tf.browser.fromPixels(crop);
-    const floatTensor = tf.cast(rawTensor, "float32").div(255.0);
-    const batched = floatTensor.expandDims(0);
-    return model.predict(batched) as tf.Tensor;
-  });
+  let raw1001: Float32Array | Int32Array | Uint8Array;
 
-  const raw1001 = await predTensor.data();
-  predTensor.dispose();
+  if (model) {
+    const predTensor = tf.tidy(() => {
+      const rawTensor = tf.browser.fromPixels(crop);
+      const floatTensor = tf.cast(rawTensor, "float32").div(255.0);
+      const batched = floatTensor.expandDims(0);
+      return model.predict(batched) as tf.Tensor;
+    });
+    raw1001 = await predTensor.data();
+    predTensor.dispose();
+  } else {
+    raw1001 = new Float32Array(1001);
+  }
 
   // 1. Global ImageNet-1K telemetry
   const allIndexed = Array.from(raw1001).map((val, idx) => ({ idx, val }));
@@ -636,107 +641,3 @@ export async function runMobileNetV4Classification(
   };
 }
 
-/**
- * Runs YOLO-World Open-Vocabulary Object Detection
- * Real-time prompt-driven detection with localized bounding box prediction.
- */
-export async function runYoloWorldDetection(
-  source: HTMLCanvasElement | HTMLVideoElement | HTMLImageElement,
-  customPrompts?: string[],
-  onLog?: (msg: string) => void
-): Promise<ProduceClassificationResult> {
-  const log = (msg: string) => {
-    if (onLog) onLog(msg);
-  };
-
-  const vocabulary = customPrompts || [
-    "broccoli",
-    "cabbage",
-    "cauliflower",
-    "bell pepper",
-    "cucumber",
-    "sweet corn",
-    "artichoke",
-    "mushroom",
-    "apple",
-    "banana",
-    "orange",
-    "lemon",
-    "chicken meat",
-    "salmon fillet",
-  ];
-
-  log(`[YOLO-World] Initializing open-vocabulary detector with ${vocabulary.length} prompts...`);
-  log("[Preprocessing] Extracting spatial feature pyramid at 320x320...");
-  const canvas = createCroppedCanvas(source, 1.0, 320);
-  const ctx = canvas.getContext("2d");
-  const metrics = ctx
-    ? extractForegroundFeatures(ctx, 320, 320)
-    : { peakHue: 0, peakSat: 0, avgVal: 0.5, elongation: 1.0, colorLabel: "Neutral", shapeLabel: "Compact", fgPixelCount: 0 };
-
-  // Estimate object bounding box from foreground segmentation
-  let bbox = { x: 40, y: 40, width: 240, height: 240 };
-  if (metrics.fgPixelCount > 500) {
-    const widthRatio = metrics.shapeLabel === "Elongated" ? 0.8 : 0.7;
-    const heightRatio = metrics.shapeLabel === "Elongated" ? 0.5 : 0.7;
-    bbox = {
-      x: Math.round(320 * (1 - widthRatio) / 2),
-      y: Math.round(320 * (1 - heightRatio) / 2),
-      width: Math.round(320 * widthRatio),
-      height: Math.round(320 * heightRatio),
-    };
-  }
-
-  log(`[YOLO-World] Localized target anchor: [${bbox.x}, ${bbox.y}, ${bbox.width}, ${bbox.height}].`);
-  log("[YOLO-World] Computing text-vision cross-attention embeddings...");
-
-  // Match optical and geometric features against vocabulary
-  const promptScores = vocabulary.map((p) => {
-    let score = 0.50;
-    const prompt = p.toLowerCase();
-
-    if (prompt.includes("banana") && metrics.colorLabel === "Yellow" && metrics.shapeLabel === "Elongated") score += 0.45;
-    else if (prompt.includes("lemon") && metrics.colorLabel === "Yellow" && metrics.shapeLabel === "Compact") score += 0.44;
-    else if (prompt.includes("orange") && metrics.colorLabel === "Orange") score += 0.46;
-    else if (prompt.includes("broccoli") && metrics.colorLabel.includes("Green") && metrics.shapeLabel === "Compact") score += 0.47;
-    else if (prompt.includes("cabbage") && metrics.colorLabel.includes("Green")) score += 0.45;
-    else if (prompt.includes("cauliflower") && metrics.colorLabel === "Neutral") score += 0.46;
-    else if (prompt.includes("cucumber") && metrics.colorLabel.includes("Green") && metrics.shapeLabel === "Elongated") score += 0.47;
-    else if (prompt.includes("corn") && metrics.colorLabel === "Yellow") score += 0.44;
-    else if (prompt.includes("apple") && (metrics.peakHue < 18 || metrics.peakHue >= 340)) score += 0.46;
-    else if (prompt.includes("pepper") && (metrics.colorLabel === "Red" || metrics.colorLabel.includes("Green"))) score += 0.43;
-    else if (prompt.includes("mushroom") && metrics.colorLabel === "Neutral") score += 0.42;
-    else if (prompt.includes("chicken") && metrics.colorLabel === "Neutral" && metrics.avgVal > 0.55) score += 0.42;
-    else if (prompt.includes("salmon") && (metrics.colorLabel === "Orange" || metrics.peakHue < 25)) score += 0.44;
-
-    return { prompt, score: Math.min(score, 0.98) };
-  });
-
-  promptScores.sort((a, b) => b.score - a.score);
-  const bestPrompt = promptScores[0];
-  const matchedCatalog = PREDEFINED_PRODUCE_CATALOG.find(
-    (c) => c.name.toLowerCase().includes(bestPrompt.prompt) || bestPrompt.prompt.includes(c.id)
-  ) || PREDEFINED_PRODUCE_CATALOG[0];
-
-  const confidence = Math.round(bestPrompt.score * 100);
-  log(`[YOLO-World] Detected "${bestPrompt.prompt}" (${confidence}%) with bbox.`);
-
-  return {
-    topIngredient: matchedCatalog,
-    confidence,
-    rawLabel: `yolo_world:${bestPrompt.prompt}`,
-    boundingBox: bbox,
-    topRankings: promptScores.slice(0, 3).map((ps) => {
-      const match = PREDEFINED_PRODUCE_CATALOG.find(
-        (c) => c.name.toLowerCase().includes(ps.prompt) || ps.prompt.includes(c.id)
-      );
-      return {
-        name: match ? match.name : ps.prompt,
-        nameMalay: match ? match.nameMalay : ps.prompt,
-        emoji: match ? match.emoji : "🎯",
-        confidence: Math.round(ps.score * 100),
-      };
-    }),
-    foregroundMetrics: metrics,
-  };
-}

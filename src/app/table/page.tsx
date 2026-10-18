@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, AlertTriangle, Play, Filter } from "lucide-react";
+import NavigationHeader from "@/components/NavigationHeader";
 
 interface ProduceComparisonRow {
   id: string;
@@ -425,10 +426,11 @@ export default function ProduceTablePage() {
   );
 
   const testItem = (enginePath: string, testImage?: string) => {
+    const route = enginePath === "test_02" ? "/test_02" : `/test_01/${enginePath}`;
     if (testImage) {
-      router.push(`/${enginePath}?testImage=${encodeURIComponent(testImage)}`);
+      router.push(`${route}?testImage=${encodeURIComponent(testImage)}`);
     } else {
-      router.push(`/${enginePath}`);
+      router.push(route);
     }
   };
 
@@ -449,44 +451,9 @@ export default function ProduceTablePage() {
             </h1>
           </div>
 
-          {/* Six Clean Navigation Tabs */}
-          <div className="grid grid-cols-6 gap-1 p-1 bg-zinc-950 border border-zinc-800 rounded-xl text-center w-full sm:w-auto">
-            <Link
-              href="/v2"
-              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition"
-            >
-              V2
-            </Link>
-            <Link
-              href="/v3"
-              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition"
-            >
-              V3
-            </Link>
-            <Link
-              href="/v4"
-              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition"
-            >
-              V4
-            </Link>
-            <Link
-              href="/yolo"
-              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition"
-            >
-              YOLO
-            </Link>
-            <Link
-              href="/gemini"
-              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition"
-            >
-              GEMINI
-            </Link>
-            <Link
-              href="/table"
-              className="py-1.5 px-2.5 text-xs font-semibold rounded-lg bg-white text-black transition"
-            >
-              TABLE
-            </Link>
+          {/* Clean Unified Navigation Header */}
+          <div className="w-full sm:w-auto">
+            <NavigationHeader />
           </div>
         </header>
 
@@ -611,6 +578,13 @@ export default function ProduceTablePage() {
                         title="Test in V4"
                       >
                         V4
+                      </button>
+                      <button
+                        onClick={() => testItem("test_02", row.testImage)}
+                        className="px-2 py-1 rounded bg-white text-black hover:bg-zinc-200 font-bold transition shadow-sm"
+                        title="Compare V2, V3, and V4 simultaneously"
+                      >
+                        3x
                       </button>
                     </div>
                   </td>

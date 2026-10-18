@@ -2,10 +2,10 @@ import React, { Suspense } from "react";
 import CameraView from "@/components/CameraView";
 
 export const metadata = {
-  title: "YOLO-World Open-Vocabulary Scanner | ZeroWaste Chef",
+  title: "MobileNet v2 Scanner | ZeroWaste Chef",
 };
 
-export default function YoloPage() {
+export default function Test01V2Page() {
   return (
     <main className="min-h-screen bg-black text-white p-3 sm:p-5 flex flex-col items-center">
       <div className="w-full max-w-md flex flex-col space-y-3">
@@ -13,11 +13,11 @@ export default function YoloPage() {
           <h1 className="text-xs font-mono font-bold tracking-widest uppercase text-zinc-200">
             ZeroWaste Chef
           </h1>
-          <span className="text-[10px] font-mono text-zinc-500">UTeM Group 23 &bull; YOLO-World</span>
+          <span className="text-[10px] font-mono text-zinc-500">UTeM Group 23 &bull; Test 01 &bull; V2</span>
         </header>
 
-        <Suspense fallback={<div className="text-zinc-500 font-mono text-xs text-center py-10">Loading YOLO-World Scanner...</div>}>
-          <CameraView engine="yolo" />
+        <Suspense fallback={<div className="text-zinc-500 font-mono text-xs text-center py-10">Loading CNN v2 Scanner...</div>}>
+          <CameraView engine="cnn_v2" />
         </Suspense>
       </div>
     </main>
