@@ -33,8 +33,43 @@ interface ReleaseEntry {
 
 const RELEASES: ReleaseEntry[] = [
   {
+    version: "v3.0",
+    tag: "LATEST (OFFICIAL v3.0)",
+    date: "20 October 2026",
+    title: "Pure Soft Neumorphic Ecosystem & Final 3-Screen Design Integration",
+    summary:
+      "Flagship v3.0 official release delivering pure soft-UI Neumorphism (#E0E5EC) with dual ambient and highlight drop shadows. Features a full-width Stored Items well, bulging dark-green Generate Meals & Add Item action buttons, flat clean Malaysian quantifier selectors with 14 units, uniform full-width carved-in stepper number wells, red minus stepper buttons, interactive delete confirmation modals, and seamless multi-view navigation.",
+    highlights: [
+      {
+        type: "Added",
+        items: [
+          "View 4 Digital Pantry Integration: Full-width Stored Items well displaying total items, with moved-down action buttons row.",
+          "Dark Green Bulging Action Buttons: 'Generate Meals' and 'Add Item' styled in rich #004730 with white icons/text and dual-tone tactile shadows.",
+          "Interactive Quantifier Reselection Sheet: Modal sheet supporting 14 Malaysian units (biji, batang, helai, ekor, ketul, keping, ikat, g, kg, botol, etc.).",
+          "Neumorphic Delete Confirmation Modal: Tactile soft-UI prompt with rose accent icon to confirm before removing ingredients.",
+          "Multi-Screen Studio Canvas: Dedicated 3-screen suite canvas (Scanner HUD, Pop-Out Card, Digital Pantry) at /design-preview.html.",
+        ],
+      },
+      {
+        type: "Changed",
+        items: [
+          "Pure Monochromatic Soft UI: Entire surface standardized on #E0E5EC with zero harsh outlines or conflicting flat green containers.",
+          "Flat & Clean Quantifier Trigger: Converted from raised button to clean inline text badge with dropdown chevron.",
+          "Uniform Stepper Number Wells: Stepper number container set to flex-1, ensuring identical carved-in width across all cards.",
+          "Red Minus Stepper Accent: High-contrast red font and icon (text-rose-600) on minus decrement buttons.",
+          "Official Routing: App root and /official now default to /official_v3.0.",
+        ],
+      },
+      {
+        type: "Removed",
+        items: [
+          "Obsolete View 3: Removed transitional View 3 and the floating camera FAB in favor of the integrated top Add Item action button.",
+        ],
+      },
+    ],
+  },
+  {
     version: "v2.1",
-    tag: "LATEST (OFFICIAL v2.1)",
     date: "19 October 2026",
     title: "Skeuomorphic & Neomorphic Tactical Redesign (Clean & Neat Official Release)",
     summary:

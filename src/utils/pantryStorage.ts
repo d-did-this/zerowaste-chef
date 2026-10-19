@@ -79,6 +79,14 @@ export function updatePantryItemQuantity(id: string, quantity: number): void {
   localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
 }
 
+export function updatePantryItemUnit(id: string, unit: string): void {
+  if (typeof window === "undefined") return;
+  const current = getPantryItems();
+  const updated = current.map((item) => (item.id === id ? { ...item, unit } : item));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
+}
+
 export function deletePantryItem(id: string): void {
   if (typeof window === "undefined") return;
   const current = getPantryItems();

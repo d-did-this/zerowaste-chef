@@ -4,6 +4,27 @@ All notable changes to the **ZeroWaste Chef** (UTeM Workshop 2, BAXU 3923, Group
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-10-20 (Official v3.0)
+
+### Added
+- **View 4 Digital Pantry Integration:** Full-width Stored Items well (`STORED ITEMS` on left, item count on right) with no conflicting "All Fresh" text.
+- **Dark Green Bulging Action Buttons:** Dual action buttons ("Generate Meals" and "Add Item") styled in rich `#004730` with white text & white icons and deep dual-tone tactile shadows (`box-shadow: 4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9)`).
+- **Interactive Quantifier Reselection Sheet:** Supports 14 Malaysian units (`biji`, `batang`, `helai`, `biji / buah`, `ekor`, `ketul`, `keping`, `ikat`, `g`, `kg`, `botol`, `cup`, `kotak`, `paket`) with instant persistence to localStorage.
+- **Neumorphic Delete Confirmation Modal:** Tactile prompt dialog with rose accent icon asking for confirmation before deleting pantry items.
+- **Multi-Screen Studio Canvas (`/design-preview.html`):** Side-by-side showcase of the final 3-screen suite: View 1 (Scanner HUD), View 2 (Pop-Out Card), and View 4 (Digital Pantry).
+
+### Changed
+- **Pure Monochromatic Soft UI:** Standardized the entire interface on `#E0E5EC` with zero harsh white/black borders, allowing dual-tone RGBA drop and inset shadows to define all tactile depth.
+- **Flat & Clean Quantifier Trigger:** Removed raised button bubbles in favor of a clean, flat inline badge with a dropdown chevron.
+- **Uniform Stepper Number Wells:** Applied `flex-1` to the carved-in middle number container, locking all cards into an identical width regardless of single- vs multi-digit values.
+- **Red Minus Button Accent:** Highlighted decrement minus buttons in `text-rose-600 font-black` for clear contrast against the plus button.
+- **Official Routing:** Root `/` and `/official` now redirect directly to `/official_v3.0`.
+
+### Removed
+- **Obsolete View 3:** Completely removed transitional View 3 and the floating camera FAB in favor of the integrated top Add Item action button.
+
+---
+
 ## [2.1.0] - 2026-10-19 (Official v2.1)
 
 ### Added

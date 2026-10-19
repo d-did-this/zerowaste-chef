@@ -131,13 +131,13 @@ export default function OfficialV2Client() {
 
       {/* Redesigned Floating Tactile Bottom Navigation Dock */}
       <nav className="fixed bottom-3 inset-x-3 max-w-md mx-auto z-50">
-        <div className="bg-[#f0f4f9]/95 backdrop-blur-lg rounded-3xl p-1.5 shadow-[6px_6px_22px_rgba(15,30,22,0.18),-4px_-4px_16px_rgba(255,255,255,0.95)] border border-[#004d34]/15 grid grid-cols-4 items-center gap-1">
+        <div className="bg-[#E0E5EC]/95 backdrop-blur-lg rounded-3xl p-1.5 neo-raised grid grid-cols-4 items-center gap-1">
           {/* 1. Scanner Tab */}
           <button
             onClick={() => setActiveTab("scanner")}
             className={`h-14 flex flex-col items-center justify-center gap-1 rounded-2xl transition-all ${
               activeTab === "scanner"
-                ? "neo-crater-darkgreen font-bold"
+                ? "neo-crater font-bold"
                 : "text-[#576574] hover:text-[#1e293b] active:scale-95"
             }`}
             type="button"
@@ -151,7 +151,7 @@ export default function OfficialV2Client() {
             onClick={() => setActiveTab("pantry")}
             className={`h-14 flex flex-col items-center justify-center gap-1 rounded-2xl transition-all ${
               activeTab === "pantry"
-                ? "neo-crater-darkgreen font-bold"
+                ? "neo-crater font-bold"
                 : "text-[#576574] hover:text-[#1e293b] active:scale-95"
             }`}
             type="button"
@@ -165,7 +165,7 @@ export default function OfficialV2Client() {
             onClick={() => setActiveTab("cook-now")}
             className={`h-14 flex flex-col items-center justify-center gap-0.5 rounded-2xl transition-all relative ${
               activeTab === "cook-now"
-                ? "neo-crater-darkgreen font-bold"
+                ? "neo-crater font-bold"
                 : "text-[#576574] hover:text-[#1e293b] active:scale-95"
             }`}
             type="button"

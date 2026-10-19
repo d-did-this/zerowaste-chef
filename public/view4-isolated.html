@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>View 4 - Digital Pantry (Expanded Layout) | Pure Green Neumorphism</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: "#E0E5EC",
+            foreground: "#3D4852",
+            muted: "#6B7280",
+            primary: "#006948",
+            "primary-dark": "#004730",
+            accent: "#38B2AC",
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      background-color: #E0E5EC;
+      color: #3D4852;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Neumorphic Soft UI Design Tokens - Zero Harsh Borders */
+    .neo-raised {
+      background: #E0E5EC;
+      box-shadow: 9px 9px 16px rgba(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.6);
+      border: none !important;
+    }
+    .neo-raised-sm {
+      background: #E0E5EC;
+      box-shadow: 4px 4px 8px rgba(163, 177, 198, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.6);
+      border: none !important;
+    }
+    .neo-sunken {
+      background: #E0E5EC;
+      box-shadow: inset 5px 5px 9px rgba(163, 177, 198, 0.6), inset -5px -5px 9px rgba(255, 255, 255, 0.6);
+      border: none !important;
+    }
+    .neo-crater {
+      background: #E0E5EC !important;
+      box-shadow: inset 10px 10px 20px rgba(163, 177, 198, 0.75), inset -10px -10px 20px rgba(255, 255, 255, 0.7) !important;
+      border: none !important;
+      color: #004730 !important;
+      transform: translateY(0.5px);
+    }
+    .neo-bar-top {
+      background: rgba(224, 229, 236, 0.95);
+      box-shadow: 0 6px 16px rgba(163, 177, 198, 0.45);
+      border: none !important;
+    }
+    .neo-pantry-card {
+      background: #E0E5EC;
+      box-shadow: 7px 7px 14px rgba(163, 177, 198, 0.65), -7px -7px 14px rgba(255, 255, 255, 0.75);
+      border: none !important;
+      transition: all 0.25s ease-out;
+    }
+    .neo-pantry-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 10px 10px 18px rgba(163, 177, 198, 0.7), -10px -10px 18px rgba(255, 255, 255, 0.75);
+    }
+
+    /* Grid View Layout Adaptations for Pantry Cards */
+    .pantry-grid-mode {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 0.625rem !important;
+    }
+    .pantry-grid-mode .neo-pantry-card {
+      padding: 0.625rem !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+    }
+    .pantry-grid-mode .card-media-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0.5rem !important;
+    }
+    .pantry-grid-mode .card-photo-box {
+      width: 100% !important;
+      height: 5.75rem !important;
+    }
+    .pantry-grid-mode .card-info-box {
+      width: 100% !important;
+    }
+    .pantry-grid-mode .card-stepper-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0.35rem !important;
+      padding-top: 0.35rem !important;
+    }
+    .pantry-grid-mode .card-stepper-row .stepper-controls {
+      justify-content: space-between !important;
+      width: 100% !important;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+  <!-- Mobile Container: Pure Neumorphism, Zero White Border Outlines -->
+  <div class="w-[390px] h-[844px] rounded-[44px] p-3 neo-raised flex flex-col relative overflow-hidden bg-[#E0E5EC] text-foreground justify-between">
+    
+    <!-- Top Bar -->
+    <header class="h-16 px-3 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-primary shrink-0">
+          <span class="material-symbols-outlined text-xl">kitchen</span>
+        </div>
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-1">
+            <span class="text-sm font-bold text-foreground tracking-tight">ZeroWaste Chef</span>
+            <span class="text-[10px] text-muted font-normal">&bull; Pantry (View 4)</span>
+          </div>
+          <span class="text-[9px] text-primary uppercase font-extrabold tracking-wider">Smart Stock AI</span>
+        </div>
+      </div>
+
+      <button class="w-10 h-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-primary active:scale-95 transition-all" title="Search">
+        <span class="material-symbols-outlined text-base">search</span>
+      </button>
+    </header>
+
+    <!-- Main Scrollable Content -->
+    <div class="flex-1 p-3 flex flex-col gap-3.5 overflow-y-auto no-scrollbar relative">
+      
+      <!-- 1. Digital Pantry Card (Reverted to Soft Neumorphic Surface with Bulging Generate Meals CTA) -->
+      <section class="w-full neo-raised rounded-2xl p-3.5 flex flex-col gap-2.5 shrink-0">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full neo-sunken flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined text-base">kitchen</span>
+            </div>
+            <span class="text-xs font-bold text-foreground">Digital Pantry</span>
+          </div>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full neo-sunken text-primary text-[10px] font-bold">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+            Updated 2m ago
+          </span>
+        </div>
+
+        <!-- Full-Width Stored Items Sunken Well: STORED ITEMS on left, 14 on right (No "All Fresh") -->
+        <div class="w-full neo-sunken rounded-xl py-2.5 px-4 flex items-center justify-between">
+          <span class="text-xs font-black uppercase tracking-wider text-muted">STORED ITEMS</span>
+          <span class="text-base font-extrabold text-foreground tracking-tight" id="pantryTotalItemsCount">14</span>
+        </div>
+
+        <!-- Action Buttons Row: Dark Green with White Icon & Text + Tactile Shadow -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- Left: Generate Meals (Dark Green with White Icon/Text + Tactile Shadow) -->
+          <button onclick="triggerGenerateMeals()" class="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
+            style="box-shadow: 4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9);"
+            title="Generate Meals">
+            <span class="material-symbols-outlined text-base font-bold text-white group-hover:rotate-12 transition-transform">auto_awesome</span>
+            <span class="text-xs font-black tracking-tight text-white">Generate Meals</span>
+          </button>
+
+          <!-- Right: Add Item (Dark Green with White Icon/Text + Tactile Shadow) -->
+          <button onclick="triggerAddItem()" class="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
+            style="box-shadow: 4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9);"
+            title="Add Item">
+            <span class="material-symbols-outlined text-base font-bold text-white group-hover:scale-110 transition-transform">photo_camera</span>
+            <span class="text-xs font-black tracking-tight text-white">Add Item</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 2. Unified Controls Bar: Clean Filter Dropdown on Left, Sort Icon Button & Grid/List View Toggle on Right -->
+      <div class="flex items-center justify-between gap-2 pt-1 pb-1 shrink-0 relative z-30">
+        
+        <!-- Filter Dropdown Trigger: Clean "All (14)" button -->
+        <div class="relative">
+          <button id="pantryFilterBtn" onclick="toggleFilterDropdown(event)" 
+            class="h-8 px-3 rounded-xl neo-raised-sm flex items-center gap-1.5 text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm text-[#004730]" id="filterSelectedIcon">apps</span>
+            <span id="filterSelectedLabel" class="text-xs font-bold text-foreground">All (14)</span>
+            <span class="material-symbols-outlined text-sm text-muted transition-transform duration-200" id="filterChevron">expand_more</span>
+          </button>
+
+          <!-- Clean Neumorphic Filter Dropdown Menu -->
+          <div id="pantryFilterMenu" class="hidden absolute left-0 top-10 w-48 py-1.5 rounded-2xl neo-raised bg-[#E0E5EC] shadow-2xl flex flex-col gap-0.5 z-50 border-0">
+            <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-muted">Category Filter</div>
+            
+            <!-- All Items -->
+            <button onclick="selectFilterOption('all', 'All (14)', 'apps')" data-cat="all" class="filter-opt flex items-center justify-between px-3 py-2 text-xs font-bold text-[#004730] bg-white/40 hover:bg-white/70 rounded-xl mx-1 transition-all cursor-pointer">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-[#004730]">apps</span>
+                <span>All Items</span>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-muted">14</span>
+            </button>
+
+            <!-- Produce -->
+            <button onclick="selectFilterOption('produce', 'Produce (6)', 'eco')" data-cat="produce" class="filter-opt flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-emerald-700">eco</span>
+                <span>Produce</span>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-muted">6</span>
+            </button>
+
+            <!-- Proteins -->
+            <button onclick="selectFilterOption('protein', 'Proteins (3)', 'set_meal')" data-cat="protein" class="filter-opt flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-orange-600">set_meal</span>
+                <span>Proteins</span>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-muted">3</span>
+            </button>
+
+            <!-- Seasoning -->
+            <button onclick="selectFilterOption('seasoning', 'Seasoning (3)', 'soup_kitchen')" data-cat="seasoning" class="filter-opt flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-teal-700">soup_kitchen</span>
+                <span>Seasoning</span>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-muted">3</span>
+            </button>
+
+            <!-- Dairy -->
+            <button onclick="selectFilterOption('dairy', 'Dairy (2)', 'egg')" data-cat="dairy" class="filter-opt flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-indigo-600">egg</span>
+                <span>Dairy</span>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-muted">2</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Side: Sort Icon Button & Grid/List View Toggle Group -->
+        <div class="flex items-center gap-2">
+          
+          <!-- Sort Button with Dropdown (Single button with just icon, next to grid/list) -->
+          <div class="relative">
+            <button id="pantrySortBtn" onclick="toggleSortDropdown(event)" 
+              class="w-8 h-8 rounded-xl neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer" 
+              title="Sort Pantry">
+              <span class="material-symbols-outlined text-lg text-[#004730]">sort</span>
+            </button>
+
+            <!-- Clean Neumorphic Sort Dropdown Menu -->
+            <div id="pantrySortMenu" class="hidden absolute right-0 top-10 w-44 py-1.5 rounded-2xl neo-raised bg-[#E0E5EC] shadow-2xl flex flex-col gap-0.5 z-50 border-0">
+              <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-muted">Sort By</div>
+              
+              <button onclick="selectSortOption('name', 'Name (A → Z)')" data-sort="name" class="sort-opt flex items-center justify-between px-3 py-2 text-xs font-bold text-[#004730] bg-white/40 hover:bg-white/70 rounded-xl mx-1 transition-all cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">sort_by_alpha</span>
+                  <span>Name (A &rarr; Z)</span>
+                </div>
+                <span class="material-symbols-outlined text-sm text-[#004730] sort-check">check</span>
+              </button>
+
+              <button onclick="selectSortOption('recent', 'Recently Added')" data-sort="recent" class="sort-opt flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">schedule</span>
+                  <span>Recently Added</span>
+                </div>
+                <span class="material-symbols-outlined text-sm text-[#004730] sort-check hidden">check</span>
+              </button>
+
+              <button onclick="selectSortOption('qty', 'Quantity / Portion')" data-sort="qty" class="sort-opt flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">inventory_2</span>
+                  <span>Quantity</span>
+                </div>
+                <span class="material-symbols-outlined text-sm text-[#004730] sort-check hidden">check</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- List / Grid View Toggle: Default to Grid View -->
+          <div class="flex items-center p-0.5 rounded-xl neo-sunken">
+            <button id="btnGridView" onclick="setPantryView('grid')" class="w-8 h-7 rounded-lg flex items-center justify-center neo-raised-sm text-[#004730] transition-all cursor-pointer" title="Grid View">
+              <span class="material-symbols-outlined text-base font-bold">grid_view</span>
+            </button>
+            <button id="btnListView" onclick="setPantryView('list')" class="w-8 h-7 rounded-lg flex items-center justify-center text-muted hover:text-foreground transition-all cursor-pointer" title="List View">
+              <span class="material-symbols-outlined text-base font-bold">view_list</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 3. Pantry Item Cards (Defaults to Grid View: pantry-grid-mode) -->
+      <div class="pantry-grid-mode gap-2.5 pb-20" id="pantryCardList">
+        
+        <!-- Card 1: Sweet Corn -->
+        <article data-name="Sweet Corn" data-category="produce" data-qty="2" data-recent="5" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+          <div class="card-media-row flex items-center gap-3">
+            <div class="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative">
+              <img
+                src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=150&q=80"
+                alt="Sweet Corn photo"
+                class="w-full h-full object-cover rounded-lg"
+              />
+              <div class="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px]">🌽</div>
+            </div>
+
+            <div class="card-info-box flex flex-col min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-extrabold text-foreground truncate">Sweet Corn</h4>
+                <button onclick="confirmDeleteCard(this)" class="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                  <span class="material-symbols-outlined text-sm">delete_outline</span>
+                </button>
+              </div>
+              <span class="text-[10px] text-muted font-medium">Added just now &bull; Pasar malam</span>
+            </div>
+          </div>
+
+          <div class="card-stepper-row flex items-center justify-between pt-1">
+            <button type="button" onclick="openCardQuantifier(this, event)" class="card-unit-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+              <span class="portion-unit text-xs font-extrabold text-[#004730]">batang</span>
+              <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+            </button>
+            <div class="stepper-controls flex items-center gap-2 w-full">
+              <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">remove</span>
+              </button>
+              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                <span class="portion-val text-xs font-extrabold text-foreground">2</span>
+              </div>
+              <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">add</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2: Fresh Baby Spinach -->
+        <article data-name="Baby Spinach" data-category="produce" data-qty="1" data-recent="4" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+          <div class="card-media-row flex items-center gap-3">
+            <div class="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative">
+              <img
+                src="https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=150&q=80"
+                alt="Baby Spinach photo"
+                class="w-full h-full object-cover rounded-lg"
+              />
+              <div class="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px]">🥬</div>
+            </div>
+
+            <div class="card-info-box flex flex-col min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-extrabold text-foreground truncate">Baby Spinach</h4>
+                <button onclick="confirmDeleteCard(this)" class="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                  <span class="material-symbols-outlined text-sm">delete_outline</span>
+                </button>
+              </div>
+              <span class="text-[10px] text-muted font-medium">Added today &bull; Farm Fresh</span>
+            </div>
+          </div>
+
+          <div class="card-stepper-row flex items-center justify-between pt-1">
+            <button type="button" onclick="openCardQuantifier(this, event)" class="card-unit-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+              <span class="portion-unit text-xs font-extrabold text-[#004730]">ikat</span>
+              <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+            </button>
+            <div class="stepper-controls flex items-center gap-2 w-full">
+              <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">remove</span>
+              </button>
+              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                <span class="portion-val text-xs font-extrabold text-foreground">1</span>
+              </div>
+              <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">add</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3: Lemon -->
+        <article data-name="Lemon" data-category="produce" data-qty="3" data-recent="3" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+          <div class="card-media-row flex items-center gap-3">
+            <div class="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative">
+              <img
+                src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=150&q=80"
+                alt="Lemon photo"
+                class="w-full h-full object-cover rounded-lg"
+              />
+              <div class="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px]">🍋</div>
+            </div>
+
+            <div class="card-info-box flex flex-col min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-extrabold text-foreground truncate">Lemon</h4>
+                <button onclick="confirmDeleteCard(this)" class="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                  <span class="material-symbols-outlined text-sm">delete_outline</span>
+                </button>
+              </div>
+              <span class="text-[10px] text-muted font-medium">Added 1d ago &bull; Lotus</span>
+            </div>
+          </div>
+
+          <div class="card-stepper-row flex items-center justify-between pt-1">
+            <button type="button" onclick="openCardQuantifier(this, event)" class="card-unit-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+              <span class="portion-unit text-xs font-extrabold text-[#004730]">biji</span>
+              <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+            </button>
+            <div class="stepper-controls flex items-center gap-2 w-full">
+              <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">remove</span>
+              </button>
+              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                <span class="portion-val text-xs font-extrabold text-foreground">3</span>
+              </div>
+              <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">add</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 4: Free-Range Chicken Breast -->
+        <article data-name="Chicken Breast" data-category="protein" data-qty="500" data-recent="2" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+          <div class="card-media-row flex items-center gap-3">
+            <div class="card-photo-box w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center text-2xl shrink-0 neo-sunken">
+              🍗
+            </div>
+
+            <div class="card-info-box flex flex-col min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-extrabold text-foreground truncate">Chicken Breast</h4>
+                <button onclick="confirmDeleteCard(this)" class="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                  <span class="material-symbols-outlined text-sm">delete_outline</span>
+                </button>
+              </div>
+              <span class="text-[10px] text-muted font-medium">Added 2d ago &bull; Fresh Market</span>
+            </div>
+          </div>
+
+          <div class="card-stepper-row flex items-center justify-between pt-1">
+            <button type="button" onclick="openCardQuantifier(this, event)" class="card-unit-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+              <span class="portion-unit text-xs font-extrabold text-[#004730]">g</span>
+              <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+            </button>
+            <div class="stepper-controls flex items-center gap-2 w-full">
+              <button onclick="changePortion(this, -50)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">remove</span>
+              </button>
+              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                <span class="portion-val text-xs font-extrabold text-foreground">500</span>
+              </div>
+              <button onclick="changePortion(this, 50)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">add</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 5: Sweet Soy Sauce (Seasoning) -->
+        <article data-name="Sweet Soy Sauce" data-category="seasoning" data-qty="1" data-recent="1" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+          <div class="card-media-row flex items-center gap-3">
+            <div class="card-photo-box w-14 h-14 rounded-xl bg-teal-100/70 flex items-center justify-center text-2xl shrink-0 neo-sunken">
+              🍶
+            </div>
+
+            <div class="card-info-box flex flex-col min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-extrabold text-foreground truncate">Sweet Soy Sauce</h4>
+                <button onclick="confirmDeleteCard(this)" class="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                  <span class="material-symbols-outlined text-sm">delete_outline</span>
+                </button>
+              </div>
+              <span class="text-[10px] text-muted font-medium">Added 3d ago &bull; Kicap Manis</span>
+            </div>
+          </div>
+
+          <div class="card-stepper-row flex items-center justify-between pt-1">
+            <button type="button" onclick="openCardQuantifier(this, event)" class="card-unit-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+              <span class="portion-unit text-xs font-extrabold text-[#004730]">botol</span>
+              <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+            </button>
+            <div class="stepper-controls flex items-center gap-2 w-full">
+              <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">remove</span>
+              </button>
+              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                <span class="portion-val text-xs font-extrabold text-foreground">1</span>
+              </div>
+              <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">add</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 6: Greek Yogurt (Dairy) -->
+        <article data-name="Greek Yogurt" data-category="dairy" data-qty="2" data-recent="6" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+          <div class="card-media-row flex items-center gap-3">
+            <div class="card-photo-box w-14 h-14 rounded-xl bg-indigo-50 flex items-center justify-center text-2xl shrink-0 neo-sunken">
+              🥣
+            </div>
+
+            <div class="card-info-box flex flex-col min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-extrabold text-foreground truncate">Greek Yogurt</h4>
+                <button onclick="confirmDeleteCard(this)" class="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                  <span class="material-symbols-outlined text-sm">delete_outline</span>
+                </button>
+              </div>
+              <span class="text-[10px] text-muted font-medium">Added yesterday &bull; Chilled</span>
+            </div>
+          </div>
+
+          <div class="card-stepper-row flex items-center justify-between pt-1">
+            <button type="button" onclick="openCardQuantifier(this, event)" class="card-unit-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+              <span class="portion-unit text-xs font-extrabold text-[#004730]">cup</span>
+              <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+            </button>
+            <div class="stepper-controls flex items-center gap-2 w-full">
+              <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">remove</span>
+              </button>
+              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                <span class="portion-val text-xs font-extrabold text-foreground">2</span>
+              </div>
+              <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">add</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 7: Fresh Whole Milk (Dairy) -->
+        <article data-name="Fresh Whole Milk" data-category="dairy" data-qty="1" data-recent="0" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+          <div class="card-media-row flex items-center gap-3">
+            <div class="card-photo-box w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-2xl shrink-0 neo-sunken">
+              🥛
+            </div>
+
+            <div class="card-info-box flex flex-col min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-extrabold text-foreground truncate">Fresh Whole Milk</h4>
+                <button onclick="confirmDeleteCard(this)" class="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                  <span class="material-symbols-outlined text-sm">delete_outline</span>
+                </button>
+              </div>
+              <span class="text-[10px] text-muted font-medium">Added today &bull; Farm Fresh</span>
+            </div>
+          </div>
+
+          <div class="card-stepper-row flex items-center justify-between pt-1">
+            <button type="button" onclick="openCardQuantifier(this, event)" class="card-unit-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+              <span class="portion-unit text-xs font-extrabold text-[#004730]">kotak</span>
+              <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+            </button>
+            <div class="stepper-controls flex items-center gap-2 w-full">
+              <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">remove</span>
+              </button>
+              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                <span class="portion-val text-xs font-extrabold text-foreground">1</span>
+              </div>
+              <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                <span class="material-symbols-outlined text-xs font-bold">add</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+    </div>
+
+
+    <!-- Toast Notification Pill -->
+    <div class="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-full bg-slate-800 text-white text-xs font-bold shadow-xl flex items-center gap-2 transition-all duration-300 z-50 opacity-0 pointer-events-none" id="scanner-toast">
+      <span class="material-symbols-outlined text-emerald-400 text-base">check_circle</span>
+      <span id="toast-message">Camera ready</span>
+    </div>
+
+    <!-- Neumorphic Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm transition-opacity duration-200">
+      <div class="w-full max-w-[300px] rounded-3xl neo-raised bg-[#E0E5EC] p-5 flex flex-col items-center text-center gap-3.5 shadow-2xl">
+        <div class="w-12 h-12 rounded-2xl neo-sunken flex items-center justify-center text-rose-600">
+          <span class="material-symbols-outlined text-2xl font-bold">delete_forever</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-sm font-extrabold text-foreground">Remove Ingredient?</h3>
+          <p class="text-xs text-muted font-medium">Are you sure you want to remove <span class="font-extrabold text-[#004730]" id="deleteConfirmItemName">this item</span> from your Digital Pantry?</p>
+        </div>
+        <div class="flex items-center gap-2.5 w-full pt-1">
+          <button type="button" onclick="cancelDeleteCard()" class="flex-1 py-2.5 rounded-xl neo-raised-sm text-xs font-bold text-foreground hover:text-slate-800 active:scale-95 transition-all cursor-pointer">
+            Cancel
+          </button>
+          <button type="button" onclick="executeDeleteCard()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer">
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shared Floating Quantifier Dropdown (Anchor-positioned on clicked card) -->
+    <div id="pantryQuantifierDropdown" class="hidden absolute z-50 w-36 py-1.5 bg-[#E0E5EC] neo-raised rounded-2xl text-left shadow-2xl transition-all">
+      <div class="px-3 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-muted">Select Unit</div>
+      <div class="max-h-44 overflow-y-auto no-scrollbar flex flex-col gap-0.5 px-1">
+        <button type="button" onclick="selectCardQuantifier('batang')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>batang</span>
+          <span class="text-[9px] opacity-60">stalks</span>
+        </button>
+        <button type="button" onclick="selectCardQuantifier('biji')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>biji</span>
+          <span class="text-[9px] opacity-60">units</span>
+        </button>
+        <button type="button" onclick="selectCardQuantifier('buah')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>buah</span>
+          <span class="text-[9px] opacity-60">pieces</span>
+        </button>
+        <button type="button" onclick="selectCardQuantifier('ikat')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>ikat</span>
+          <span class="text-[9px] opacity-60">bunch</span>
+        </button>
+        <button type="button" onclick="selectCardQuantifier('g')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>g</span>
+          <span class="text-[9px] opacity-60">grams</span>
+        </button>
+        <button type="button" onclick="selectCardQuantifier('kg')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>kg</span>
+          <span class="text-[9px] opacity-60">kilos</span>
+        </button>
+        <button type="button" onclick="selectCardQuantifier('botol')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>botol</span>
+          <span class="text-[9px] opacity-60">bottles</span>
+        </button>
+        <button type="button" onclick="selectCardQuantifier('cup')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>cup</span>
+          <span class="text-[9px] opacity-60">cups</span>
+        </button>
+        <button type="button" onclick="selectCardQuantifier('kotak')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>kotak</span>
+          <span class="text-[9px] opacity-60">boxes</span>
+        </button>
+        <button type="button" onclick="selectCardQuantifier('paket')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+          <span>paket</span>
+          <span class="text-[9px] opacity-60">packs</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 6. Bottom Navigation: Rounded Island with Green Background -->
+    <nav class="mt-2.5 mb-1 mx-1 h-16 px-2 rounded-3xl bg-[#004730] grid grid-cols-4 items-center gap-1.5 shrink-0 z-20"
+      style="box-shadow: 6px 6px 14px rgba(163, 177, 198, 0.65), -6px -6px 14px rgba(255, 255, 255, 0.8);">
+      <!-- Scan Tab -->
+      <button onclick="switchBottomTab3(this, 'scan')" class="nav-tab-v3 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-xl leading-none">photo_camera</span>
+        <span class="text-[9px] font-semibold mt-0.5 leading-none">Scan</span>
+      </button>
+      <!-- Pantry Tab (Active: neo-crater style, current style) -->
+      <button onclick="switchBottomTab3(this, 'pantry')" class="nav-tab-v3 h-12 rounded-2xl neo-crater flex flex-col items-center justify-center font-bold transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-xl leading-none">kitchen</span>
+        <span class="text-[9px] font-bold mt-0.5 leading-none">Pantry</span>
+      </button>
+      <!-- Cook Tab -->
+      <button onclick="switchBottomTab3(this, 'cook')" class="nav-tab-v3 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-xl leading-none">skillet</span>
+        <span class="text-[9px] font-semibold mt-0.5 leading-none">Cook</span>
+        <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+      </button>
+      <!-- Grocery Tab -->
+      <button onclick="switchBottomTab3(this, 'grocery')" class="nav-tab-v3 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-xl leading-none">shopping_cart</span>
+        <span class="text-[9px] font-semibold mt-0.5 leading-none">Grocery</span>
+        <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    // Bottom Nav Switcher
+    function switchBottomTab3(btn, tabId) {
+      document.querySelectorAll('.nav-tab-v3').forEach(b => {
+        b.className = 'nav-tab-v3 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer';
+      });
+      btn.className = 'nav-tab-v3 h-12 rounded-2xl neo-crater flex flex-col items-center justify-center font-bold relative transition-colors cursor-pointer';
+      if (tabId === 'scan') {
+        window.location.href = 'view1-isolated.html';
+      }
+    }
+
+    // Bulging Generate Meals CTA Trigger
+    function triggerGenerateMeals() {
+      showToast('Generating AI zero-waste recipes from 14 pantry items...');
+    }
+
+    // Add Item Trigger (Similar size button next to Generate Meals)
+    function triggerAddItem() {
+      showToast('Opening Quick Add: Scanning or manual entry...');
+      setTimeout(() => {
+        window.location.href = 'view1-isolated.html';
+      }, 850);
+    }
+
+    // Filter Dropdown Handler
+    function toggleFilterDropdown(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('pantryFilterMenu');
+      const sortMenu = document.getElementById('pantrySortMenu');
+      const chevron = document.getElementById('filterChevron');
+      if (sortMenu) sortMenu.classList.add('hidden');
+      if (menu) {
+        const isHidden = menu.classList.contains('hidden');
+        menu.classList.toggle('hidden');
+        if (chevron) {
+          chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+      }
+    }
+
+    function selectFilterOption(category, label, icon) {
+      const labelEl = document.getElementById('filterSelectedLabel');
+      const iconEl = document.getElementById('filterSelectedIcon');
+      if (labelEl) labelEl.textContent = label;
+      if (iconEl) iconEl.textContent = icon;
+
+      // Update active styling in filter dropdown menu
+      document.querySelectorAll('#pantryFilterMenu .filter-opt').forEach(opt => {
+        if (opt.getAttribute('data-cat') === category) {
+          opt.className = 'filter-opt flex items-center justify-between px-3 py-2 text-xs font-bold text-[#004730] bg-white/40 hover:bg-white/70 rounded-xl mx-1 transition-all cursor-pointer';
+        } else {
+          opt.className = 'filter-opt flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer';
+        }
+      });
+
+      // Close menu
+      const menu = document.getElementById('pantryFilterMenu');
+      const chevron = document.getElementById('filterChevron');
+      if (menu) menu.classList.add('hidden');
+      if (chevron) chevron.style.transform = 'rotate(0deg)';
+
+      // Filter cards
+      const cards = document.querySelectorAll('#pantryCardList article');
+      let visibleCount = 0;
+      cards.forEach(card => {
+        const cat = card.getAttribute('data-category') || '';
+        if (category === 'all' || cat.includes(category)) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      showToast('Filtered: ' + label);
+    }
+
+    // Sort Dropdown Handler
+    function toggleSortDropdown(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('pantrySortMenu');
+      const filterMenu = document.getElementById('pantryFilterMenu');
+      const filterChevron = document.getElementById('filterChevron');
+      if (filterMenu) filterMenu.classList.add('hidden');
+      if (filterChevron) filterChevron.style.transform = 'rotate(0deg)';
+      if (menu) {
+        menu.classList.toggle('hidden');
+      }
+    }
+
+    function selectSortOption(criterion, label) {
+      document.querySelectorAll('#pantrySortMenu .sort-opt').forEach(opt => {
+        const isCurrent = opt.getAttribute('data-sort') === criterion;
+        if (isCurrent) {
+          opt.className = 'sort-opt flex items-center justify-between px-3 py-2 text-xs font-bold text-[#004730] bg-white/40 hover:bg-white/70 rounded-xl mx-1 transition-all cursor-pointer';
+        } else {
+          opt.className = 'sort-opt flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer';
+        }
+        const check = opt.querySelector('.sort-check');
+        if (check) {
+          if (isCurrent) check.classList.remove('hidden');
+          else check.classList.add('hidden');
+        }
+      });
+
+      // Close menu
+      const menu = document.getElementById('pantrySortMenu');
+      if (menu) menu.classList.add('hidden');
+
+      // Sort items
+      const container = document.getElementById('pantryCardList');
+      if (!container) return;
+      const cards = Array.from(container.querySelectorAll('article'));
+
+      cards.sort((a, b) => {
+        if (criterion === 'name') {
+          const nameA = a.getAttribute('data-name') || '';
+          const nameB = b.getAttribute('data-name') || '';
+          return nameA.localeCompare(nameB);
+        } else if (criterion === 'qty') {
+          const qtyA = parseInt(a.getAttribute('data-qty')) || 0;
+          const qtyB = parseInt(b.getAttribute('data-qty')) || 0;
+          return qtyB - qtyA;
+        } else if (criterion === 'recent') {
+          const recA = parseInt(a.getAttribute('data-recent')) || 0;
+          const recB = parseInt(b.getAttribute('data-recent')) || 0;
+          return recB - recA;
+        }
+        return 0;
+      });
+
+      cards.forEach(card => container.appendChild(card));
+      showToast('Sorted by: ' + label);
+    }
+
+    // Shared Quantifier Dropdown Logic (Identical to View 2)
+    let currentCardUnitTarget = null;
+
+    function openCardQuantifier(btn, e) {
+      if (e) e.stopPropagation();
+      const dropdown = document.getElementById('pantryQuantifierDropdown');
+      if (!dropdown) return;
+
+      if (currentCardUnitTarget === btn && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+        currentCardUnitTarget = null;
+        return;
+      }
+
+      currentCardUnitTarget = btn;
+      const frame = btn.closest('.w-\\[390px\\]') || document.body;
+      const btnRect = btn.getBoundingClientRect();
+      const frameRect = frame.getBoundingClientRect();
+
+      dropdown.classList.remove('hidden');
+
+      const dropdownHeight = dropdown.offsetHeight || 180;
+      const dropdownWidth = dropdown.offsetWidth || 144;
+
+      let top = btnRect.top - frameRect.top - dropdownHeight - 6;
+      if (top < 10) {
+        top = btnRect.bottom - frameRect.top + 6;
+      }
+      let left = btnRect.left - frameRect.left + (btnRect.width / 2) - (dropdownWidth / 2);
+      left = Math.max(12, Math.min(frameRect.width - dropdownWidth - 12, left));
+
+      dropdown.style.top = `${top}px`;
+      dropdown.style.left = `${left}px`;
+    }
+
+    function selectCardQuantifier(unit) {
+      if (currentCardUnitTarget) {
+        const unitEl = currentCardUnitTarget.querySelector('.portion-unit');
+        if (unitEl) unitEl.textContent = unit;
+        showToast('Quantifier updated to: ' + unit);
+      }
+      const dropdown = document.getElementById('pantryQuantifierDropdown');
+      if (dropdown) dropdown.classList.add('hidden');
+      currentCardUnitTarget = null;
+    }
+
+    // Delete Confirmation Modal Logic
+    let cardToDelete = null;
+
+    function confirmDeleteCard(btn) {
+      const card = btn.closest('article');
+      if (!card) return;
+      cardToDelete = card;
+      const name = card.getAttribute('data-name') || 'this item';
+      const nameEl = document.getElementById('deleteConfirmItemName');
+      if (nameEl) nameEl.textContent = `"${name}"`;
+      const modal = document.getElementById('deleteConfirmModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function cancelDeleteCard() {
+      cardToDelete = null;
+      const modal = document.getElementById('deleteConfirmModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function executeDeleteCard() {
+      if (cardToDelete) {
+        const name = cardToDelete.getAttribute('data-name') || 'Item';
+        cardToDelete.style.opacity = '0';
+        cardToDelete.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          if (cardToDelete) cardToDelete.remove();
+          updatePantryStats();
+        }, 220);
+        showToast(name + ' removed from pantry');
+      }
+      const modal = document.getElementById('deleteConfirmModal');
+      if (modal) modal.classList.add('hidden');
+      cardToDelete = null;
+    }
+
+    function updatePantryStats() {
+      const remaining = document.querySelectorAll('#pantryCardList article').length;
+      const statEl = document.getElementById('pantryTotalItemsCount');
+      if (statEl) statEl.textContent = remaining;
+      const allFilterOpt = document.querySelector('#pantryFilterMenu [data-cat="all"] span:last-child');
+      if (allFilterOpt) allFilterOpt.textContent = remaining;
+      const filterLabel = document.getElementById('filterSelectedLabel');
+      if (filterLabel && filterLabel.textContent.includes('All')) {
+        filterLabel.textContent = `All (${remaining})`;
+      }
+    }
+
+    // Close dropdowns on outside click
+    document.addEventListener('click', (e) => {
+      const filterMenu = document.getElementById('pantryFilterMenu');
+      const sortMenu = document.getElementById('pantrySortMenu');
+      const filterBtn = document.getElementById('pantryFilterBtn');
+      const sortBtn = document.getElementById('pantrySortBtn');
+      const filterChevron = document.getElementById('filterChevron');
+      const unitDropdown = document.getElementById('pantryQuantifierDropdown');
+
+      if (filterMenu && !filterMenu.classList.contains('hidden')) {
+        if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
+          filterMenu.classList.add('hidden');
+          if (filterChevron) filterChevron.style.transform = 'rotate(0deg)';
+        }
+      }
+      if (sortMenu && !sortMenu.classList.contains('hidden')) {
+        if (!sortMenu.contains(e.target) && !sortBtn.contains(e.target)) {
+          sortMenu.classList.add('hidden');
+        }
+      }
+      if (unitDropdown && !unitDropdown.classList.contains('hidden')) {
+        if (!unitDropdown.contains(e.target) && (!currentCardUnitTarget || !currentCardUnitTarget.contains(e.target))) {
+          unitDropdown.classList.add('hidden');
+          currentCardUnitTarget = null;
+        }
+      }
+    });
+
+    // List vs Grid View Toggle
+    function setPantryView(mode) {
+      const container = document.getElementById('pantryCardList');
+      const btnList = document.getElementById('btnListView');
+      const btnGrid = document.getElementById('btnGridView');
+      if (!container) return;
+
+      if (mode === 'grid') {
+        container.classList.add('pantry-grid-mode');
+        container.classList.remove('flex', 'flex-col');
+        if (btnGrid) {
+          btnGrid.className = 'w-8 h-7 rounded-lg flex items-center justify-center neo-raised-sm text-[#004730] transition-all cursor-pointer';
+        }
+        if (btnList) {
+          btnList.className = 'w-8 h-7 rounded-lg flex items-center justify-center text-muted hover:text-foreground transition-all cursor-pointer';
+        }
+        showToast('Switched to Grid View');
+      } else {
+        container.classList.remove('pantry-grid-mode');
+        container.classList.add('flex', 'flex-col');
+        if (btnList) {
+          btnList.className = 'w-8 h-7 rounded-lg flex items-center justify-center neo-raised-sm text-[#004730] transition-all cursor-pointer';
+        }
+        if (btnGrid) {
+          btnGrid.className = 'w-8 h-7 rounded-lg flex items-center justify-center text-muted hover:text-foreground transition-all cursor-pointer';
+        }
+        showToast('Switched to List View');
+      }
+    }
+
+    // Portion adjustment helper
+    function changePortion(btn, delta) {
+      const container = btn.closest('.stepper-controls') || btn.closest('div');
+      const valEl = container.querySelector('.portion-val');
+      if (!valEl) return;
+      let cur = parseInt(valEl.textContent) || 0;
+      let next = Math.max(1, cur + delta);
+      valEl.textContent = next;
+    }
+
+    // Toast Messenger
+    function showToast(msg) {
+      const toast = document.getElementById('scanner-toast');
+      const toastMsg = document.getElementById('toast-message');
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2200);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>View 2 - Detection Pop-Out Sheet | Pure Green Neumorphism</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: "#E0E5EC",
+            foreground: "#3D4852",
+            muted: "#6B7280",
+            primary: "#006948",
+            "primary-container": "#00855D",
+            accent: "#38B2AC",
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      background-color: #E0E5EC;
+      color: #3D4852;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* ==========================================================
+       PURE NEUMORPHIC (SOFT UI) GREEN DESIGN TOKENS
+       - Single continuous monochromatic surface (#E0E5EC)
+       - ZERO BORDERS: Shadows define 100% of physical depth
+       - Dual opposing RGBA shadows
+       ========================================================== */
+
+    /* Extruded Standard */
+    .neo-raised {
+      background: #E0E5EC;
+      box-shadow: 9px 9px 16px rgba(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.6);
+      border: none !important;
+    }
+
+    /* Extruded Bulge / Lifted */
+    .neo-bulge {
+      background: #E0E5EC;
+      box-shadow: 12px 12px 20px rgba(163, 177, 198, 0.7), -12px -12px 20px rgba(255, 255, 255, 0.7);
+      border: none !important;
+      transition: all 0.3s ease-out;
+    }
+
+    /* Extruded Small */
+    .neo-raised-sm {
+      background: #E0E5EC;
+      box-shadow: 5px 5px 10px rgba(163, 177, 198, 0.6), -5px -5px 10px rgba(255, 255, 255, 0.6);
+      border: none !important;
+    }
+
+    /* Interactive Extruded Button */
+    .neo-raised-button {
+      background: #E0E5EC;
+      box-shadow: 5px 5px 10px rgba(163, 177, 198, 0.6), -5px -5px 10px rgba(255, 255, 255, 0.6);
+      border: none !important;
+      transition: all 0.3s ease-out;
+    }
+    .neo-raised-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 8px 8px 14px rgba(163, 177, 198, 0.7), -8px -8px 14px rgba(255, 255, 255, 0.7);
+    }
+    .neo-raised-button:active {
+      transform: translateY(0.5px);
+      box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.65), inset -4px -4px 8px rgba(255, 255, 255, 0.6);
+    }
+
+    /* Inset Pressed / Shallow Well */
+    .neo-sunken {
+      background: #E0E5EC;
+      box-shadow: inset 6px 6px 10px rgba(163, 177, 198, 0.6), inset -6px -6px 10px rgba(255, 255, 255, 0.6);
+      border: none !important;
+    }
+
+    /* Inset Deep Well / Active Crater */
+    .neo-sunken-tray, .neo-crater {
+      background: #E0E5EC !important;
+      box-shadow: inset 10px 10px 20px rgba(163, 177, 198, 0.75), inset -10px -10px 20px rgba(255, 255, 255, 0.7) !important;
+      border: none !important;
+      color: #004730 !important;
+    }
+
+    .neo-bar-top {
+      background: rgba(224, 229, 236, 0.95);
+      box-shadow: 0 6px 16px rgba(163, 177, 198, 0.45);
+      border: none !important;
+    }
+
+    /* Pure Neumorphic Raised Primary Green Button (Soft UI, Zero Harsh Edges) */
+    .neo-btn-green {
+      background: #006948 !important;
+      background: linear-gradient(145deg, #007550, #005e40) !important;
+      box-shadow: 
+        6px 6px 14px rgba(163, 177, 198, 0.65),
+        -6px -6px 14px rgba(255, 255, 255, 0.8),
+        inset 1px 1px 1.5px rgba(255, 255, 255, 0.35) !important;
+      border: none !important;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .neo-btn-green:hover {
+      background: linear-gradient(145deg, #007c55, #006445) !important;
+      box-shadow: 
+        8px 8px 16px rgba(163, 177, 198, 0.75),
+        -8px -8px 16px rgba(255, 255, 255, 0.9),
+        inset 1px 1px 2px rgba(255, 255, 255, 0.45) !important;
+      transform: translateY(-1px);
+    }
+    .neo-btn-green:active {
+      transform: scale(0.985) translateY(0.5px) !important;
+      box-shadow: 
+        inset 4px 4px 8px rgba(0, 35, 22, 0.6),
+        inset -2px -2px 6px rgba(255, 255, 255, 0.15),
+        2px 2px 5px rgba(163, 177, 198, 0.4) !important;
+    }
+
+    /* Pure Neumorphic Raised Black / Obsidian Button (Soft UI Matte Ceramic) */
+    .neo-btn-black {
+      background: #161c22 !important;
+      background: linear-gradient(145deg, #222933, #11161d) !important;
+      box-shadow: 
+        6px 6px 14px rgba(163, 177, 198, 0.7),
+        -6px -6px 14px rgba(255, 255, 255, 0.85),
+        inset 1px 1px 1.5px rgba(255, 255, 255, 0.2) !important;
+      border: none !important;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .neo-btn-black:hover {
+      background: linear-gradient(145deg, #28313d, #141b24) !important;
+      box-shadow: 
+        8px 8px 16px rgba(163, 177, 198, 0.8),
+        -8px -8px 16px rgba(255, 255, 255, 0.95),
+        inset 1px 1px 2px rgba(255, 255, 255, 0.3) !important;
+      transform: translateY(-1px);
+    }
+    .neo-btn-black:active {
+      transform: scale(0.985) translateY(0.5px) !important;
+      box-shadow: 
+        inset 4px 4px 8px rgba(0, 0, 0, 0.85),
+        inset -2px -2px 6px rgba(255, 255, 255, 0.1),
+        2px 2px 5px rgba(163, 177, 198, 0.4) !important;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <!-- Mobile Container: Pure Neumorphism, Zero White Border Outlines -->
+  <div class="w-[390px] h-[844px] rounded-[44px] p-3 neo-raised flex flex-col relative overflow-hidden">
+    
+    <!-- Top Bar -->
+    <header class="h-14 px-4 flex items-center justify-between neo-bar-top backdrop-blur-md z-20 rounded-t-[32px]">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-bold text-foreground">Analysis Result</span>
+        <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#006948]/15 text-primary font-black">v2.1</span>
+      </div>
+      <button class="w-8 h-8 rounded-full neo-raised-button flex items-center justify-center text-muted hover:text-foreground" title="Close">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </header>
+
+    <!-- Dimmed Camera Feed with Floating Pop-Out Card -->
+    <div class="relative flex-1 bg-slate-900 flex flex-col justify-end overflow-hidden">
+      <!-- Background Dimmed Scene -->
+      <img
+        src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80"
+        alt="Sweet Corn"
+        class="absolute inset-0 w-full h-full object-cover filter blur-[2px] opacity-60"
+      />
+      <div class="absolute inset-0 bg-black/40"></div>
+
+      <!-- POP-OUT CARD (Seamless Monochromatic Mold from Surface) -->
+      <div class="relative z-10 w-full bg-[#E0E5EC] rounded-t-[32px] neo-raised p-4 flex flex-col gap-3.5 overflow-y-auto max-h-[88%] no-scrollbar">
+        <!-- Sheet Handle -->
+        <div class="w-12 h-1.5 neo-sunken rounded-full mx-auto mb-0.5 shrink-0"></div>
+
+        <!-- 1. COMPLETELY DETACHED BIG SQUARE IMAGE (Pure Neumorphic Well, Zero Border) -->
+        <div class="w-48 h-48 aspect-square mx-auto rounded-3xl neo-raised p-2 overflow-hidden relative shrink-0 my-1">
+          <img
+            src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80"
+            alt="Sweet Corn"
+            class="w-full h-full object-cover rounded-2xl shadow-inner"
+          />
+          <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md flex items-center gap-1.5 text-[10px] font-bold text-white shadow-md">
+            <span class="material-symbols-outlined text-xs text-emerald-400">photo_camera</span>
+            <span>Captured</span>
+          </div>
+        </div>
+
+        <!-- 2. REDESIGNED PRODUCT INFO CARD (Pure Borderless Neumorphism) -->
+        <div class="p-4 rounded-3xl neo-raised flex flex-col items-center text-center gap-2 shrink-0">
+          <!-- Badges Row -->
+          <div class="flex items-center justify-center gap-2.5">
+            <span class="px-3 py-1 rounded-full neo-sunken text-primary text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+              <span>🥬</span>
+              <span>Produce</span>
+            </span>
+            <span class="px-3 py-1 rounded-full neo-sunken text-foreground text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>98% Match</span>
+            </span>
+          </div>
+
+          <!-- Centered Product Name -->
+          <h2 class="text-xl font-extrabold text-[#003824] tracking-tight leading-snug">
+            Sweet Corn (Jagung Manis)
+          </h2>
+
+          <!-- Sub-badge: Detected Engine -->
+          <div class="flex items-center gap-1.5 text-[11px] text-muted font-semibold">
+            <span class="material-symbols-outlined text-xs text-primary">memory</span>
+            <span>Detected by MobileNet Core</span>
+          </div>
+        </div>
+
+        <!-- Portion Count Stepper (Identical Font Size + Interactive Quantifier Dropdown) -->
+        <div class="flex flex-col gap-1.5 shrink-0">
+          <div class="flex items-center justify-center text-center">
+            <span class="text-xs font-bold text-foreground">Portion Count</span>
+          </div>
+
+          <!-- Sunken Track holding [-] [ Number + Unit ] [+] -->
+          <div class="w-full h-14 rounded-2xl neo-sunken p-1.5 flex items-center justify-between relative">
+            <!-- Left Minus Button (Red color text) -->
+            <button onclick="adjustCount(-1)" class="w-11 h-11 rounded-xl neo-raised-button flex items-center justify-center text-rose-600 font-black active:scale-90 transition-transform shrink-0">
+              <span class="material-symbols-outlined text-base font-black text-rose-600">remove</span>
+            </button>
+
+            <!-- Center Count (Strictly Centered, Chevron Excluded From Centering) -->
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+              <div class="relative flex items-center justify-center">
+                <button type="button" onclick="toggleQuantifierDropdown(event)" class="relative flex items-center justify-center px-3 py-1 rounded-xl hover:bg-white/30 active:scale-95 transition-all cursor-pointer group" title="Click to choose quantifier">
+                  <!-- The text "1 batang" is strictly centered -->
+                  <div class="flex items-center gap-1.5">
+                    <span id="popCountDisplay" class="text-lg font-black text-[#004730] tracking-tight">1</span>
+                    <span id="popUnitDisplay" class="text-lg font-black text-[#004730] tracking-tight">batang</span>
+                  </div>
+                  <!-- Dropdown Chevron positioned absolutely to the right so it doesn't offset the centered text -->
+                  <span class="material-symbols-outlined text-xs text-[#004730]/60 group-hover:text-[#004730] transition-transform absolute left-full ml-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+                </button>
+
+                <!-- Quantifier Dropdown Menu (Neumorphic Inset/Raised, Zero Border) -->
+                <div id="quantifierDropdown" class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-36 py-1 bg-[#E0E5EC] neo-raised rounded-2xl text-left shadow-2xl">
+                  <div class="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted">Select Unit</div>
+                  <button type="button" onclick="selectQuantifier('batang')" class="w-full px-3 py-1.5 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                    <span>batang</span>
+                    <span class="text-[9px] opacity-60">stalks</span>
+                  </button>
+                  <button type="button" onclick="selectQuantifier('biji')" class="w-full px-3 py-1.5 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                    <span>biji</span>
+                    <span class="text-[9px] opacity-60">units</span>
+                  </button>
+                  <button type="button" onclick="selectQuantifier('buah')" class="w-full px-3 py-1.5 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                    <span>buah</span>
+                    <span class="text-[9px] opacity-60">large</span>
+                  </button>
+                  <button type="button" onclick="selectQuantifier('ikat')" class="w-full px-3 py-1.5 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                    <span>ikat</span>
+                    <span class="text-[9px] opacity-60">bunch</span>
+                  </button>
+                  <button type="button" onclick="selectQuantifier('g')" class="w-full px-3 py-1.5 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                    <span>g</span>
+                    <span class="text-[9px] opacity-60">grams</span>
+                  </button>
+                  <button type="button" onclick="selectQuantifier('kg')" class="w-full px-3 py-1.5 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                    <span>kg</span>
+                    <span class="text-[9px] opacity-60">kilogram</span>
+                  </button>
+                  <button type="button" onclick="selectQuantifier('pcs')" class="w-full px-3 py-1.5 text-xs font-bold text-foreground hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                    <span>pcs</span>
+                    <span class="text-[9px] opacity-60">pieces</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Plus Button (Green Accent Raised Button) -->
+            <button onclick="adjustCount(1)" class="w-11 h-11 rounded-xl bg-[#004730] hover:bg-[#005a3c] text-white flex items-center justify-center font-black active:scale-90 transition-transform neo-raised-sm shrink-0">
+              <span class="material-symbols-outlined text-base font-black">add</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Carved-In Notes Field (Deep Inset - Natural Height) -->
+        <div class="flex items-center gap-2.5 p-3 rounded-2xl neo-sunken text-xs text-foreground shrink-0">
+          <span class="material-symbols-outlined text-primary text-lg shrink-0">edit_note</span>
+          <input
+            type="text"
+            placeholder="Add note (e.g. bought from Pasar Malam, best by Friday)"
+            value="Bought fresh from Pasar Malam"
+            class="bg-transparent border-0 outline-none w-full text-xs font-semibold text-foreground placeholder:text-muted"
+          />
+        </div>
+
+        <!-- Add to Pantry Button: Experimental Sleek Obsidian Black Style -->
+        <button onclick="alert('Sweet Corn (' + pCount + ' ' + currentQuantifier + ') added to Pantry!')"
+          class="w-full shrink-0 h-14 rounded-2xl text-white font-bold text-base tracking-wide flex items-center justify-center gap-2.5 cursor-pointer select-none neo-btn-black">
+          <span class="material-symbols-outlined text-2xl text-white">inventory_2</span>
+          <span>Add to Pantry</span>
+        </button>
+
+        <!-- 3. BULGING OUT GEMINI VISION BLOCK (Pure Neumorphic Convex Bulge - Moved Below Add to Pantry) -->
+        <div class="p-3.5 rounded-2xl neo-bulge flex items-center justify-between gap-3 shrink-0">
+          <div class="flex flex-col min-w-0 text-left pl-1">
+            <span class="text-xs font-black text-foreground truncate">Wrong ingredient?</span>
+            <span class="text-[10px] text-muted font-medium truncate">Re-check with one tap!</span>
+          </div>
+
+          <button onclick="alert('Gemini Vision re-analysis launched!')" class="px-3.5 py-2 rounded-xl neo-raised-button text-foreground text-[11px] font-black flex items-center gap-1.5 active:scale-95 transition-all shrink-0 hover:text-indigo-600">
+            <!-- Google Gemini 4-Pointed Star -->
+            <svg class="w-3.5 h-3.5 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24Z"/>
+            </svg>
+            <span>Gemini Vision</span>
+          </button>
+        </div>
+
+        <!-- Secondary Actions: Same style as View 1 Scan Receipt (Pill rounded-full + neo-raised-sm) -->
+        <div class="grid grid-cols-2 gap-3 pt-0.5 shrink-0">
+          <!-- Rescan: clean refresh arrow -->
+          <button onclick="alert('Rescan initiated!')" class="h-12 rounded-full neo-raised-sm flex items-center justify-center gap-2 text-foreground font-bold text-xs hover:text-slate-900 active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-lg text-amber-600">refresh</span>
+            <span>Rescan</span>
+          </button>
+
+          <!-- Scan Next: camera with plus (add_a_photo) -->
+          <button onclick="alert('Ready for next scan!')" class="h-12 rounded-full neo-raised-sm flex items-center justify-center gap-2 text-primary font-bold text-xs hover:text-[#004730] active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-lg text-primary">add_a_photo</span>
+            <span>Scan Next</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Crater Navigation: Rounded Island with Green Background -->
+    <nav class="mt-2.5 mb-1 mx-1 h-16 px-2 rounded-3xl bg-[#004730] grid grid-cols-4 items-center gap-1.5 shrink-0 z-20"
+      style="box-shadow: 6px 6px 14px rgba(163, 177, 198, 0.65), -6px -6px 14px rgba(255, 255, 255, 0.8);">
+      <!-- Scan Tab (Default Selected: Current Style) -->
+      <button onclick="switchBottomTab(this, 'scan')" class="nav-tab h-12 rounded-2xl neo-crater flex flex-col items-center justify-center font-bold transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-xl leading-none">photo_camera</span>
+        <span class="text-[9px] font-bold mt-0.5 leading-none">Scan</span>
+      </button>
+
+      <!-- Pantry Tab -->
+      <button onclick="switchBottomTab(this, 'pantry')" class="nav-tab h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-xl leading-none">kitchen</span>
+        <span class="text-[9px] font-semibold mt-0.5 leading-none">Pantry</span>
+      </button>
+
+      <!-- Cook Tab -->
+      <button onclick="switchBottomTab(this, 'cook')" class="nav-tab h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-xl leading-none">skillet</span>
+        <span class="text-[9px] font-semibold mt-0.5 leading-none">Cook</span>
+        <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+      </button>
+
+      <!-- Grocery Tab -->
+      <button onclick="switchBottomTab(this, 'grocery')" class="nav-tab h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-xl leading-none">shopping_cart</span>
+        <span class="text-[9px] font-semibold mt-0.5 leading-none">Grocery</span>
+        <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    let pCount = 1;
+    let currentQuantifier = "batang";
+
+    function adjustCount(delta) {
+      pCount = Math.max(1, pCount + delta);
+      document.getElementById("popCountDisplay").textContent = pCount;
+    }
+
+    function toggleQuantifierDropdown(e) {
+      e.stopPropagation();
+      const menu = document.getElementById("quantifierDropdown");
+      menu.classList.toggle("hidden");
+    }
+
+    function selectQuantifier(unit) {
+      currentQuantifier = unit;
+      document.getElementById("popUnitDisplay").textContent = unit;
+      document.getElementById("quantifierDropdown").classList.add("hidden");
+    }
+
+    function switchBottomTab(btn, tabId) {
+      document.querySelectorAll('.nav-tab').forEach(b => {
+        b.className = 'nav-tab h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer';
+      });
+      btn.className = 'nav-tab h-12 rounded-2xl neo-crater flex flex-col items-center justify-center font-bold relative transition-colors cursor-pointer';
+    }
+
+    document.addEventListener("click", function(e) {
+      const menu = document.getElementById("quantifierDropdown");
+      if (menu && !menu.classList.contains("hidden")) {
+        menu.classList.add("hidden");
+      }
+    });
+  </script>
+</body>
+</html>

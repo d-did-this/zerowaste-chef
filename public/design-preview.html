@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeroWaste Chef v2.1 — Pure Neumorphic Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-secondary-fixed": "#002113",
+            "surface-container-low": "#eef4fc",
+            "tertiary": "#825100",
+            "on-surface-variant": "#3d4a42",
+            "inverse-surface": "#2b3137",
+            "primary": "#006948",
+            "primary-dark": "#004730",
+            "inverse-primary": "#68dba9",
+            "on-tertiary": "#ffffff",
+            "surface-bright": "#f6f9ff",
+            "error": "#ba1a1a",
+            "primary-fixed": "#85f8c4",
+            "on-primary-container": "#f5fff7",
+            "on-surface": "#161c22",
+            "error-container": "#ffdad6",
+            "secondary": "#006c49",
+            "on-error-container": "#93000a",
+            "secondary-container": "#6cf8bb",
+            "on-primary-fixed-variant": "#005137",
+            "on-tertiary-container": "#fffbff",
+            "surface-tint": "#006c4a",
+            "surface-container-high": "#e3e9f1",
+            "on-secondary": "#ffffff",
+            "on-background": "#161c22",
+            "outline": "#6d7a72",
+            "on-secondary-fixed-variant": "#005236",
+            "surface-container": "#e8eef6",
+            "tertiary-container": "#a36700",
+            "surface-dim": "#d4dbe2",
+            "primary-fixed-dim": "#68dba9",
+            "on-tertiary-fixed-variant": "#653e00",
+            "on-secondary-container": "#00714d",
+            "background": "#eef2f6",
+            "secondary-fixed": "#6ffbbe",
+            "primary-container": "#00855d",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-fixed-dim": "#ffb95f",
+            "secondary-fixed-dim": "#4edea3",
+            "outline-variant": "#bccac0",
+            "on-primary-fixed": "#002114",
+            "on-primary": "#ffffff",
+            "surface-container-highest": "#dde3eb",
+            "surface-variant": "#dde3eb",
+            "on-tertiary-fixed": "#2a1700",
+            "on-error": "#ffffff",
+            "inverse-on-surface": "#ebf1f9",
+            "surface": "#eef2f6",
+            "tertiary-fixed": "#ffddb8"
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            "2xl": "1rem",
+            full: "9999px"
+          },
+          spacing: {
+            margin: "1rem",
+            "gutter-lg": "2rem",
+            "space-md": "1rem",
+            "space-xs": "0.25rem",
+            "margin-md": "1.5rem",
+            "space-sm": "0.5rem",
+            "margin-lg": "2.5rem",
+            gutter: "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "gutter-md": "1.5rem"
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            "body-md": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            display: ["Plus Jakarta Sans"],
+            "label-sm": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"]
+          },
+          fontSize: {
+            "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+            "headline-lg-mobile": ["26px", { lineHeight: "34px", letterSpacing: "-0.01em", fontWeight: "700" }],
+            "label-lg": ["14px", { lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600" }],
+            "headline-sm": ["18px", { lineHeight: "24px", fontWeight: "600" }],
+            "body-sm": ["12px", { lineHeight: "16px", fontWeight: "400" }],
+            "headline-md": ["22px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }],
+            "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.02em", fontWeight: "600" }],
+            display: ["40px", { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "800" }],
+            "label-sm": ["10px", { lineHeight: "14px", letterSpacing: "0.04em", fontWeight: "700" }],
+            "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+            "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.015em", fontWeight: "700" }]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #E0E5EC;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #161C22;
+    }
+
+    /* ==========================================================
+       PURE NEUMORPHIC (SOFT UI) DESIGN SYSTEM TOKENS
+       - Single continuous monochromatic surface (#E0E5EC)
+       - ZERO BORDERS: Shadows define all edges (border: none)
+       - Dual opposing RGBA shadows (top-left light, bottom-right dark)
+       ========================================================== */
+    .neo-canvas {
+      background: #E0E5EC;
+    }
+
+    /* Extruded (Standard 9px/16px) */
+    .neo-raised {
+      background: #E0E5EC;
+      box-shadow: 9px 9px 16px rgba(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.6);
+      border: none !important;
+    }
+
+    /* Extruded Hover / Bulge (Lifted 12px/20px) */
+    .neo-bulge {
+      background: #E0E5EC;
+      box-shadow: 12px 12px 20px rgba(163, 177, 198, 0.7), -12px -12px 20px rgba(255, 255, 255, 0.7);
+      border: none !important;
+      transition: all 0.3s ease-out;
+    }
+
+    /* Extruded Small (5px/10px) */
+    .neo-raised-sm {
+      background: #E0E5EC;
+      box-shadow: 5px 5px 10px rgba(163, 177, 198, 0.6), -5px -5px 10px rgba(255, 255, 255, 0.6);
+      border: none !important;
+    }
+
+    /* Interactive Extruded Button with Physics Lift on Hover & Inset Press on Active */
+    .neo-raised-button {
+      background: #E0E5EC;
+      box-shadow: 5px 5px 10px rgba(163, 177, 198, 0.6), -5px -5px 10px rgba(255, 255, 255, 0.6);
+      border: none !important;
+      transition: all 0.3s ease-out;
+    }
+    .neo-raised-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 8px 8px 14px rgba(163, 177, 198, 0.7), -8px -8px 14px rgba(255, 255, 255, 0.7);
+    }
+    .neo-raised-button:active {
+      transform: translateY(0.5px);
+      box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.65), inset -4px -4px 8px rgba(255, 255, 255, 0.6);
+    }
+
+    /* Inset (Pressed / Shallow Well 6px/10px) */
+    .neo-sunken {
+      background: #E0E5EC;
+      box-shadow: inset 6px 6px 10px rgba(163, 177, 198, 0.6), inset -6px -6px 10px rgba(255, 255, 255, 0.6);
+      border: none !important;
+    }
+
+    /* Inset Deep (Deep Drilled Well 10px/20px) */
+    .neo-sunken-tray {
+      background: #E0E5EC;
+      box-shadow: inset 10px 10px 20px rgba(163, 177, 198, 0.7), inset -10px -10px 20px rgba(255, 255, 255, 0.7);
+      border: none !important;
+    }
+
+    .neo-bar-top {
+      background: rgba(224, 229, 236, 0.94);
+      box-shadow: 0 6px 16px rgba(163, 177, 198, 0.45);
+      border: none !important;
+    }
+
+    /* PURE NEUMORPHIC CRATER (Same-Surface Inset Deep, Zero Green Fill, Zero Borders) */
+    .neo-crater {
+      background: #E0E5EC !important;
+      box-shadow: inset 10px 10px 20px rgba(163, 177, 198, 0.75), inset -10px -10px 20px rgba(255, 255, 255, 0.7) !important;
+      border: none !important;
+      color: #004730 !important;
+      transform: translateY(0.5px);
+    }
+
+    /* Pure Neumorphic Raised Primary Green Button (Soft UI, Zero Harsh Edges) */
+    .neo-btn-green {
+      background: #006948 !important;
+      background: linear-gradient(145deg, #007550, #005e40) !important;
+      box-shadow: 
+        6px 6px 14px rgba(163, 177, 198, 0.65),
+        -6px -6px 14px rgba(255, 255, 255, 0.8),
+        inset 1px 1px 1.5px rgba(255, 255, 255, 0.35) !important;
+      border: none !important;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .neo-btn-green:hover {
+      background: linear-gradient(145deg, #007c55, #006445) !important;
+      box-shadow: 
+        8px 8px 16px rgba(163, 177, 198, 0.75),
+        -8px -8px 16px rgba(255, 255, 255, 0.9),
+        inset 1px 1px 2px rgba(255, 255, 255, 0.45) !important;
+      transform: translateY(-1px);
+    }
+    .neo-btn-green:active {
+      transform: scale(0.985) translateY(0.5px) !important;
+      box-shadow: 
+        inset 4px 4px 8px rgba(0, 35, 22, 0.6),
+        inset -2px -2px 6px rgba(255, 255, 255, 0.15),
+        2px 2px 5px rgba(163, 177, 198, 0.4) !important;
+    }
+
+    /* Pure Neumorphic Raised Black / Obsidian Button (Soft UI Matte Ceramic) */
+    .neo-btn-black {
+      background: #161c22 !important;
+      background: linear-gradient(145deg, #222933, #11161d) !important;
+      box-shadow: 
+        6px 6px 14px rgba(163, 177, 198, 0.7),
+        -6px -6px 14px rgba(255, 255, 255, 0.85),
+        inset 1px 1px 1.5px rgba(255, 255, 255, 0.2) !important;
+      border: none !important;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .neo-btn-black:hover {
+      background: linear-gradient(145deg, #28313d, #141b24) !important;
+      box-shadow: 
+        8px 8px 16px rgba(163, 177, 198, 0.8),
+        -8px -8px 16px rgba(255, 255, 255, 0.95),
+        inset 1px 1px 2px rgba(255, 255, 255, 0.3) !important;
+      transform: translateY(-1px);
+    }
+    .neo-btn-black:active {
+      transform: scale(0.985) translateY(0.5px) !important;
+      box-shadow: 
+        inset 4px 4px 8px rgba(0, 0, 0, 0.85),
+        inset -2px -2px 6px rgba(255, 255, 255, 0.1),
+        2px 2px 5px rgba(163, 177, 198, 0.4) !important;
+    }
+
+    /* Shutter Button with Illuminated Emerald Ring */
+    .snap-ring-halo {
+      background: radial-gradient(circle at 35% 35%, #34d399 0%, #10b981 40%, #007752 75%, #004d34 100%);
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .snap-ring-halo:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55);
+    }
+    .snap-ring-halo:active {
+      transform: scale(0.92);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+    }
+
+    .snap-inner-core {
+      background: #E0E5EC;
+      box-shadow: 2px 2px 6px rgba(0, 30, 18, 0.3), -2px -2px 6px rgba(255, 255, 255, 0.9);
+      border: none !important;
+    }
+
+    /* Ingredient Card: Pure Neumorphic Extruded Surface with Hover Lift */
+    .neo-pantry-card {
+      background: #E0E5EC;
+      box-shadow: 9px 9px 16px rgba(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.6);
+      border: none !important;
+      transition: all 0.3s ease-out;
+    }
+    .neo-pantry-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 12px 12px 20px rgba(163, 177, 198, 0.7), -12px -12px 20px rgba(255, 255, 255, 0.7);
+    }
+
+    /* Grid View Layout Adaptations for Pantry Cards */
+    .pantry-grid-mode {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 0.625rem !important;
+    }
+    .pantry-grid-mode .neo-pantry-card {
+      padding: 0.625rem !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+    }
+    .pantry-grid-mode .card-media-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0.5rem !important;
+    }
+    .pantry-grid-mode .card-photo-box {
+      width: 100% !important;
+      height: 5.75rem !important;
+    }
+    .pantry-grid-mode .card-info-box {
+      width: 100% !important;
+    }
+    .pantry-grid-mode .card-stepper-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0.35rem !important;
+      padding-top: 0.35rem !important;
+    }
+    .pantry-grid-mode .card-stepper-row .stepper-controls {
+      justify-content: space-between !important;
+      width: 100% !important;
+    }
+
+    /* Primary Raised Action Button in Green */
+    .neo-raised-primary {
+      background: linear-gradient(145deg, #00875e, #005338);
+      box-shadow: 7px 7px 16px rgba(0, 50, 32, 0.4), -5px -5px 12px rgba(255, 255, 255, 0.6);
+      border: none !important;
+      transition: all 0.2s ease-out;
+    }
+    .neo-raised-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 9px 9px 20px rgba(0, 50, 32, 0.5), -6px -6px 14px rgba(255, 255, 255, 0.7);
+    }
+    .neo-raised-primary:active {
+      transform: translateY(0.5px);
+      box-shadow: inset 4px 4px 8px rgba(0, 30, 18, 0.8), inset -3px -3px 6px rgba(104, 219, 169, 0.35);
+    }
+
+    /* Mobile Screen Frame (Pure Neumorphic Extruded Canvas) */
+    .mobile-frame {
+      width: 390px;
+      height: 844px;
+      background: #E0E5EC;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 14px 14px 28px rgba(163, 177, 198, 0.7), -14px -14px 28px rgba(255, 255, 255, 0.7);
+      border: none !important;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* Reticle Pulse */
+    @keyframes reticlePulse {
+      0%, 100% { transform: scale(1); opacity: 0.95; }
+      50% { transform: scale(1.02); opacity: 0.6; }
+    }
+    .animate-reticle {
+      animation: reticlePulse 2.5s ease-in-out infinite;
+    }
+
+    /* Smooth Slide-up Pop-out Card */
+    @keyframes slidePopUp {
+      0% { transform: translateY(100%); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .animate-pop-up {
+      animation: slidePopUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="p-6 md:p-8 select-none">
+
+  <!-- Header -->
+  <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-300">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-full bg-[#006948] text-white text-[11px] font-black uppercase tracking-wider">
+          ZeroWaste Chef v2.1
+        </span>
+        <span class="text-xs text-slate-600 font-bold">1:1 User-Provided Reference Implementation</span>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+        Flagship Neumorphic HUD Console &bull; Carved Crater Nav Bar
+      </h1>
+      <p class="text-xs md:text-sm text-slate-600 mt-1 max-w-2xl">
+        Designed strictly after your reference image: Soft sunken console tray with <strong>Upload</strong>, <strong>Snap &amp; Identify</strong> (glowing emerald halo with aperture core), <strong>Manual</strong>, plus <strong>Scan Barcode</strong> &amp; <strong>Scan Receipt</strong> pills. The bottom nav bar active tab is carved in like a crater with zero green background fill.
+      </p>
+    </div>
+
+    <!-- Zoom Scaling -->
+    <div class="flex items-center gap-2 shrink-0">
+      <div class="flex items-center gap-1 px-3 py-1.5 rounded-2xl neo-raised text-xs font-bold text-slate-700">
+        <span>Zoom:</span>
+        <button onclick="setStudioScale(1)" id="btnScale100" class="px-2.5 py-0.5 rounded-lg bg-[#006948] text-white text-[11px]">100%</button>
+        <button onclick="setStudioScale(0.85)" id="btnScale85" class="px-2.5 py-0.5 rounded-lg neo-raised-button text-slate-700 text-[11px]">85%</button>
+        <button onclick="setStudioScale(0.72)" id="btnScale72" class="px-2.5 py-0.5 rounded-lg neo-raised-button text-slate-700 text-[11px]">72%</button>
+        <button onclick="setStudioScale(0.60)" id="btnScale60" class="px-2.5 py-0.5 rounded-lg neo-raised-button text-slate-700 text-[11px]">60%</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Side-by-Side Mobile Screens -->
+  <main class="max-w-7xl mx-auto overflow-x-auto pb-8 transition-transform duration-200" id="studioContainer">
+    <div class="inline-flex gap-8 items-start min-w-full justify-start xl:justify-center">
+
+      <!-- ====================================================================
+           VIEW 1: SCANNER HUD WITH USER'S EXACT SHUTTER CONSOLE (1:1 Reference)
+           ==================================================================== -->
+      <div class="flex flex-col items-center gap-3">
+        <div class="text-center">
+          <span class="text-xs font-black uppercase tracking-wider text-[#006948] bg-[#006948]/10 px-3 py-1 rounded-full border border-[#006948]/20">
+            View 1: Live Scanner View
+          </span>
+          <h3 class="text-sm font-bold text-slate-800 mt-1">1:1 Reference Neumorphic Console</h3>
+        </div>
+
+        <div class="mobile-frame bg-surface font-body-md text-on-surface flex flex-col justify-between">
+          <!-- Header with Stack Back Button & Context Title -->
+          <header class="w-full z-20 neo-bar-top backdrop-blur-md rounded-t-[32px]">
+            <div class="h-16 px-margin flex items-center justify-between gap-space-sm">
+              <div class="flex items-center gap-space-sm min-w-0 flex-1">
+                <button aria-label="Go Back" class="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-on-surface active:scale-95 transition-all" onclick="history.back()" type="button">
+                  <span class="material-symbols-outlined text-2xl">arrow_back</span>
+                </button>
+                <div class="flex flex-col min-w-0">
+                  <span class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight truncate">Scanner Hud</span>
+                  <span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider">ZeroWaste Kitchen</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-space-xs">
+                <a aria-label="Go to Pantry" class="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-95 transition-transform" data-path="pantry" href="#">
+                  <span class="material-symbols-outlined text-xl">home</span>
+                </a>
+              </div>
+            </div>
+          </header>
+
+          <!-- Main Content Slot (Stack has full vertical height) -->
+          <div class="flex-1 flex flex-col relative w-full px-margin overflow-y-auto no-scrollbar py-2">
+            <div class="flex flex-col w-full pb-3 space-y-3.5">
+              <!-- Top Utility Controls Bar -->
+              <div class="flex items-center justify-between gap-space-sm w-full pt-1">
+                <div class="flex items-center gap-space-sm">
+                  <button aria-label="Toggle Torch" class="h-10 w-10 rounded-full flex items-center justify-center text-on-surface-variant active:scale-95 transition-all neo-sunken text-primary" id="torch-btn">
+                    <span class="material-symbols-outlined text-lg">flash_off</span>
+                  </button>
+                  <button aria-label="Switch Camera" class="h-10 w-10 rounded-full neo-raised-sm flex items-center justify-center text-on-surface-variant active:scale-95 transition-all" id="flip-camera-btn">
+                    <span class="material-symbols-outlined text-lg">flip_camera_ios</span>
+                  </button>
+                </div>
+                <div class="flex items-center gap-1 p-1 rounded-full neo-sunken">
+                  <button class="zoom-btn w-7 h-7 rounded-full font-label-sm text-label-sm text-on-surface-variant font-medium flex items-center justify-center transition-all active:scale-95" data-zoom="1x">1x</button>
+                  <button class="zoom-btn w-7 h-7 rounded-full font-label-sm text-label-sm text-on-surface-variant font-medium flex items-center justify-center transition-all active:scale-95" data-zoom="1.5x">1.5x</button>
+                  <button class="zoom-btn w-7 h-7 rounded-full font-label-sm text-label-sm bg-primary text-on-primary font-bold shadow-sm flex items-center justify-center transition-all active:scale-95" data-zoom="2x">2x</button>
+                  <button class="zoom-btn w-7 h-7 rounded-full font-label-sm text-label-sm text-on-surface-variant font-medium flex items-center justify-center transition-all active:scale-95" data-zoom="3x">3x</button>
+                </div>
+              </div>
+
+              <!-- Viewfinder Frame Section -->
+              <div class="w-full neo-raised rounded-2xl p-2.5 relative flex flex-col">
+                <!-- Camera Viewport Container -->
+                <div class="relative w-full rounded-xl overflow-hidden bg-surface-dim shadow-inner aspect-square">
+                  <!-- Live Preview Video / Corn Image -->
+                  <img
+                    src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80"
+                    alt="Sweet Corn Live View"
+                    class="w-full h-full object-cover select-none"
+                  />
+                  <div class="absolute inset-0 bg-inverse-surface/10 pointer-events-none"></div>
+                  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl border border-primary/40">
+                      <span class="absolute -top-1 -left-1 w-6 h-6 border-t-2 border-l-2 border-primary rounded-tl-lg"></span>
+                      <span class="absolute -top-1 -right-1 w-6 h-6 border-t-2 border-r-2 border-primary rounded-tr-lg"></span>
+                      <span class="absolute -bottom-1 -left-1 w-6 h-6 border-b-2 border-l-2 border-primary rounded-bl-lg"></span>
+                      <span class="absolute -bottom-1 -right-1 w-6 h-6 border-b-2 border-r-2 border-primary rounded-br-lg"></span>
+                      <div class="absolute inset-x-3 top-1/2 -translate-y-1/2 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-80 animate-pulse"></div>
+                      <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-2 h-2 rounded-full bg-primary ring-4 ring-primary/20"></div>
+                      </div>
+                      <div class="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-inverse-surface/80 text-inverse-on-surface font-label-sm text-label-sm">
+                        Center 1 ingredient here
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Viewfinder Guidance Tip -->
+                <div class="flex items-center justify-center gap-2 pt-2 pb-1 text-center">
+                  <span class="material-symbols-outlined text-primary text-base">center_focus_strong</span>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Keep ingredients centered&nbsp; for optimal detection</span>
+                </div>
+              </div>
+
+              <!-- Bottom Shutter & Mode Action Deck (Sculpted Tray) -->
+              <div class="w-full neo-raised rounded-2xl p-space-md flex flex-col space-y-4">
+                <div class="w-full neo-sunken rounded-2xl p-3 flex items-center justify-around">
+                  <button class="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-on-surface" id="upload-mode-btn">
+                    <span class="material-symbols-outlined text-2xl text-on-surface-variant">photo_library</span>
+                    <span class="font-label-sm text-label-sm font-semibold text-on-surface-variant">Upload</span>
+                  </button>
+                  <div class="flex flex-col items-center">
+                    <div class="relative w-20 h-20 flex items-center justify-center">
+                      <!-- Circular Loading Spinner Ring (Spins in circle as loading indicator) -->
+                      <div class="absolute inset-0 rounded-full flex items-center justify-center pointer-events-none">
+                        <svg id="shutter-spinner-svg" class="w-full h-full animate-[spin_2.5s_linear_infinite]" viewBox="0 0 80 80">
+                          <!-- Faint guide track circle -->
+                          <circle cx="40" cy="40" r="34" fill="none" stroke="#004730" stroke-width="3.5" opacity="0.2" />
+                          <!-- Dynamic Spinning Loading Arc -->
+                          <circle id="shutter-spinner-arc" cx="40" cy="40" r="34" fill="none"
+                                  stroke="url(#shutterLoaderGradStudio)" stroke-width="4.5" stroke-linecap="round"
+                                  stroke-dasharray="140 75" />
+                          <defs>
+                            <linearGradient id="shutterLoaderGradStudio" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stop-color="#004730" />
+                              <stop offset="50%" stop-color="#00855D" />
+                              <stop offset="100%" stop-color="#38B2AC" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      </div>
+
+                      <!-- Center Shutter Button -->
+                      <button aria-label="Snap Photo to Identify" class="relative z-10 h-14 w-14 rounded-full bg-surface flex items-center justify-center neo-raised-sm active:scale-90 transition-all cursor-pointer" id="main-shutter-btn">
+                        <span id="shutter-camera-icon" class="material-symbols-outlined text-primary text-3xl font-bold transition-transform">camera</span>
+                      </button>
+                    </div>
+                    <span id="shutter-status-label" class="font-label-sm text-label-sm text-on-surface font-bold mt-1.5">AI Scan</span>
+                  </div>
+                  <button class="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-on-surface" id="manual-mode-btn">
+                    <span class="material-symbols-outlined text-2xl text-on-surface-variant">keyboard</span>
+                    <span class="font-label-sm text-label-sm font-semibold text-on-surface-variant">Manual</span>
+                  </button>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="flex-1 py-2.5 px-space-md rounded-full neo-sunken font-label-md text-label-md font-semibold text-outline opacity-75 flex items-center justify-center gap-1.5 cursor-not-allowed" disabled="">
+                    <span class="material-symbols-outlined text-base opacity-60">barcode_scanner</span>
+                    <span>Coming Soon</span>
+                  </button>
+                  <button class="flex-1 py-2.5 px-space-md rounded-full neo-raised-sm font-label-md text-label-md font-semibold text-on-surface-variant hover:text-on-surface flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+                    <span class="material-symbols-outlined text-base">receipt_long</span>
+                    <span>Scan Receipt</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Toast Notification Pill for Delight Moments -->
+          <div class="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-full bg-inverse-surface text-inverse-on-surface font-label-sm text-label-sm shadow-xl flex items-center gap-2 transition-all duration-300 z-50 opacity-0 pointer-events-none" id="scanner-toast">
+            <span class="material-symbols-outlined text-primary-fixed-dim text-base">check_circle</span>
+            <span id="toast-message">Torch activated</span>
+          </div>
+
+          <!-- Bottom Navigation: Rounded Island with Green Background -->
+          <nav class="mt-2.5 mb-1 mx-1 h-16 px-2 rounded-3xl bg-[#004730] grid grid-cols-4 items-center gap-1.5 shrink-0 z-20"
+            style="box-shadow: 6px 6px 14px rgba(163, 177, 198, 0.65), -6px -6px 14px rgba(255, 255, 255, 0.8);">
+            <!-- Scan Tab (Active: Carved in like a crater, current style) -->
+            <button class="h-12 rounded-2xl neo-crater flex flex-col items-center justify-center font-bold">
+              <span class="material-symbols-outlined text-xl leading-none">photo_camera</span>
+              <span class="text-[9px] font-bold mt-0.5 leading-none">Scan</span>
+            </button>
+            <!-- Pantry Tab -->
+            <button class="h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white transition-colors">
+              <span class="material-symbols-outlined text-xl leading-none">kitchen</span>
+              <span class="text-[9px] font-semibold mt-0.5 leading-none">Pantry</span>
+            </button>
+            <!-- Cook Tab (Soon) -->
+            <button class="h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors">
+              <span class="material-symbols-outlined text-xl leading-none">skillet</span>
+              <span class="text-[9px] font-semibold mt-0.5 leading-none">Cook</span>
+              <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+            </button>
+            <!-- Grocery Tab (Soon - As requested!) -->
+            <button class="h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors">
+              <span class="material-symbols-outlined text-xl leading-none">shopping_cart</span>
+              <span class="text-[9px] font-semibold mt-0.5 leading-none">Grocery</span>
+              <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+
+      <!-- ====================================================================
+           VIEW 2: ONCE SCANNED, POP-OUT CARD (What the user liked!)
+           ==================================================================== -->
+      <div class="flex flex-col items-center gap-3">
+        <div class="text-center">
+          <span class="text-xs font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300">
+            View 2: Pop-Out Detection Card
+          </span>
+          <h3 class="text-sm font-bold text-slate-800 mt-1">Dark Green Top Banner &bull; Smooth Pop-Out</h3>
+        </div>
+
+        <div class="mobile-frame">
+          <!-- Top Bar -->
+          <header class="h-16 px-4 flex items-center justify-between neo-bar-top backdrop-blur-md z-20">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-slate-900">Analysis Result</span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-[#006948]/15 text-primary font-black">v2.1</span>
+            </div>
+            <button class="w-9 h-9 rounded-full neo-raised-button flex items-center justify-center text-slate-500 hover:text-slate-800" title="Close">
+              <span class="material-symbols-outlined text-base">close</span>
+            </button>
+          </header>
+
+          <!-- Dimmed Camera Feed with Floating Pop-Out Card -->
+          <div class="relative flex-1 bg-slate-900 flex flex-col justify-end overflow-hidden">
+            <!-- Captured Food Image in background -->
+            <img
+              src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80"
+              alt="Sweet Corn"
+              class="absolute inset-0 w-full h-full object-cover filter blur-[2px] opacity-60"
+            />
+            <div class="absolute inset-0 bg-black/40"></div>
+
+            <!-- POP-OUT CARD (Smooth Slide-Up) -->
+            <div class="relative z-10 w-full bg-[#E0E5EC] rounded-t-3xl neo-raised p-4 flex flex-col gap-3.5 animate-pop-up shadow-2xl overflow-y-auto max-h-[88%] no-scrollbar">
+              <!-- Sheet Handle -->
+              <div class="w-12 h-1.5 neo-sunken rounded-full mx-auto mb-0.5 shrink-0"></div>
+
+              <!-- 1. COMPLETELY DETACHED BIG SQUARE IMAGE -->
+              <div class="w-48 h-48 aspect-square mx-auto rounded-3xl neo-raised p-2 overflow-hidden shadow-xl relative shrink-0 my-1">
+                <img
+                  src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80"
+                  alt="Sweet Corn"
+                  class="w-full h-full object-cover rounded-2xl"
+                />
+                <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md flex items-center gap-1.5 text-[10px] font-bold text-white shadow-md">
+                  <span class="material-symbols-outlined text-xs text-emerald-400">photo_camera</span>
+                  <span>Captured</span>
+                </div>
+              </div>
+
+              <!-- 2. REDESIGNED PRODUCT INFO CARD (Pure Borderless Neumorphism) -->
+              <div class="p-4 rounded-3xl neo-raised flex flex-col items-center text-center gap-2 shrink-0">
+                <!-- Badges Row -->
+                <div class="flex items-center justify-center gap-2.5">
+                  <span class="px-3 py-1 rounded-full neo-sunken text-[#006948] text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                    <span>🥬</span>
+                    <span>Produce</span>
+                  </span>
+                  <span class="px-3 py-1 rounded-full neo-sunken text-slate-800 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>98% Match</span>
+                  </span>
+                </div>
+
+                <!-- Centered Product Name -->
+                <h2 class="text-xl font-black text-[#003824] tracking-tight leading-snug">
+                  Sweet Corn (Jagung Manis)
+                </h2>
+
+                <!-- Sub-badge: Detected Engine -->
+                <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-semibold">
+                  <span class="material-symbols-outlined text-xs text-primary">memory</span>
+                  <span>Detected by MobileNet Core</span>
+                </div>
+              </div>
+
+              <!-- Portion Count Stepper (1:1 Reference + Same Font Size + Quantifier Dropdown) -->
+              <div class="flex flex-col gap-1.5 shrink-0">
+                <div class="flex items-center justify-center text-center">
+                  <span class="text-xs font-bold text-slate-800">Portion Count</span>
+                </div>
+
+                <!-- Sunken Track holding [-] [ Number + Unit ] [+] -->
+                <div class="w-full h-14 rounded-2xl neo-sunken p-1.5 flex items-center justify-between relative">
+                  <!-- Left Minus Button (Red color text) -->
+                  <button onclick="adjustCount(-1)" class="w-11 h-11 rounded-xl neo-raised-button flex items-center justify-center text-rose-600 font-black active:scale-90 transition-transform shrink-0">
+                    <span class="material-symbols-outlined text-base font-black text-rose-600">remove</span>
+                  </button>
+
+                  <!-- Center Count (Strictly Centered, Chevron Excluded From Centering) -->
+                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+                    <div class="relative flex items-center justify-center">
+                      <button type="button" onclick="toggleQuantifierDropdown(event)" class="relative flex items-center justify-center px-3 py-1 rounded-xl hover:bg-black/5 active:scale-95 transition-all cursor-pointer group" title="Click to choose quantifier">
+                        <!-- The text "1 batang" is strictly centered -->
+                        <div class="flex items-center gap-1.5">
+                          <span id="popCountDisplay" class="text-lg font-black text-[#004730] tracking-tight">1</span>
+                          <span id="popUnitDisplay" class="text-lg font-black text-[#004730] tracking-tight">batang</span>
+                        </div>
+                        <!-- Dropdown Chevron positioned absolutely to the right so it doesn't offset the centered text -->
+                        <span class="material-symbols-outlined text-xs text-[#004730]/60 group-hover:text-[#004730] transition-transform absolute left-full ml-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+                      </button>
+
+                      <!-- Quantifier Dropdown Menu -->
+                      <div id="quantifierDropdown" class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-36 py-1 bg-[#E0E5EC] neo-raised rounded-2xl text-left">
+                        <div class="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">Select Unit</div>
+                        <button type="button" onclick="selectQuantifier('batang')" class="w-full px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                          <span>batang</span>
+                          <span class="text-[9px] opacity-60">stalks</span>
+                        </button>
+                        <button type="button" onclick="selectQuantifier('biji')" class="w-full px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                          <span>biji</span>
+                          <span class="text-[9px] opacity-60">units</span>
+                        </button>
+                        <button type="button" onclick="selectQuantifier('buah')" class="w-full px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                          <span>buah</span>
+                          <span class="text-[9px] opacity-60">large</span>
+                        </button>
+                        <button type="button" onclick="selectQuantifier('ikat')" class="w-full px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                          <span>ikat</span>
+                          <span class="text-[9px] opacity-60">bunch</span>
+                        </button>
+                        <button type="button" onclick="selectQuantifier('g')" class="w-full px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                          <span>g</span>
+                          <span class="text-[9px] opacity-60">grams</span>
+                        </button>
+                        <button type="button" onclick="selectQuantifier('kg')" class="w-full px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                          <span>kg</span>
+                          <span class="text-[9px] opacity-60">kilogram</span>
+                        </button>
+                        <button type="button" onclick="selectQuantifier('pcs')" class="w-full px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white flex items-center justify-between transition-colors">
+                          <span>pcs</span>
+                          <span class="text-[9px] opacity-60">pieces</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Plus Button -->
+                  <button onclick="adjustCount(1)" class="w-11 h-11 rounded-xl bg-[#004730] hover:bg-[#005a3c] text-white flex items-center justify-center font-black active:scale-90 transition-transform shadow-md shrink-0">
+                    <span class="material-symbols-outlined text-base font-black">add</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Carved-In Notes Field (Deep Inset - Natural Height) -->
+              <div class="flex items-center gap-2.5 p-3 rounded-2xl neo-sunken text-xs text-slate-700 shrink-0">
+                <span class="material-symbols-outlined text-primary text-lg shrink-0">edit_note</span>
+                <input
+                  type="text"
+                  placeholder="Add note (e.g. bought from Pasar Malam, best by Friday)"
+                  value="Bought fresh from Pasar Malam"
+                  class="bg-transparent border-0 outline-none w-full text-xs font-semibold text-slate-800 placeholder:text-slate-400"
+                />
+              </div>
+
+              <!-- Add to Pantry Button: Experimental Sleek Obsidian Black Style -->
+              <button onclick="alert('Sweet Corn (' + pCount + ' ' + currentQuantifier + ') added to Pantry!')"
+                class="w-full shrink-0 h-14 rounded-2xl text-white font-bold text-base tracking-wide flex items-center justify-center gap-2.5 cursor-pointer select-none neo-btn-black">
+                <span class="material-symbols-outlined text-2xl text-white">inventory_2</span>
+                <span>Add to Pantry</span>
+              </button>
+
+              <!-- 3. BULGING OUT GEMINI VISION BLOCK (Pure Neumorphic Convex Bulge - Moved Below Add to Pantry) -->
+              <div class="p-3.5 rounded-2xl neo-bulge flex items-center justify-between gap-3 shrink-0">
+                <div class="flex flex-col min-w-0 text-left pl-1">
+                  <span class="text-xs font-black text-slate-800 truncate">Wrong ingredient?</span>
+                  <span class="text-[10px] text-slate-500 font-medium truncate">Re-check with one tap!</span>
+                </div>
+
+                <button onclick="alert('Gemini Vision re-analysis launched!')" class="px-3.5 py-2 rounded-xl neo-raised-button text-slate-800 text-[11px] font-black flex items-center gap-1.5 active:scale-95 transition-all shrink-0 hover:text-indigo-600">
+                  <!-- Google Gemini 4-Pointed Star -->
+                  <svg class="w-3.5 h-3.5 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24Z"/>
+                  </svg>
+                  <span>Gemini Vision</span>
+                </button>
+              </div>
+
+              <!-- Secondary Actions: Same style as View 1 Scan Receipt (Pill rounded-full + neo-raised-sm) -->
+              <div class="grid grid-cols-2 gap-3 pt-0.5 shrink-0">
+                <!-- Rescan: clean refresh arrow -->
+                <button onclick="alert('Rescan initiated!')" class="h-12 rounded-full neo-raised-sm flex items-center justify-center gap-2 text-slate-700 font-bold text-xs hover:text-slate-900 active:scale-95 transition-all">
+                  <span class="material-symbols-outlined text-lg text-amber-600">refresh</span>
+                  <span>Rescan</span>
+                </button>
+
+                <!-- Scan Next: camera with plus (add_a_photo) -->
+                <button onclick="alert('Ready for next scan!')" class="h-12 rounded-full neo-raised-sm flex items-center justify-center gap-2 text-[#006948] font-bold text-xs hover:text-[#004730] active:scale-95 transition-all">
+                  <span class="material-symbols-outlined text-lg text-[#006948]">add_a_photo</span>
+                  <span>Scan Next</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Crater Navigation: Rounded Island with Green Background -->
+          <nav class="mt-2.5 mb-1 mx-1 h-16 px-2 rounded-3xl bg-[#004730] grid grid-cols-4 items-center gap-1.5 shrink-0 z-20"
+            style="box-shadow: 6px 6px 14px rgba(163, 177, 198, 0.65), -6px -6px 14px rgba(255, 255, 255, 0.8);">
+            <!-- Scan Tab (Default Selected: Current Style) -->
+            <button onclick="switchBottomTab2(this, 'scan')" class="nav-tab-v2 h-12 rounded-2xl neo-crater flex flex-col items-center justify-center font-bold transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-xl leading-none">photo_camera</span>
+              <span class="text-[9px] font-bold mt-0.5 leading-none">Scan</span>
+            </button>
+
+            <!-- Pantry Tab -->
+            <button onclick="switchBottomTab2(this, 'pantry')" class="nav-tab-v2 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-xl leading-none">kitchen</span>
+              <span class="text-[9px] font-semibold mt-0.5 leading-none">Pantry</span>
+            </button>
+
+            <!-- Cook Tab -->
+            <button onclick="switchBottomTab2(this, 'cook')" class="nav-tab-v2 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-xl leading-none">skillet</span>
+              <span class="text-[9px] font-semibold mt-0.5 leading-none">Cook</span>
+              <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+            </button>
+
+            <!-- Grocery Tab -->
+            <button onclick="switchBottomTab2(this, 'grocery')" class="nav-tab-v2 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-xl leading-none">shopping_cart</span>
+              <span class="text-[9px] font-semibold mt-0.5 leading-none">Grocery</span>
+              <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+
+      <!-- ====================================================================
+           VIEW 4: DIGITAL PANTRY (Expanded Layout: Full-Width Stats + Dual Actions)
+           ==================================================================== -->
+      <div class="flex flex-col items-center gap-3">
+        <div class="text-center">
+          <span class="text-xs font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300">
+            View 4: Digital Pantry (Final)
+          </span>
+          <h3 class="text-sm font-bold text-slate-800 mt-1">Full-Width Stored Items &bull; Dual Action Row &bull; Final Screen</h3>
+        </div>
+
+        <div class="mobile-frame">
+          <!-- Top Bar -->
+          <header class="h-16 px-4 flex items-center justify-between neo-bar-top backdrop-blur-md z-20">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-primary shrink-0">
+                <span class="material-symbols-outlined text-xl">kitchen</span>
+              </div>
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-1">
+                  <span class="text-sm font-bold text-slate-900 tracking-tight">ZeroWaste Chef</span>
+                  <span class="text-[10px] text-slate-500 font-normal">&bull; Pantry (View 4)</span>
+                </div>
+                <span class="text-[9px] text-primary uppercase font-bold tracking-wider">Smart Stock AI</span>
+              </div>
+            </div>
+
+            <button class="w-10 h-10 rounded-full neo-raised-button flex items-center justify-center text-slate-600 hover:text-primary transition-all" title="Search">
+              <span class="material-symbols-outlined text-base">search</span>
+            </button>
+          </header>
+
+          <!-- Pantry Content List -->
+          <div class="flex-1 p-4 flex flex-col gap-3.5 overflow-y-auto relative">
+            
+            <!-- 1. Digital Pantry Card (View 4: Full-Width 14 Stored Items + Moved Down Dual Action Buttons) -->
+            <section class="w-full neo-raised rounded-2xl p-3.5 flex flex-col gap-2.5 shrink-0">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full neo-sunken flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-base">kitchen</span>
+                  </div>
+                  <span class="text-xs font-bold text-foreground">Digital Pantry</span>
+                </div>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full neo-sunken text-primary text-[10px] font-bold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                  Updated 2m ago
+                </span>
+              </div>
+
+              <!-- Full-Width Sunken Stored Items Stat: STORED ITEMS on left, 14 on right (No "All Fresh") -->
+              <div class="w-full neo-sunken rounded-xl py-2.5 px-4 flex items-center justify-between">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-500">STORED ITEMS</span>
+                <span class="text-base font-extrabold text-slate-900 tracking-tight" id="pantryTotalItemsCountStudioV4">14</span>
+              </div>
+
+              <!-- Action Buttons Row: Dark Green with White Icon & Text + Tactile Shadow -->
+              <div class="grid grid-cols-2 gap-2.5">
+                <!-- Left: Generate Meals (Dark Green with White Icon/Text + Tactile Shadow) -->
+                <button onclick="triggerGenerateMealsStudio()" class="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
+                  style="box-shadow: 4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9);"
+                  title="Generate Meals">
+                  <span class="material-symbols-outlined text-base font-bold text-white group-hover:rotate-12 transition-transform">auto_awesome</span>
+                  <span class="text-xs font-black tracking-tight text-white">Generate Meals</span>
+                </button>
+
+                <!-- Right: Add Item (Dark Green with White Icon/Text + Tactile Shadow) -->
+                <button onclick="triggerAddItemStudio()" class="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
+                  style="box-shadow: 4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9);"
+                  title="Add Item">
+                  <span class="material-symbols-outlined text-base font-bold text-white group-hover:scale-110 transition-transform">photo_camera</span>
+                  <span class="text-xs font-black tracking-tight text-white">Add Item</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- 2. Controls Bar: Filter Dropdown & Sort / Grid Toggle -->
+            <div class="flex items-center justify-between gap-2 pt-1 pb-1 shrink-0 relative z-30">
+              
+              <!-- Filter Dropdown Trigger -->
+              <div class="relative">
+                <button id="pantryFilterBtnStudioV4" onclick="toggleFilterDropdownStudioV4(event)" 
+                  class="h-8 px-3 rounded-xl neo-raised-sm flex items-center gap-1.5 text-slate-800 hover:text-[#004730] active:scale-95 transition-all cursor-pointer">
+                  <span class="material-symbols-outlined text-sm text-[#004730]" id="filterSelectedIconStudioV4">apps</span>
+                  <span id="filterSelectedLabelStudioV4" class="text-xs font-bold text-slate-800">All (14)</span>
+                  <span class="material-symbols-outlined text-sm text-slate-500 transition-transform duration-200" id="filterChevronStudioV4">expand_more</span>
+                </button>
+
+                <!-- Filter Dropdown Menu -->
+                <div id="pantryFilterMenuStudioV4" class="hidden absolute left-0 top-10 w-48 py-1.5 rounded-2xl neo-raised bg-[#E0E5EC] shadow-2xl flex flex-col gap-0.5 z-50 border-0">
+                  <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Category Filter</div>
+                  
+                  <button onclick="selectFilterOptionStudioV4('all', 'All (14)', 'apps')" data-cat="all" class="filter-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-bold text-[#004730] bg-white/40 hover:bg-white/70 rounded-xl mx-1 transition-all cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-sm text-[#004730]">apps</span>
+                      <span>All Items</span>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-slate-600">14</span>
+                  </button>
+
+                  <button onclick="selectFilterOptionStudioV4('produce', 'Produce (6)', 'eco')" data-cat="produce" class="filter-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-sm text-emerald-700">eco</span>
+                      <span>Produce</span>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-slate-600">6</span>
+                  </button>
+
+                  <button onclick="selectFilterOptionStudioV4('protein', 'Proteins (3)', 'set_meal')" data-cat="protein" class="filter-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-sm text-orange-600">set_meal</span>
+                      <span>Proteins</span>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-slate-600">3</span>
+                  </button>
+
+                  <button onclick="selectFilterOptionStudioV4('seasoning', 'Seasoning (3)', 'soup_kitchen')" data-cat="seasoning" class="filter-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-sm text-teal-700">soup_kitchen</span>
+                      <span>Seasoning</span>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-slate-600">3</span>
+                  </button>
+
+                  <button onclick="selectFilterOptionStudioV4('dairy', 'Dairy (2)', 'egg')" data-cat="dairy" class="filter-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-sm text-indigo-600">egg</span>
+                      <span>Dairy</span>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full neo-sunken font-bold text-slate-600">2</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right: Sort & Grid View Toggle -->
+              <div class="flex items-center gap-2">
+                <div class="relative">
+                  <button id="pantrySortBtnStudioV4" onclick="toggleSortDropdownStudioV4(event)" 
+                    class="w-8 h-8 rounded-xl neo-raised-sm flex items-center justify-center text-slate-800 hover:text-[#004730] active:scale-95 transition-all cursor-pointer" 
+                    title="Sort Pantry">
+                    <span class="material-symbols-outlined text-lg text-[#004730]">sort</span>
+                  </button>
+
+                  <div id="pantrySortMenuStudioV4" class="hidden absolute right-0 top-10 w-44 py-1.5 rounded-2xl neo-raised bg-[#E0E5EC] shadow-2xl flex flex-col gap-0.5 z-50 border-0">
+                    <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Sort By</div>
+                    
+                    <button onclick="selectSortOptionStudioV4('name', 'Name (A → Z)')" data-sort="name" class="sort-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-bold text-[#004730] bg-white/40 hover:bg-white/70 rounded-xl mx-1 transition-all cursor-pointer">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">sort_by_alpha</span>
+                        <span>Name (A &rarr; Z)</span>
+                      </div>
+                      <span class="material-symbols-outlined text-sm text-[#004730] sort-check-studiov4">check</span>
+                    </button>
+
+                    <button onclick="selectSortOptionStudioV4('recent', 'Recently Added')" data-sort="recent" class="sort-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">schedule</span>
+                        <span>Recently Added</span>
+                      </div>
+                      <span class="material-symbols-outlined text-sm text-[#004730] sort-check-studiov4 hidden">check</span>
+                    </button>
+
+                    <button onclick="selectSortOptionStudioV4('qty', 'Quantity / Portion')" data-sort="qty" class="sort-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">inventory_2</span>
+                        <span>Quantity</span>
+                      </div>
+                      <span class="material-symbols-outlined text-sm text-[#004730] sort-check-studiov4 hidden">check</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex items-center p-0.5 rounded-xl neo-sunken">
+                  <button id="btnGridViewStudioV4" onclick="setPantryViewStudioV4('grid')" class="w-8 h-7 rounded-lg flex items-center justify-center neo-raised-sm text-[#004730] transition-all cursor-pointer" title="Grid View">
+                    <span class="material-symbols-outlined text-base font-bold">grid_view</span>
+                  </button>
+                  <button id="btnListViewStudioV4" onclick="setPantryViewStudioV4('list')" class="w-8 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all cursor-pointer" title="List View">
+                    <span class="material-symbols-outlined text-base font-bold">view_list</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Pantry Item Cards (Grid View) -->
+            <div class="pantry-grid-mode gap-2.5 pb-20" id="pantryCardListStudioV4">
+              <!-- Card 1: Sweet Corn -->
+              <article data-name="Sweet Corn" data-category="produce" data-qty="2" data-recent="5" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+                <div class="card-media-row flex items-center gap-3">
+                  <div class="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=150&q=80" alt="Sweet Corn" class="w-full h-full object-cover rounded-lg" />
+                    <div class="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px]">🌽</div>
+                  </div>
+                  <div class="card-info-box flex flex-col min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <h4 class="text-xs font-extrabold text-slate-900 truncate">Sweet Corn</h4>
+                      <button onclick="confirmDeleteCardStudioV4(this)" class="w-7 h-7 rounded-full neo-raised-button flex items-center justify-center text-slate-400 hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                        <span class="material-symbols-outlined text-sm">delete_outline</span>
+                      </button>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-medium">Added just now &bull; Pasar malam</span>
+                  </div>
+                </div>
+                <div class="card-stepper-row flex items-center justify-between pt-1">
+                  <button type="button" onclick="openCardQuantifierStudioV4(this, event)" class="card-unit-trigger-studiov4 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+                    <span class="portion-unit text-xs font-extrabold text-[#004730]">batang</span>
+                    <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+                  </button>
+                  <div class="stepper-controls flex items-center gap-2 w-full">
+                    <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-button flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">remove</span>
+                    </button>
+                    <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                      <span class="portion-val text-xs font-extrabold text-slate-900">2</span>
+                    </div>
+                    <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">add</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 2: Baby Spinach -->
+              <article data-name="Baby Spinach" data-category="produce" data-qty="1" data-recent="4" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+                <div class="card-media-row flex items-center gap-3">
+                  <div class="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=150&q=80" alt="Baby Spinach" class="w-full h-full object-cover rounded-lg" />
+                    <div class="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px]">🥬</div>
+                  </div>
+                  <div class="card-info-box flex items-center justify-between min-w-0 flex-1">
+                    <div class="flex flex-col min-w-0">
+                      <h4 class="text-xs font-extrabold text-slate-900 truncate">Baby Spinach</h4>
+                      <span class="text-[10px] text-slate-500 font-medium">Added today &bull; Farm Fresh</span>
+                    </div>
+                    <button onclick="confirmDeleteCardStudioV4(this)" class="w-7 h-7 rounded-full neo-raised-button flex items-center justify-center text-slate-400 hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                      <span class="material-symbols-outlined text-sm">delete_outline</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="card-stepper-row flex items-center justify-between pt-1">
+                  <button type="button" onclick="openCardQuantifierStudioV4(this, event)" class="card-unit-trigger-studiov4 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+                    <span class="portion-unit text-xs font-extrabold text-[#004730]">ikat</span>
+                    <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+                  </button>
+                  <div class="stepper-controls flex items-center gap-2 w-full">
+                    <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-button flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">remove</span>
+                    </button>
+                    <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                      <span class="portion-val text-xs font-extrabold text-slate-900">1</span>
+                    </div>
+                    <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">add</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 3: Lemon -->
+              <article data-name="Lemon" data-category="produce" data-qty="3" data-recent="3" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+                <div class="card-media-row flex items-center gap-3">
+                  <div class="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=150&q=80" alt="Lemon" class="w-full h-full object-cover rounded-lg" />
+                    <div class="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px]">🍋</div>
+                  </div>
+                  <div class="card-info-box flex flex-col min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <h4 class="text-xs font-extrabold text-slate-900 truncate">Lemon</h4>
+                      <button onclick="confirmDeleteCardStudioV4(this)" class="w-7 h-7 rounded-full neo-raised-button flex items-center justify-center text-slate-400 hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                        <span class="material-symbols-outlined text-sm">delete_outline</span>
+                      </button>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-medium">Added 1d ago &bull; Lotus</span>
+                  </div>
+                </div>
+                <div class="card-stepper-row flex items-center justify-between pt-1">
+                  <button type="button" onclick="openCardQuantifierStudioV4(this, event)" class="card-unit-trigger-studiov4 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+                    <span class="portion-unit text-xs font-extrabold text-[#004730]">biji</span>
+                    <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+                  </button>
+                  <div class="stepper-controls flex items-center gap-2 w-full">
+                    <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-button flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">remove</span>
+                    </button>
+                    <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                      <span class="portion-val text-xs font-extrabold text-slate-900">3</span>
+                    </div>
+                    <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">add</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 4: Chicken Breast -->
+              <article data-name="Chicken Breast" data-category="protein" data-qty="500" data-recent="2" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+                <div class="card-media-row flex items-center gap-3">
+                  <div class="card-photo-box w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center text-2xl shrink-0 neo-sunken">🍗</div>
+                  <div class="card-info-box flex flex-col min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <h4 class="text-xs font-extrabold text-slate-900 truncate">Chicken Breast</h4>
+                      <button onclick="confirmDeleteCardStudioV4(this)" class="w-7 h-7 rounded-full neo-raised-button flex items-center justify-center text-slate-400 hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                        <span class="material-symbols-outlined text-sm">delete_outline</span>
+                      </button>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-medium">Added 2d ago &bull; Fresh Market</span>
+                  </div>
+                </div>
+                <div class="card-stepper-row flex items-center justify-between pt-1">
+                  <button type="button" onclick="openCardQuantifierStudioV4(this, event)" class="card-unit-trigger-studiov4 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+                    <span class="portion-unit text-xs font-extrabold text-[#004730]">g</span>
+                    <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+                  </button>
+                  <div class="stepper-controls flex items-center gap-2 w-full">
+                    <button onclick="changePortion(this, -50)" class="w-7 h-7 shrink-0 rounded-full neo-raised-button flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">remove</span>
+                    </button>
+                    <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                      <span class="portion-val text-xs font-extrabold text-slate-900">500</span>
+                    </div>
+                    <button onclick="changePortion(this, 50)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">add</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 5: Sweet Soy Sauce -->
+              <article data-name="Sweet Soy Sauce" data-category="seasoning" data-qty="1" data-recent="1" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+                <div class="card-media-row flex items-center gap-3">
+                  <div class="card-photo-box w-14 h-14 rounded-xl bg-teal-100/70 flex items-center justify-center text-2xl shrink-0 neo-sunken">🍶</div>
+                  <div class="card-info-box flex flex-col min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <h4 class="text-xs font-extrabold text-slate-900 truncate">Sweet Soy Sauce</h4>
+                      <button onclick="confirmDeleteCardStudioV4(this)" class="w-7 h-7 rounded-full neo-raised-button flex items-center justify-center text-slate-400 hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                        <span class="material-symbols-outlined text-sm">delete_outline</span>
+                      </button>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-medium">Added 3d ago &bull; Kicap Manis</span>
+                  </div>
+                </div>
+                <div class="card-stepper-row flex items-center justify-between pt-1">
+                  <button type="button" onclick="openCardQuantifierStudioV4(this, event)" class="card-unit-trigger-studiov4 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+                    <span class="portion-unit text-xs font-extrabold text-[#004730]">botol</span>
+                    <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+                  </button>
+                  <div class="stepper-controls flex items-center gap-2 w-full">
+                    <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-button flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">remove</span>
+                    </button>
+                    <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                      <span class="portion-val text-xs font-extrabold text-slate-900">1</span>
+                    </div>
+                    <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">add</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 6: Greek Yogurt -->
+              <article data-name="Greek Yogurt" data-category="dairy" data-qty="2" data-recent="6" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+                <div class="card-media-row flex items-center gap-3">
+                  <div class="card-photo-box w-14 h-14 rounded-xl bg-indigo-50 flex items-center justify-center text-2xl shrink-0 neo-sunken">🥣</div>
+                  <div class="card-info-box flex flex-col min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <h4 class="text-xs font-extrabold text-slate-900 truncate">Greek Yogurt</h4>
+                      <button onclick="confirmDeleteCardStudioV4(this)" class="w-7 h-7 rounded-full neo-raised-button flex items-center justify-center text-slate-400 hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                        <span class="material-symbols-outlined text-sm">delete_outline</span>
+                      </button>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-medium">Added yesterday &bull; Chilled</span>
+                  </div>
+                </div>
+                <div class="card-stepper-row flex items-center justify-between pt-1">
+                  <button type="button" onclick="openCardQuantifierStudioV4(this, event)" class="card-unit-trigger-studiov4 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+                    <span class="portion-unit text-xs font-extrabold text-[#004730]">cup</span>
+                    <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+                  </button>
+                  <div class="stepper-controls flex items-center gap-2 w-full">
+                    <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-button flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">remove</span>
+                    </button>
+                    <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                      <span class="portion-val text-xs font-extrabold text-slate-900">2</span>
+                    </div>
+                    <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">add</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 7: Fresh Whole Milk -->
+              <article data-name="Fresh Whole Milk" data-category="dairy" data-qty="1" data-recent="0" class="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2">
+                <div class="card-media-row flex items-center gap-3">
+                  <div class="card-photo-box w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-2xl shrink-0 neo-sunken">🥛</div>
+                  <div class="card-info-box flex flex-col min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <h4 class="text-xs font-extrabold text-slate-900 truncate">Fresh Whole Milk</h4>
+                      <button onclick="confirmDeleteCardStudioV4(this)" class="w-7 h-7 rounded-full neo-raised-button flex items-center justify-center text-slate-400 hover:text-rose-600 active:scale-90 cursor-pointer" title="Delete">
+                        <span class="material-symbols-outlined text-sm">delete_outline</span>
+                      </button>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-medium">Added today &bull; Farm Fresh</span>
+                  </div>
+                </div>
+                <div class="card-stepper-row flex items-center justify-between pt-1">
+                  <button type="button" onclick="openCardQuantifierStudioV4(this, event)" class="card-unit-trigger-studiov4 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer" title="Click to choose quantifier">
+                    <span class="portion-unit text-xs font-extrabold text-[#004730]">kotak</span>
+                    <span class="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+                  </button>
+                  <div class="stepper-controls flex items-center gap-2 w-full">
+                    <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-button flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">remove</span>
+                    </button>
+                    <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                      <span class="portion-val text-xs font-extrabold text-slate-900">1</span>
+                    </div>
+                    <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
+                      <span class="material-symbols-outlined text-xs font-bold">add</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+          </div>
+
+
+          <!-- Bottom Navigation Bar -->
+          <nav class="mt-2.5 mb-1 mx-1 h-16 px-2 rounded-3xl bg-[#004730] grid grid-cols-4 items-center gap-1.5 shrink-0 z-20"
+            style="box-shadow: 6px 6px 14px rgba(163, 177, 198, 0.65), -6px -6px 14px rgba(255, 255, 255, 0.8);">
+            <button onclick="switchBottomTab3(this, 'scan')" class="nav-tab-v3 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-xl leading-none">photo_camera</span>
+              <span class="text-[9px] font-semibold mt-0.5 leading-none">Scan</span>
+            </button>
+            <button onclick="switchBottomTab3(this, 'pantry')" class="nav-tab-v3 h-12 rounded-2xl neo-crater flex flex-col items-center justify-center font-bold transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-xl leading-none">kitchen</span>
+              <span class="text-[9px] font-bold mt-0.5 leading-none">Pantry</span>
+            </button>
+            <button onclick="switchBottomTab3(this, 'cook')" class="nav-tab-v3 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-xl leading-none">skillet</span>
+              <span class="text-[9px] font-semibold mt-0.5 leading-none">Cook</span>
+              <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+            </button>
+            <button onclick="switchBottomTab3(this, 'grocery')" class="nav-tab-v3 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-xl leading-none">shopping_cart</span>
+              <span class="text-[9px] font-semibold mt-0.5 leading-none">Grocery</span>
+              <span class="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5">Soon</span>
+            </button>
+          </nav>
+
+          <!-- Toast Notification Pill for View 4 -->
+          <div class="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-full bg-slate-800 text-white text-xs font-bold shadow-xl flex items-center gap-2 transition-all duration-300 z-50 opacity-0 pointer-events-none" id="scanner-toast-v4">
+            <span class="material-symbols-outlined text-emerald-400 text-base">check_circle</span>
+            <span id="toast-message-v4">Ready</span>
+          </div>
+
+          <!-- Neumorphic Delete Confirmation Modal (View 4 Studio) -->
+          <div id="deleteConfirmModalStudioV4" class="hidden absolute inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm transition-opacity duration-200">
+            <div class="w-full max-w-[300px] rounded-3xl neo-raised bg-[#E0E5EC] p-5 flex flex-col items-center text-center gap-3.5 shadow-2xl">
+              <div class="w-12 h-12 rounded-2xl neo-sunken flex items-center justify-center text-rose-600">
+                <span class="material-symbols-outlined text-2xl font-bold">delete_forever</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <h3 class="text-sm font-extrabold text-slate-900">Remove Ingredient?</h3>
+                <p class="text-xs text-slate-600 font-medium">Are you sure you want to remove <span class="font-extrabold text-[#004730]" id="deleteConfirmItemNameStudioV4">this item</span> from your Digital Pantry?</p>
+              </div>
+              <div class="flex items-center gap-2.5 w-full pt-1">
+                <button type="button" onclick="cancelDeleteCardStudioV4()" class="flex-1 py-2.5 rounded-xl neo-raised-sm text-xs font-bold text-slate-800 hover:text-slate-950 active:scale-95 transition-all cursor-pointer">
+                  Cancel
+                </button>
+                <button type="button" onclick="executeDeleteCardStudioV4()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer">
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shared Floating Quantifier Dropdown (View 4 Studio) -->
+          <div id="pantryQuantifierDropdownStudioV4" class="hidden absolute z-50 w-36 py-1.5 bg-[#E0E5EC] neo-raised rounded-2xl text-left shadow-2xl transition-all">
+            <div class="px-3 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-muted">Select Unit</div>
+            <div class="max-h-44 overflow-y-auto no-scrollbar flex flex-col gap-0.5 px-1">
+              <button type="button" onclick="selectCardQuantifierStudioV4('batang')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>batang</span>
+                <span class="text-[9px] opacity-60">stalks</span>
+              </button>
+              <button type="button" onclick="selectCardQuantifierStudioV4('biji')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>biji</span>
+                <span class="text-[9px] opacity-60">units</span>
+              </button>
+              <button type="button" onclick="selectCardQuantifierStudioV4('buah')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>buah</span>
+                <span class="text-[9px] opacity-60">pieces</span>
+              </button>
+              <button type="button" onclick="selectCardQuantifierStudioV4('ikat')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>ikat</span>
+                <span class="text-[9px] opacity-60">bunch</span>
+              </button>
+              <button type="button" onclick="selectCardQuantifierStudioV4('g')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>g</span>
+                <span class="text-[9px] opacity-60">grams</span>
+              </button>
+              <button type="button" onclick="selectCardQuantifierStudioV4('kg')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>kg</span>
+                <span class="text-[9px] opacity-60">kilos</span>
+              </button>
+              <button type="button" onclick="selectCardQuantifierStudioV4('botol')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>botol</span>
+                <span class="text-[9px] opacity-60">bottles</span>
+              </button>
+              <button type="button" onclick="selectCardQuantifierStudioV4('cup')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>cup</span>
+                <span class="text-[9px] opacity-60">cups</span>
+              </button>
+              <button type="button" onclick="selectCardQuantifierStudioV4('kotak')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>kotak</span>
+                <span class="text-[9px] opacity-60">boxes</span>
+              </button>
+              <button type="button" onclick="selectCardQuantifierStudioV4('paket')" class="unit-opt w-full px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-[#004730] hover:text-white rounded-lg flex items-center justify-between transition-colors cursor-pointer">
+                <span>paket</span>
+                <span class="text-[9px] opacity-60">packs</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Interactive Controls Script -->
+  <script>
+    function setStudioScale(scale) {
+      const container = document.getElementById('studioContainer');
+      const b100 = document.getElementById('btnScale100');
+      const b85 = document.getElementById('btnScale85');
+      const b72 = document.getElementById('btnScale72');
+      const b60 = document.getElementById('btnScale60');
+
+      [b100, b85, b72, b60].filter(Boolean).forEach(b => {
+        b.className = 'px-2.5 py-0.5 rounded-lg neo-raised-button text-slate-700 text-[11px]';
+      });
+
+      if (scale === 1) {
+        container.style.transform = 'none';
+        b100.className = 'px-2.5 py-0.5 rounded-lg bg-[#006948] text-white text-[11px]';
+      } else {
+        container.style.transform = `scale(${scale})`;
+        container.style.transformOrigin = 'top center';
+        if (scale === 0.85 && b85) b85.className = 'px-2.5 py-0.5 rounded-lg bg-[#006948] text-white text-[11px]';
+        if (scale === 0.72 && b72) b72.className = 'px-2.5 py-0.5 rounded-lg bg-[#006948] text-white text-[11px]';
+        if (scale === 0.60 && b60) b60.className = 'px-2.5 py-0.5 rounded-lg bg-[#006948] text-white text-[11px]';
+      }
+    }
+
+    function triggerScanSnap() {
+      alert('Camera shutter clicked! View 2 shows how the detection card smoothly pops out.');
+    }
+
+    let pCount = 1;
+    let currentQuantifier = 'batang';
+
+    function adjustCount(delta) {
+      if (pCount + delta >= 1) {
+        pCount += delta;
+        document.getElementById('popCountDisplay').textContent = pCount;
+      }
+    }
+
+    function toggleQuantifierDropdown(e) {
+      if (e) e.stopPropagation();
+      const dd = document.getElementById('quantifierDropdown');
+      if (dd) dd.classList.toggle('hidden');
+    }
+
+    function selectQuantifier(unit) {
+      currentQuantifier = unit;
+      const unitDisplay = document.getElementById('popUnitDisplay');
+      if (unitDisplay) unitDisplay.textContent = unit;
+      const dd = document.getElementById('quantifierDropdown');
+      if (dd) dd.classList.add('hidden');
+    }
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+      const dd = document.getElementById('quantifierDropdown');
+      if (dd && !dd.classList.contains('hidden')) {
+        dd.classList.add('hidden');
+      }
+    });
+
+    // Initialize User's Scanner HUD Controls
+    (function initScannerHUD() {
+      // Zoom control toggling
+      const zoomButtons = document.querySelectorAll('.zoom-btn');
+      zoomButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          zoomButtons.forEach(b => {
+            b.classList.remove('bg-primary', 'text-on-primary', 'font-bold', 'shadow-sm');
+            b.classList.add('text-on-surface-variant', 'font-medium');
+          });
+          btn.classList.add('bg-primary', 'text-on-primary', 'font-bold', 'shadow-sm');
+          btn.classList.remove('text-on-surface-variant', 'font-medium');
+          showToast('Camera switched to ' + btn.getAttribute('data-zoom'));
+        });
+      });
+
+      // Flash/Torch Toggle
+      const torchBtn = document.getElementById('torch-btn');
+      if (torchBtn) {
+        let torchOn = false;
+        torchBtn.addEventListener('click', () => {
+          torchOn = !torchOn;
+          const icon = torchBtn.querySelector('.material-symbols-outlined');
+          if (icon) {
+            icon.textContent = torchOn ? 'flash_off' : 'flash_on';
+          }
+          if (torchOn) {
+            torchBtn.classList.remove('neo-raised-sm');
+            torchBtn.classList.add('neo-sunken', 'text-primary');
+            showToast('Torch activated');
+          } else {
+            torchBtn.classList.remove('neo-sunken', 'text-primary');
+            torchBtn.classList.add('neo-raised-sm');
+            showToast('Torch deactivated');
+          }
+        });
+      }
+
+      // Camera Flip Button
+      const flipBtn = document.getElementById('flip-camera-btn');
+      if (flipBtn) {
+        flipBtn.addEventListener('click', () => {
+          showToast('Flipping sensor to macro mode');
+        });
+      }
+
+      // Shutter Trigger Delight & Real Circular Loading State
+      const shutter = document.getElementById('main-shutter-btn');
+      const spinnerSvg = document.getElementById('shutter-spinner-svg');
+      const cameraIcon = document.getElementById('shutter-camera-icon');
+      const statusLabel = document.getElementById('shutter-status-label');
+      let isScanning = false;
+
+      if (shutter) {
+        shutter.addEventListener('click', () => {
+          if (isScanning) return;
+          isScanning = true;
+
+          // Accelerated loading spin animation
+          if (spinnerSvg) {
+            spinnerSvg.classList.remove('animate-[spin_2.5s_linear_infinite]');
+            spinnerSvg.classList.add('animate-[spin_0.75s_linear_infinite]');
+          }
+          shutter.classList.remove('neo-raised-sm');
+          shutter.classList.add('neo-sunken');
+          if (cameraIcon) {
+            cameraIcon.classList.add('animate-pulse', 'text-emerald-600');
+          }
+          if (statusLabel) {
+            statusLabel.textContent = 'Scanning...';
+            statusLabel.classList.add('text-[#004730]');
+          }
+          showToast('AI Scanning: Detecting produce & freshness...');
+
+          // Loading completes after 2s
+          setTimeout(() => {
+            if (spinnerSvg) {
+              spinnerSvg.classList.remove('animate-[spin_0.75s_linear_infinite]');
+              spinnerSvg.classList.add('animate-[spin_2.5s_linear_infinite]');
+            }
+            shutter.classList.remove('neo-sunken');
+            shutter.classList.add('neo-raised-sm');
+            if (cameraIcon) {
+              cameraIcon.classList.remove('animate-pulse', 'text-emerald-600');
+            }
+            if (statusLabel) {
+              statusLabel.textContent = 'AI Scan';
+              statusLabel.classList.remove('text-[#004730]');
+            }
+            showToast('Detected: Fresh Sweet Corn (98% match)!');
+            isScanning = false;
+          }, 2000);
+        });
+      }
+    })();
+
+    // Toast Messenger Helper
+    function showToast(msg) {
+      const toast = document.getElementById('scanner-toast');
+      const toastMsg = document.getElementById('toast-message');
+      if (toast && toastMsg) {
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none');
+        toast.classList.add('opacity-100');
+        setTimeout(() => {
+          toast.classList.remove('opacity-100');
+          toast.classList.add('opacity-0', 'pointer-events-none');
+        }, 2400);
+      }
+      const toastV3 = document.getElementById('scanner-toast-v3');
+      const toastMsgV3 = document.getElementById('toast-message-v3');
+      if (toastV3 && toastMsgV3) {
+        toastMsgV3.textContent = msg;
+        toastV3.classList.remove('opacity-0', 'pointer-events-none');
+        toastV3.classList.add('opacity-100');
+        setTimeout(() => {
+          toastV3.classList.remove('opacity-100');
+          toastV3.classList.add('opacity-0', 'pointer-events-none');
+        }, 2400);
+      }
+      const toastV4 = document.getElementById('scanner-toast-v4');
+      const toastMsgV4 = document.getElementById('toast-message-v4');
+      if (toastV4 && toastMsgV4) {
+        toastMsgV4.textContent = msg;
+        toastV4.classList.remove('opacity-0', 'pointer-events-none');
+        toastV4.classList.add('opacity-100');
+        setTimeout(() => {
+          toastV4.classList.remove('opacity-100');
+          toastV4.classList.add('opacity-0', 'pointer-events-none');
+        }, 2400);
+      }
+    }
+
+    // View 2 Interactive Bottom Nav Tab Switcher
+    function switchBottomTab2(btn, tabId) {
+      document.querySelectorAll('.nav-tab-v2').forEach(b => {
+        b.className = 'nav-tab-v2 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer';
+      });
+      btn.className = 'nav-tab-v2 h-12 rounded-2xl neo-crater flex flex-col items-center justify-center font-bold relative transition-colors cursor-pointer';
+    }
+
+    // Pantry Screen Bottom Nav Tab Switcher
+    function switchBottomTab3(btn, tabId) {
+      document.querySelectorAll('.nav-tab-v3').forEach(b => {
+        b.className = 'nav-tab-v3 h-12 rounded-2xl flex flex-col items-center justify-center text-white/75 hover:text-white relative transition-colors cursor-pointer';
+      });
+      btn.className = 'nav-tab-v3 h-12 rounded-2xl neo-crater flex flex-col items-center justify-center font-bold relative transition-colors cursor-pointer';
+    }
+
+    // Pantry Generate Meals CTA Trigger
+    function triggerGenerateMealsStudio() {
+      showToast('Generating AI zero-waste recipes from 14 pantry items...');
+    }
+
+    // Portion adjustment helper
+    function changePortion(btn, delta) {
+      const container = btn.closest('.stepper-controls') || btn.closest('div');
+      const valEl = container.querySelector('.portion-val');
+      if (!valEl) return;
+      let cur = parseInt(valEl.textContent) || 0;
+      let next = Math.max(1, cur + delta);
+      valEl.textContent = next;
+    }
+
+    // Close studio dropdowns on outside click (View 4)
+    document.addEventListener('click', (e) => {
+      const filterMenuV4 = document.getElementById('pantryFilterMenuStudioV4');
+      const sortMenuV4 = document.getElementById('pantrySortMenuStudioV4');
+      const filterBtnV4 = document.getElementById('pantryFilterBtnStudioV4');
+      const sortBtnV4 = document.getElementById('pantrySortBtnStudioV4');
+      const filterChevronV4 = document.getElementById('filterChevronStudioV4');
+      const quantifierDropdownV4 = document.getElementById('pantryQuantifierDropdownStudioV4');
+
+      if (filterMenuV4 && !filterMenuV4.classList.contains('hidden')) {
+        if (!filterMenuV4.contains(e.target) && !filterBtnV4.contains(e.target)) {
+          filterMenuV4.classList.add('hidden');
+          if (filterChevronV4) filterChevronV4.style.transform = 'rotate(0deg)';
+        }
+      }
+      if (sortMenuV4 && !sortMenuV4.classList.contains('hidden')) {
+        if (!sortMenuV4.contains(e.target) && !sortBtnV4.contains(e.target)) {
+          sortMenuV4.classList.add('hidden');
+        }
+      }
+      if (quantifierDropdownV4 && !quantifierDropdownV4.classList.contains('hidden')) {
+        if (!quantifierDropdownV4.contains(e.target) && (!currentCardUnitTargetStudioV4 || !currentCardUnitTargetStudioV4.contains(e.target))) {
+          quantifierDropdownV4.classList.add('hidden');
+          currentCardUnitTargetStudioV4 = null;
+        }
+      }
+    });
+
+    // ====================================================================
+    // VIEW 4 STUDIO INTERACTIVE CONTROLS
+    // ====================================================================
+
+    // View 4 Studio Add Item Trigger
+    function triggerAddItemStudio() {
+      showToast('Quick Add: Launching Scanner or Manual Entry modal...');
+    }
+
+    // View 4 Studio Filter Dropdown Handler
+    function toggleFilterDropdownStudioV4(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('pantryFilterMenuStudioV4');
+      const sortMenu = document.getElementById('pantrySortMenuStudioV4');
+      const chevron = document.getElementById('filterChevronStudioV4');
+      if (sortMenu) sortMenu.classList.add('hidden');
+      if (menu) {
+        const isHidden = menu.classList.contains('hidden');
+        menu.classList.toggle('hidden');
+        if (chevron) {
+          chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+      }
+    }
+
+    function selectFilterOptionStudioV4(category, label, icon) {
+      const labelEl = document.getElementById('filterSelectedLabelStudioV4');
+      const iconEl = document.getElementById('filterSelectedIconStudioV4');
+      if (labelEl) labelEl.textContent = label;
+      if (iconEl) iconEl.textContent = icon;
+
+      document.querySelectorAll('#pantryFilterMenuStudioV4 .filter-opt-studiov4').forEach(opt => {
+        if (opt.getAttribute('data-cat') === category) {
+          opt.className = 'filter-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-bold text-[#004730] bg-white/40 hover:bg-white/70 rounded-xl mx-1 transition-all cursor-pointer';
+        } else {
+          opt.className = 'filter-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer';
+        }
+      });
+
+      const menu = document.getElementById('pantryFilterMenuStudioV4');
+      const chevron = document.getElementById('filterChevronStudioV4');
+      if (menu) menu.classList.add('hidden');
+      if (chevron) chevron.style.transform = 'rotate(0deg)';
+
+      const cards = document.querySelectorAll('#pantryCardListStudioV4 article');
+      let visible = 0;
+      cards.forEach(card => {
+        const cat = card.getAttribute('data-category') || '';
+        if (category === 'all' || cat.includes(category)) {
+          card.style.display = 'flex';
+          visible++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      showToast('Filtered: ' + label);
+    }
+
+    // View 4 Studio Sort Dropdown Handler
+    function toggleSortDropdownStudioV4(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('pantrySortMenuStudioV4');
+      const filterMenu = document.getElementById('pantryFilterMenuStudioV4');
+      const filterChevron = document.getElementById('filterChevronStudioV4');
+      if (filterMenu) filterMenu.classList.add('hidden');
+      if (filterChevron) filterChevron.style.transform = 'rotate(0deg)';
+      if (menu) {
+        menu.classList.toggle('hidden');
+      }
+    }
+
+    function selectSortOptionStudioV4(criterion, label) {
+      document.querySelectorAll('#pantrySortMenuStudioV4 .sort-opt-studiov4').forEach(opt => {
+        const isCurrent = opt.getAttribute('data-sort') === criterion;
+        if (isCurrent) {
+          opt.className = 'sort-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-bold text-[#004730] bg-white/40 hover:bg-white/70 rounded-xl mx-1 transition-all cursor-pointer';
+        } else {
+          opt.className = 'sort-opt-studiov4 flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white/50 rounded-xl mx-1 transition-all cursor-pointer';
+        }
+        const check = opt.querySelector('.sort-check-studiov4');
+        if (check) {
+          if (isCurrent) check.classList.remove('hidden');
+          else check.classList.add('hidden');
+        }
+      });
+
+      const menu = document.getElementById('pantrySortMenuStudioV4');
+      if (menu) menu.classList.add('hidden');
+
+      const container = document.getElementById('pantryCardListStudioV4');
+      if (!container) return;
+      const cards = Array.from(container.querySelectorAll('article'));
+
+      cards.sort((a, b) => {
+        if (criterion === 'name') {
+          const nameA = a.getAttribute('data-name') || '';
+          const nameB = b.getAttribute('data-name') || '';
+          return nameA.localeCompare(nameB);
+        } else if (criterion === 'qty') {
+          const qtyA = parseInt(a.getAttribute('data-qty')) || 0;
+          const qtyB = parseInt(b.getAttribute('data-qty')) || 0;
+          return qtyB - qtyA;
+        } else if (criterion === 'recent') {
+          const recA = parseInt(a.getAttribute('data-recent')) || 0;
+          const recB = parseInt(b.getAttribute('data-recent')) || 0;
+          return recB - recA;
+        }
+        return 0;
+      });
+
+      cards.forEach(card => container.appendChild(card));
+      showToast('Sorted by: ' + label);
+    }
+
+    // View 4 Studio List vs Grid View Toggle
+    function setPantryViewStudioV4(mode) {
+      const container = document.getElementById('pantryCardListStudioV4');
+      const btnList = document.getElementById('btnListViewStudioV4');
+      const btnGrid = document.getElementById('btnGridViewStudioV4');
+      if (!container) return;
+
+      if (mode === 'grid') {
+        container.classList.add('pantry-grid-mode');
+        container.classList.remove('flex', 'flex-col');
+        if (btnGrid) {
+          btnGrid.className = 'w-8 h-7 rounded-lg flex items-center justify-center neo-raised-sm text-[#004730] transition-all cursor-pointer';
+        }
+        if (btnList) {
+          btnList.className = 'w-8 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all cursor-pointer';
+        }
+        showToast('Switched to Grid View');
+      } else {
+        container.classList.remove('pantry-grid-mode');
+        container.classList.add('flex', 'flex-col');
+        if (btnList) {
+          btnList.className = 'w-8 h-7 rounded-lg flex items-center justify-center neo-raised-sm text-[#004730] transition-all cursor-pointer';
+        }
+        if (btnGrid) {
+          btnGrid.className = 'w-8 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all cursor-pointer';
+        }
+        showToast('Switched to List View');
+      }
+    }
+
+    // View 4 Studio Quantifier Dropdown
+    let currentCardUnitTargetStudioV4 = null;
+
+    function openCardQuantifierStudioV4(btn, e) {
+      if (e) e.stopPropagation();
+      const dropdown = document.getElementById('pantryQuantifierDropdownStudioV4');
+      if (!dropdown) return;
+
+      if (currentCardUnitTargetStudioV4 === btn && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+        currentCardUnitTargetStudioV4 = null;
+        return;
+      }
+
+      currentCardUnitTargetStudioV4 = btn;
+      const frame = btn.closest('.mobile-frame') || btn.closest('.w-\\[390px\\]') || document.body;
+      const btnRect = btn.getBoundingClientRect();
+      const frameRect = frame.getBoundingClientRect();
+
+      dropdown.classList.remove('hidden');
+
+      const dropdownHeight = dropdown.offsetHeight || 180;
+      const dropdownWidth = dropdown.offsetWidth || 144;
+
+      let top = btnRect.top - frameRect.top - dropdownHeight - 6;
+      if (top < 10) {
+        top = btnRect.bottom - frameRect.top + 6;
+      }
+      let left = btnRect.left - frameRect.left + (btnRect.width / 2) - (dropdownWidth / 2);
+      left = Math.max(12, Math.min(frameRect.width - dropdownWidth - 12, left));
+
+      dropdown.style.top = `${top}px`;
+      dropdown.style.left = `${left}px`;
+    }
+
+    function selectCardQuantifierStudioV4(unit) {
+      if (currentCardUnitTargetStudioV4) {
+        const unitEl = currentCardUnitTargetStudioV4.querySelector('.portion-unit');
+        if (unitEl) unitEl.textContent = unit;
+        showToast('Quantifier updated to: ' + unit);
+      }
+      const dropdown = document.getElementById('pantryQuantifierDropdownStudioV4');
+      if (dropdown) dropdown.classList.add('hidden');
+      currentCardUnitTargetStudioV4 = null;
+    }
+
+    // View 4 Studio Delete Confirmation
+    let cardToDeleteStudioV4 = null;
+
+    function confirmDeleteCardStudioV4(btn) {
+      const card = btn.closest('article');
+      if (!card) return;
+      cardToDeleteStudioV4 = card;
+      const name = card.getAttribute('data-name') || 'this item';
+      const nameEl = document.getElementById('deleteConfirmItemNameStudioV4');
+      if (nameEl) nameEl.textContent = `"${name}"`;
+      const modal = document.getElementById('deleteConfirmModalStudioV4');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function cancelDeleteCardStudioV4() {
+      cardToDeleteStudioV4 = null;
+      const modal = document.getElementById('deleteConfirmModalStudioV4');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function executeDeleteCardStudioV4() {
+      if (cardToDeleteStudioV4) {
+        const name = cardToDeleteStudioV4.getAttribute('data-name') || 'Item';
+        cardToDeleteStudioV4.style.opacity = '0';
+        cardToDeleteStudioV4.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          if (cardToDeleteStudioV4) cardToDeleteStudioV4.remove();
+          updatePantryStatsStudioV4();
+        }, 220);
+        showToast(name + ' removed from pantry');
+      }
+      const modal = document.getElementById('deleteConfirmModalStudioV4');
+      if (modal) modal.classList.add('hidden');
+      cardToDeleteStudioV4 = null;
+    }
+
+    function updatePantryStatsStudioV4() {
+      const remaining = document.querySelectorAll('#pantryCardListStudioV4 article').length;
+      const statEl = document.getElementById('pantryTotalItemsCountStudioV4');
+      if (statEl) statEl.textContent = remaining;
+      const allFilterOpt = document.querySelector('#pantryFilterMenuStudioV4 [data-cat="all"] span:last-child');
+      if (allFilterOpt) allFilterOpt.textContent = remaining;
+      const filterLabel = document.getElementById('filterSelectedLabelStudioV4');
+      if (filterLabel && filterLabel.textContent.startsWith('All')) {
+        filterLabel.textContent = `All (${remaining})`;
+      }
+    }
+
+    // Card delete helper fallback
+    function deleteCard(btn) {
+      const card = btn.closest('article');
+      if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+        setTimeout(() => card.remove(), 250);
+        showToast('Item removed from Digital Pantry');
+      }
+    }
+  </script>
+</body>
+</html>
