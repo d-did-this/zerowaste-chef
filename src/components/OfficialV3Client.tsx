@@ -159,6 +159,9 @@ export default function OfficialV3Client() {
   const [popUnit, setPopUnit] = useState<string>("biji");
   const [isPopUnitOpen, setIsPopUnitOpen] = useState<boolean>(false);
   const [popNote, setPopNote] = useState<string>("");
+  const [detectedCulinaryNote, setDetectedCulinaryNote] = useState<string>("");
+  const [showNonFoodModal, setShowNonFoodModal] = useState<boolean>(false);
+  const [nonFoodReason, setNonFoodReason] = useState<string>("");
 
   // Toast
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -238,19 +241,32 @@ export default function OfficialV3Client() {
         throw new Error("Camera not supported on this browser context");
       }
 
-      // Use ideal constraints so laptops/webcams and phones all succeed without crashing
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          facingMode: { ideal: facingMode },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      });
+      // Primary attempt with facingMode (ideal for phones)
+      let stream: MediaStream | null = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        });
+      } catch (primaryErr) {
+        console.warn("Primary camera constraint failed, retrying generic video constraint:", primaryErr);
+        // Fallback for laptop webcams / external USB webcams that reject facingMode
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: true,
+        });
+      }
 
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(() => {});
+        };
         await videoRef.current.play().catch(() => {});
         setIsCameraActive(true);
       }
@@ -422,19 +438,41 @@ export default function OfficialV3Client() {
         body: JSON.stringify({ image: previewDataUrl }),
       });
 
-      if (res.ok) {
-        const json = await res.json();
+      const json = await res.json().catch(() => null);
+
+      if (res.ok && json) {
+        // Step 1: Food Validation Gate Check
+        if (json.isFood === false) {
+          setIsScanning(false);
+          setScanProgress(0);
+          setScanStatusStep("");
+          setNonFoodReason(
+            json.reason ||
+              "The item scanned does not appear to be an edible food or kitchen ingredient."
+          );
+          setShowNonFoodModal(true);
+          return;
+        }
+
+        // Step 2: Food item successfully identified
         if (json.data) {
           const gData = json.data;
           setDetectedItemName(gData.name || "Fresh Produce");
           setDetectedMalayName(gData.nameMalay || "");
           setDetectedCategory(gData.category || "Produce");
-          setDetectedConfidence(gData.confidence || 96);
-          setDetectedSubtitle(gData.brand ? `${gData.brand} • ${gData.category}` : `Smart Stock AI • ${gData.category || "Malaysian Kitchen"}`);
+          setDetectedConfidence(gData.confidence || 98);
+          setDetectedSubtitle(
+            gData.brand
+              ? `${gData.brand} • ${gData.category}`
+              : `Smart Stock AI • ${gData.category || "Malaysian Kitchen"}`
+          );
           setDetectedEmoji(gData.emoji || "🥗");
-          setDetectedEngineUsed("Gemini Vision AI");
+          setDetectedEngineUsed(json.engine || "Gemini 3.5 Flash Vision AI");
           setPopPortion(gData.suggestedQuantity || 1);
           setPopUnit(gData.suggestedUnit || "biji");
+          if (gData.culinaryNote) {
+            setDetectedCulinaryNote(gData.culinaryNote);
+          }
 
           setScanProgress(100);
           setScanStatusStep("Identified by Gemini Vision!");
@@ -442,35 +480,24 @@ export default function OfficialV3Client() {
           setTimeout(() => {
             setIsScanning(false);
             setShowPopOutCard(true);
-            showToast(`Gemini Identified: ${gData.name} (${gData.confidence}%)`);
-          }, 700);
+            showToast(`Gemini Identified: ${gData.name} (${gData.confidence || 98}%)`);
+          }, 500);
           return;
         }
+      } else {
+        console.warn("Cloud classification failed:", json?.message || res.statusText);
       }
     } catch (err) {
       console.warn("Cloud escalation error:", err);
     }
 
-    // Fallback if both fail
-    if (cnnResult) {
-      const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name, cnnResult.topIngredient.category);
-      setDetectedItemName(cnnResult.topIngredient.name);
-      setDetectedMalayName(cnnResult.topIngredient.nameMalay || local?.nameMalay || "");
-      setDetectedCategory(local?.category || "Produce");
-      setDetectedConfidence(cnnResult.confidence);
-      setDetectedSubtitle("Local Produce Database");
-      setDetectedEmoji(cnnResult.topIngredient.emoji);
-      setDetectedEngineUsed("MobileNet Edge Fallback");
-      setPopPortion(1);
-      setPopUnit(local?.defaultUnit || "biji");
-    }
-
-    setScanProgress(100);
-    setScanStatusStep("Analysis Complete");
-    setTimeout(() => {
-      setIsScanning(false);
-      setShowPopOutCard(true);
-    }, 700);
+    // ELIMINATE 13% ARTICHOKE FALLBACK FOREVER:
+    // If Gemini was busy/offline and MobileNet had low confidence (<80%),
+    // DO NOT guess a random produce item. Notify the user honestly.
+    setIsScanning(false);
+    setScanProgress(0);
+    setScanStatusStep("");
+    showToast("Recognition unavailable: Cloud vision busy or low edge confidence. Please try again.");
   };
 
   // AI Shutter Snap (Draws canvas, freezes frame, runs hybrid classification)
@@ -549,24 +576,36 @@ export default function OfficialV3Client() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: capturedPhotoUrl }),
       });
-      if (res.ok) {
-        const json = await res.json();
+      const json = await res.json().catch(() => null);
+      if (res.ok && json) {
+        if (json.isFood === false) {
+          setShowPopOutCard(false);
+          setNonFoodReason(
+            json.reason ||
+              "The item scanned does not appear to be an edible food or kitchen ingredient."
+          );
+          setShowNonFoodModal(true);
+          return;
+        }
         if (json.data) {
           const gData = json.data;
           setDetectedItemName(gData.name || detectedItemName);
           setDetectedMalayName(gData.nameMalay || detectedMalayName);
           setDetectedCategory(gData.category || detectedCategory);
-          setDetectedConfidence(99);
+          setDetectedConfidence(gData.confidence || 99);
           setDetectedSubtitle(`Verified by Gemini • ${gData.category || "Produce"}`);
           setDetectedEmoji(gData.emoji || detectedEmoji);
-          setDetectedEngineUsed("Gemini Vision AI (Option C)");
+          setDetectedEngineUsed(json.engine || "Gemini Vision AI (Option C)");
           if (gData.suggestedQuantity) setPopPortion(gData.suggestedQuantity);
           if (gData.suggestedUnit) setPopUnit(gData.suggestedUnit);
-          showToast(`Gemini Vision Verified: ${gData.name} (99%)`);
+          if (gData.culinaryNote) setDetectedCulinaryNote(gData.culinaryNote);
+          showToast(`Gemini Vision Verified: ${gData.name} (${gData.confidence || 99}%)`);
         }
+      } else {
+        showToast(json?.message || "Cloud connection unavailable. Kept current match.");
       }
     } catch {
-      showToast("Cloud connection unavailable. Kept edge match.");
+      showToast("Cloud connection unavailable. Kept current match.");
     }
   };
 
@@ -579,7 +618,9 @@ export default function OfficialV3Client() {
       quantity: popPortion,
       unit: popUnit,
       emoji: detectedEmoji,
-      culinaryNote: popNote.trim() ? popNote.trim() : `Fresh ${detectedItemName}. Logged via ZeroWaste AI Scanner.`,
+      culinaryNote: popNote.trim()
+        ? popNote.trim()
+        : (detectedCulinaryNote || `Fresh ${detectedItemName}. Logged via ZeroWaste AI Scanner.`),
       imageUrl: capturedPhotoUrl || undefined,
       confidence: detectedConfidence,
       engineUsed: detectedEngineUsed,
@@ -588,6 +629,7 @@ export default function OfficialV3Client() {
     loadPantry();
     setShowPopOutCard(false);
     setPopNote("");
+    setDetectedCulinaryNote("");
     showToast(`${detectedItemName} (${popPortion} ${popUnit}) added to Digital Pantry!`);
     setActiveTab("pantry");
   };
@@ -1320,33 +1362,30 @@ export default function OfficialV3Client() {
                 {/* Viewfinder Frame Section (Real Camera Feed + Freeze on Capture - ZERO DUMMY CORN) */}
                 <div className="w-full neo-raised rounded-2xl p-2.5 relative flex flex-col">
                   <div className="relative w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner aspect-square">
-                    {/* 1. When scanning is in progress: Freeze on captured snapshot */}
-                    {isScanning && capturedPhotoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={capturedPhotoUrl}
-                        alt="Captured Static Frame"
-                        className="w-full h-full object-cover select-none"
-                        style={{
-                          transform: `scale(${numZoom})`,
-                          transformOrigin: "center center",
-                          transition: "transform 0.25s ease-out",
-                        }}
-                      />
-                    ) : (
-                      /* 2. Live Camera Video Stream */
-                      <video
-                        ref={videoRef}
-                        playsInline
-                        autoPlay
-                        muted
-                        className={`w-full h-full object-cover select-none ${isCameraActive ? "block" : "hidden"}`}
-                        style={{
-                          transform: `scale(${numZoom})`,
-                          transformOrigin: "center center",
-                          transition: "transform 0.25s ease-out",
-                        }}
-                      />
+                    {/* 1. Live Camera Video Stream (Kept persistently mounted to preserve stream) */}
+                    <video
+                      ref={videoRef}
+                      playsInline
+                      autoPlay
+                      muted
+                      className={`w-full h-full object-cover select-none ${isCameraActive ? "block" : "hidden"}`}
+                      style={{
+                        transform: `scale(${numZoom})`,
+                        transformOrigin: "center center",
+                        transition: "transform 0.25s ease-out",
+                      }}
+                    />
+
+                    {/* 2. Static Frozen Frame Overlay (Appears instantly when AI scan triggers) */}
+                    {isScanning && capturedPhotoUrl && (
+                      <div className="absolute inset-0 z-10 overflow-hidden bg-slate-900 pointer-events-none">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={capturedPhotoUrl}
+                          alt="Captured Static Frame"
+                          className="w-full h-full object-cover select-none"
+                        />
+                      </div>
                     )}
 
                     {/* 3. Real Camera Loading / Error State (No fake fallback picture) */}
@@ -2116,6 +2155,40 @@ export default function OfficialV3Client() {
                   Remove
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* 5. Neumorphic Non-Food Rejection Modal (Active when isFood === false) */}
+        {showNonFoodModal && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center p-5 bg-black/50 backdrop-blur-xs transition-opacity animate-pop-up">
+            <div className="w-full max-w-[320px] rounded-3xl neo-raised bg-[#E0E5EC] p-5 flex flex-col items-center text-center gap-3.5 shadow-2xl">
+              <div className="w-14 h-14 rounded-2xl neo-sunken flex items-center justify-center text-amber-600 bg-amber-500/10">
+                <span className="material-symbols-outlined text-3xl font-bold">no_meals</span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-100/70 px-2.5 py-0.5 rounded-full inline-block self-center">
+                  Non-Food Item
+                </span>
+                <h3 className="text-sm font-extrabold text-foreground">No Food Ingredient Found</h3>
+                <p className="text-xs text-muted font-medium leading-relaxed px-1">
+                  {nonFoodReason ||
+                    "The item scanned does not appear to be an edible food or kitchen ingredient."}
+                </p>
+                <p className="text-[10px] text-muted/70 italic pt-1">
+                  ZeroWaste Chef is designed specifically to catalog pantry groceries, produce, spices, and cooking ingredients.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowNonFoodModal(false);
+                  setNonFoodReason("");
+                }}
+                className="w-full py-3 rounded-xl bg-[#004730] text-white text-xs font-black active:scale-95 transition-all shadow-md cursor-pointer mt-1"
+                type="button"
+              >
+                Scan Food Ingredient
+              </button>
             </div>
           </div>
         )}
