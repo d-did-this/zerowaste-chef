@@ -63,7 +63,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[#f0f4f9] text-[#1e293b] select-none">
+      <body className="min-h-full flex flex-col bg-[#E0E5EC] text-[#3D4852] select-none font-['Plus_Jakarta_Sans',sans-serif]">
         {children}
       </body>
     </html>
