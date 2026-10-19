@@ -172,7 +172,10 @@
           </div>
         </div>
         <div class="flex items-center gap-space-xs">
-          <a aria-label="Go to Pantry" class="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-95 transition-transform" data-path="pantry" href="#">
+          <button id="fullscreenToggleBtn" onclick="toggleFullscreen()" class="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all cursor-pointer" title="Toggle Fullscreen">
+            <span class="material-symbols-outlined text-xl" id="fullscreenIcon">fullscreen</span>
+          </button>
+          <a aria-label="Go to Pantry" class="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-95 transition-transform" data-path="pantry" href="view4-isolated.html">
             <span class="material-symbols-outlined text-xl">home</span>
           </a>
         </div>
@@ -233,7 +236,7 @@
         <!-- Bottom Shutter & Mode Action Deck (Sculpted Tray) -->
         <div class="w-full neo-raised rounded-2xl p-space-md flex flex-col space-y-4">
           <div class="w-full neo-sunken rounded-2xl p-3 flex items-center justify-around">
-            <button class="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-on-surface" id="upload-mode-btn">
+            <button onclick="showToast('Coming Soon: Upload from gallery')" class="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-on-surface cursor-pointer" id="upload-mode-btn">
               <span class="material-symbols-outlined text-2xl text-on-surface-variant">photo_library</span>
               <span class="font-label-sm text-label-sm font-semibold text-on-surface-variant">Upload</span>
             </button>
@@ -258,14 +261,14 @@
                   </svg>
                 </div>
 
-                <!-- Center Shutter Button -->
-                <button aria-label="Snap Photo to Identify" class="relative z-10 h-14 w-14 rounded-full bg-surface flex items-center justify-center neo-raised-sm active:scale-90 transition-all cursor-pointer" id="main-shutter-btn">
-                  <span id="shutter-camera-icon" class="material-symbols-outlined text-primary text-3xl font-bold transition-transform">camera</span>
+                <!-- Center Shutter Button: Green Background + White Icon -->
+                <button aria-label="Snap Photo to Identify" class="relative z-10 h-14 w-14 rounded-full bg-[#004730] flex items-center justify-center active:scale-90 transition-all cursor-pointer shadow-lg group" style="box-shadow: 4px 4px 12px rgba(0, 71, 48, 0.45), -2px -2px 8px rgba(255, 255, 255, 0.7);" id="main-shutter-btn">
+                  <span id="shutter-camera-icon" class="material-symbols-outlined text-white text-3xl font-bold group-hover:scale-105 transition-transform">photo_camera</span>
                 </button>
               </div>
               <span id="shutter-status-label" class="font-label-sm text-label-sm text-on-surface font-bold mt-1.5">AI Scan</span>
             </div>
-            <button class="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-on-surface" id="manual-mode-btn">
+            <button onclick="showToast('Coming Soon: Manual ingredient entry')" class="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-on-surface cursor-pointer" id="manual-mode-btn">
               <span class="material-symbols-outlined text-2xl text-on-surface-variant">keyboard</span>
               <span class="font-label-sm text-label-sm font-semibold text-on-surface-variant">Manual</span>
             </button>
@@ -275,7 +278,7 @@
               <span class="material-symbols-outlined text-base opacity-60">barcode_scanner</span>
               <span>Coming Soon</span>
             </button>
-            <button class="flex-1 py-2.5 px-space-md rounded-full neo-raised-sm font-label-md text-label-md font-semibold text-on-surface-variant hover:text-on-surface flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+            <button onclick="showToast('Coming Soon: Scan Receipt OCR')" class="flex-1 py-2.5 px-space-md rounded-full neo-raised-sm font-label-md text-label-md font-semibold text-on-surface-variant hover:text-on-surface flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer">
               <span class="material-symbols-outlined text-base">receipt_long</span>
               <span>Scan Receipt</span>
             </button>
@@ -413,6 +416,28 @@
         });
       }
     })();
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      const icon = document.getElementById('fullscreenIcon');
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        if (icon) icon.textContent = 'fullscreen_exit';
+        showToast('Entered Fullscreen');
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+        if (icon) icon.textContent = 'fullscreen';
+        showToast('Exited Fullscreen');
+      }
+    }
+    document.addEventListener('fullscreenchange', () => {
+      const icon = document.getElementById('fullscreenIcon');
+      if (icon) {
+        icon.textContent = document.fullscreenElement ? 'fullscreen_exit' : 'fullscreen';
+      }
+    });
 
     // Toast Messenger Helper
     function showToast(msg) {

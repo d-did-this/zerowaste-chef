@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 
 interface PantryItemData {
   id: string;
@@ -13,6 +13,7 @@ interface PantryItemData {
   photoUrl: string;
   emoji: string;
   subtitle: string;
+  culinaryNote?: string;
 }
 
 const INITIAL_PANTRY_CARDS: PantryItemData[] = [
@@ -24,9 +25,10 @@ const INITIAL_PANTRY_CARDS: PantryItemData[] = [
     qty: 2,
     unit: "batang",
     recent: 5,
-    photoUrl: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=300&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80",
     emoji: "🌽",
     subtitle: "Added 2h ago • Cameron Highlands",
+    culinaryNote: "Fresh Cameron Highlands sweet corn. Crispy, sweet, and rich in fiber. Best for corn soup, grilling with butter, or steamed as a quick snack.",
   },
   {
     id: "spinach",
@@ -36,9 +38,10 @@ const INITIAL_PANTRY_CARDS: PantryItemData[] = [
     qty: 1,
     unit: "ikat",
     recent: 4,
-    photoUrl: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=300&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=600&q=80",
     emoji: "🥬",
     subtitle: "Added today • Farm Fresh",
+    culinaryNote: "Fresh crisp green leaves from local farm. Packed with iron, folate, and vitamins. Ideal for stir-fried Bayam with garlic or wholesome soups.",
   },
   {
     id: "eggs",
@@ -48,9 +51,10 @@ const INITIAL_PANTRY_CARDS: PantryItemData[] = [
     qty: 10,
     unit: "biji",
     recent: 3,
-    photoUrl: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=300&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=80",
     emoji: "🥚",
     subtitle: "Best by 28 Oct • Organic",
+    culinaryNote: "Free-range organic kampung eggs with rich golden yolks. High protein staple, perfect for half-boiled breakfast eggs, sunny side up, or Nasi Goreng.",
   },
   {
     id: "tomatoes",
@@ -60,9 +64,10 @@ const INITIAL_PANTRY_CARDS: PantryItemData[] = [
     qty: 4,
     unit: "biji",
     recent: 2,
-    photoUrl: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=300&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80",
     emoji: "🍅",
     subtitle: "Added 1d ago • Ripe & Firm",
+    culinaryNote: "Plump, ripe red Roma tomatoes. Rich in lycopene and vitamin C. Excellent for Sambal Tumis, tomato sambal, or slow-cooked pasta sauces.",
   },
   {
     id: "chicken",
@@ -72,9 +77,10 @@ const INITIAL_PANTRY_CARDS: PantryItemData[] = [
     qty: 500,
     unit: "g",
     recent: 6,
-    photoUrl: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=300&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=600&q=80",
     emoji: "🍗",
     subtitle: "Frozen • Defrost in 2 days",
+    culinaryNote: "Lean fresh poultry breast. Low fat, high protein. Great for Ayam Goreng Kunyit, shredded chicken soup, or healthy meal-prep bowls.",
   },
   {
     id: "kicap",
@@ -84,9 +90,10 @@ const INITIAL_PANTRY_CARDS: PantryItemData[] = [
     qty: 1,
     unit: "botol",
     recent: 1,
-    photoUrl: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=300&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80",
     emoji: "🍶",
     subtitle: "Pantry Shelf • 80% Full",
+    culinaryNote: "Authentic Malaysian sweet soy sauce by Habhal's. Deep caramel sweetness and umami, essential for Ayam Masak Kicap and dipping sauces with cili padi.",
   },
   {
     id: "garlic",
@@ -96,9 +103,10 @@ const INITIAL_PANTRY_CARDS: PantryItemData[] = [
     qty: 1,
     unit: "labu",
     recent: 7,
-    photoUrl: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=300&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=600&q=80",
     emoji: "🧄",
     subtitle: "Dry Storage • Fresh Bulbs",
+    culinaryNote: "Pungent aromatic bulbs. The indispensable culinary foundation for nearly all Malaysian stir-fries, marinades, curries, and sambals.",
   },
 ];
 
@@ -122,12 +130,36 @@ const QUANTIFIER_LIST = [
 export default function OfficialV3Client() {
   const [activeTab, setActiveTab] = useState<"scanner" | "pantry" | "cook-now" | "grocery">("pantry");
 
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+        setIsFullscreen(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
+
   // Pantry state
   const [cards, setCards] = useState<PantryItemData[]>(INITIAL_PANTRY_CARDS);
   const [selectedCat, setSelectedCat] = useState<string>("all");
   const [selectedCatLabel, setSelectedCatLabel] = useState<string>("All (14)");
   const [selectedCatIcon, setSelectedCatIcon] = useState<string>("apps");
-  const [selectedSort, setSelectedSort] = useState<string>("expiry");
+  // Removed "Expiring Soon" per user request: Default to "Recently Added"
+  const [selectedSort, setSelectedSort] = useState<string>("recent");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Dropdowns & Modals
@@ -135,14 +167,30 @@ export default function OfficialV3Client() {
   const [isSortMenuOpen, setIsSortMenuOpen] = useState<boolean>(false);
   const [activeUnitCardId, setActiveUnitCardId] = useState<string | null>(null);
   const [cardToDelete, setCardToDelete] = useState<PantryItemData | null>(null);
+  // View Item Detail & Info modal state
+  const [selectedItemForDetail, setSelectedItemForDetail] = useState<PantryItemData | null>(null);
 
-  // Scanner & View 2 States
-  const [torchOn, setTorchOn] = useState<boolean>(false);
+  // Real Camera & Scanner States
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [isTorchSupported, setIsTorchSupported] = useState<boolean>(false);
+  const [isTorchOn, setIsTorchOn] = useState<boolean>(false);
   const [zoomLevel, setZoomLevel] = useState<string>("2x");
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [showPopOutCard, setShowPopOutCard] = useState<boolean>(false);
+  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string>(
+    "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80"
+  );
 
   // Pop-Out Card (View 2) States
+  const [detectedItemName, setDetectedItemName] = useState<string>("Fresh Sweet Corn");
+  const [detectedMalayName, setDetectedMalayName] = useState<string>("Jagung Manis");
+  const [detectedCategory, setDetectedCategory] = useState<"produce" | "proteins" | "seasoning" | "dairy" | "staples">("produce");
+  const [detectedConfidence, setDetectedConfidence] = useState<number>(98);
+  const [detectedSubtitle, setDetectedSubtitle] = useState<string>("Cameron Highlands • Produce");
+  const [detectedEmoji, setDetectedEmoji] = useState<string>("🌽");
   const [popPortion, setPopPortion] = useState<number>(2);
   const [popUnit, setPopUnit] = useState<string>("batang");
   const [isPopUnitOpen, setIsPopUnitOpen] = useState<boolean>(false);
@@ -168,6 +216,181 @@ export default function OfficialV3Client() {
     window.addEventListener("click", handleGlobalClick);
     return () => window.removeEventListener("click", handleGlobalClick);
   }, []);
+
+  // Real Camera Hardware Streaming
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  }, []);
+
+  const startCamera = useCallback(async () => {
+    try {
+      stopCamera();
+      if (!navigator.mediaDevices?.getUserMedia) {
+        showToast("Camera not supported on this browser (Showing preview)");
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => {});
+        setIsCameraActive(true);
+      }
+      const track = stream.getVideoTracks()[0];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const caps = track.getCapabilities ? (track.getCapabilities() as any) : {};
+      setIsTorchSupported(Boolean(caps?.torch));
+      setIsTorchOn(false);
+    } catch {
+      setIsCameraActive(false);
+      // Fail silently to preview mode without breaking UX
+    }
+  }, [facingMode, stopCamera]);
+
+  useEffect(() => {
+    if (activeTab === "scanner" && !showPopOutCard) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+    return () => stopCamera();
+  }, [activeTab, showPopOutCard, startCamera, stopCamera]);
+
+  // Flip Camera
+  const toggleCameraFacing = () => {
+    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
+    showToast("Switching camera sensor...");
+  };
+
+  // Toggle Torch
+  const toggleTorch = async () => {
+    if (!streamRef.current) {
+      setIsTorchOn(!isTorchOn);
+      showToast(isTorchOn ? "Torch deactivated" : "Torch activated");
+      return;
+    }
+    const track = streamRef.current.getVideoTracks()[0];
+    if (track && isTorchSupported) {
+      try {
+        const nextState = !isTorchOn;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (track as any).applyConstraints({
+          advanced: [{ torch: nextState }],
+        });
+        setIsTorchOn(nextState);
+        showToast(nextState ? "Torch activated" : "Torch deactivated");
+      } catch {
+        setIsTorchOn(!isTorchOn);
+      }
+    } else {
+      setIsTorchOn(!isTorchOn);
+      showToast(isTorchOn ? "Torch deactivated" : "Torch activated");
+    }
+  };
+
+  // Shutter Snap with Real Camera Capture & Classification
+  const triggerShutter = async () => {
+    if (isScanning) return;
+    setIsScanning(true);
+    showToast("AI Scanning: Analyzing produce & freshness...");
+
+    let capturedDataUrl = "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80";
+
+    // If live video is active, snap frame from video stream
+    if (videoRef.current && isCameraActive) {
+      try {
+        const video = videoRef.current;
+        const canvas = document.createElement("canvas");
+        const fullSize = Math.min(video.videoWidth || 640, video.videoHeight || 640);
+        canvas.width = 640;
+        canvas.height = 640;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const numZoom = parseFloat(zoomLevel) || 1;
+          const cropSize = fullSize / numZoom;
+          const startX = ((video.videoWidth || 640) - cropSize) / 2;
+          const startY = ((video.videoHeight || 640) - cropSize) / 2;
+          ctx.drawImage(video, startX, startY, cropSize, cropSize, 0, 0, 640, 640);
+          capturedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        }
+      } catch (err) {
+        console.warn("Video frame snap error:", err);
+      }
+    }
+
+    setCapturedPhotoUrl(capturedDataUrl);
+
+    // Run classification API
+    try {
+      const res = await fetch("/api/classify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: capturedDataUrl }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) {
+          setDetectedItemName(json.data.name || "Fresh Sweet Corn");
+          setDetectedMalayName(json.data.nameMalay || "Jagung Manis");
+          setDetectedCategory(json.data.category?.toLowerCase()?.includes("protein") ? "proteins" : "produce");
+          setDetectedConfidence(json.data.confidence || 96);
+          setDetectedSubtitle(`Farm Fresh • ${json.data.category || "Produce"}`);
+          setDetectedEmoji(json.data.emoji || "🥬");
+          setPopPortion(json.data.suggestedQuantity || 1);
+          setPopUnit(json.data.suggestedUnit || "biji");
+        }
+      }
+    } catch {
+      // Fallback default
+      setDetectedItemName("Fresh Sweet Corn");
+      setDetectedMalayName("Jagung Manis");
+      setDetectedCategory("produce");
+      setDetectedConfidence(98);
+      setDetectedSubtitle("Cameron Highlands • Produce");
+      setDetectedEmoji("🌽");
+      setPopPortion(2);
+      setPopUnit("batang");
+    }
+
+    setTimeout(() => {
+      setIsScanning(false);
+      setShowPopOutCard(true);
+      showToast(`Detected: ${detectedItemName} (${detectedConfidence}% match)!`);
+    }, 1000);
+  };
+
+  // Confirm Add to Pantry from View 2 Pop-Out Card
+  const handleConfirmAddPopOut = () => {
+    const newItem: PantryItemData = {
+      id: "item_" + Date.now(),
+      name: detectedItemName,
+      nameMalay: detectedMalayName,
+      category: detectedCategory,
+      qty: popPortion,
+      unit: popUnit,
+      recent: 10,
+      photoUrl: capturedPhotoUrl,
+      emoji: detectedEmoji,
+      subtitle: `Added just now • ${detectedSubtitle}`,
+      culinaryNote: popNote ? popNote : "Freshly detected ingredient from ZeroWaste AI Scanner.",
+    };
+
+    setCards((prev) => [newItem, ...prev]);
+    setShowPopOutCard(false);
+    showToast(`${detectedItemName} (${popPortion} ${popUnit}) added to Pantry!`);
+    setActiveTab("pantry");
+  };
 
   // Filter & Sort
   const getFilteredCards = () => {
@@ -223,24 +446,6 @@ export default function OfficialV3Client() {
     }
   };
 
-  // Scanner Action
-  const triggerShutter = () => {
-    if (isScanning) return;
-    setIsScanning(true);
-    showToast("AI Scanning: Detecting produce & freshness...");
-    setTimeout(() => {
-      setIsScanning(false);
-      setShowPopOutCard(true);
-      showToast("Detected: Fresh Sweet Corn (98% match)!");
-    }, 1200);
-  };
-
-  const handleConfirmAddPopOut = () => {
-    setShowPopOutCard(false);
-    showToast(`Sweet Corn (${popPortion} ${popUnit}) added to Pantry!`);
-    setActiveTab("pantry");
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-[#E0E5EC] font-['Plus_Jakarta_Sans',sans-serif] text-[#3D4852] select-none">
       
@@ -252,7 +457,7 @@ export default function OfficialV3Client() {
         {/* ========================================================= */}
         {activeTab === "pantry" && (
           <>
-            {/* Top Bar - Exactly 1:1 with view4-isolated.html */}
+            {/* Top Bar with Fullscreen Toggle Button + Search */}
             <header className="h-16 px-3 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
@@ -267,14 +472,28 @@ export default function OfficialV3Client() {
                 </div>
               </div>
 
-              <button
-                className="w-10 h-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer"
-                title="Search"
-                type="button"
-                onClick={() => showToast("Search index loaded (14 items)")}
-              >
-                <span className="material-symbols-outlined text-base">search</span>
-              </button>
+              {/* Header Right Actions: Fullscreen Toggle & Search */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleFullscreen}
+                  className="w-10 h-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer"
+                  title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {isFullscreen ? "fullscreen_exit" : "fullscreen"}
+                  </span>
+                </button>
+
+                <button
+                  className="w-10 h-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer"
+                  title="Search"
+                  type="button"
+                  onClick={() => showToast("Coming Soon: Search")}
+                >
+                  <span className="material-symbols-outlined text-base">search</span>
+                </button>
+              </div>
             </header>
 
             {/* Main Scrollable Content */}
@@ -295,7 +514,7 @@ export default function OfficialV3Client() {
                   </span>
                 </div>
 
-                {/* Full-Width Stored Items Sunken Well: STORED ITEMS on left, 14 on right */}
+                {/* Full-Width Stored Items Sunken Well: STORED ITEMS on left, count on right */}
                 <div className="w-full neo-sunken rounded-xl py-2.5 px-4 flex items-center justify-between">
                   <span className="text-xs font-black uppercase tracking-wider text-muted">STORED ITEMS</span>
                   <span className="text-base font-extrabold text-foreground tracking-tight" id="pantryTotalItemsCount">
@@ -305,9 +524,9 @@ export default function OfficialV3Client() {
 
                 {/* Action Buttons Row: Dark Green with White Icon & Text + Tactile Shadow */}
                 <div className="grid grid-cols-2 gap-2.5">
-                  {/* Left: Generate Meals */}
+                  {/* Left: Generate Meals -> Says Coming Soon */}
                   <button
-                    onClick={() => showToast(`Generating AI zero-waste recipes from ${cards.length} items...`)}
+                    onClick={() => showToast("Coming Soon: Generate Meals")}
                     className="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
                     style={{
                       boxShadow: "4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9)",
@@ -499,7 +718,7 @@ export default function OfficialV3Client() {
                   )}
                 </div>
 
-                {/* Right: Sort & Grid View Toggle */}
+                {/* Right: Sort & Grid View Toggle (Removed Expiring Soon) */}
                 <div className="flex items-center gap-2">
                   <div className="relative" onClick={(e) => e.stopPropagation()}>
                     <button
@@ -517,41 +736,19 @@ export default function OfficialV3Client() {
                     {isSortMenuOpen && (
                       <div className="absolute right-0 top-10 w-44 py-1.5 rounded-2xl neo-raised bg-[#E0E5EC] shadow-2xl flex flex-col gap-0.5 z-50">
                         <div className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-muted">Sort By</div>
-                        <button
-                          onClick={() => {
-                            setSelectedSort("expiry");
-                            setIsSortMenuOpen(false);
-                            showToast("Sorted by: Expiring Soon");
-                          }}
-                          className="flex items-center justify-between px-3 py-2 text-xs font-bold text-[#004730] bg-white/40 rounded-xl mx-1 cursor-pointer"
-                          type="button"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm">hourglass_top</span>
-                            <span>Expiring Soon</span>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedSort("name");
-                            setIsSortMenuOpen(false);
-                            showToast("Sorted by: Item Name (A-Z)");
-                          }}
-                          className="flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 cursor-pointer"
-                          type="button"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm">sort_by_alpha</span>
-                            <span>Item Name (A-Z)</span>
-                          </div>
-                        </button>
+                        
+                        {/* Recently Added */}
                         <button
                           onClick={() => {
                             setSelectedSort("recent");
                             setIsSortMenuOpen(false);
                             showToast("Sorted by: Recently Added");
                           }}
-                          className="flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 cursor-pointer"
+                          className={`flex items-center justify-between px-3 py-2 text-xs rounded-xl mx-1 cursor-pointer ${
+                            selectedSort === "recent"
+                              ? "font-bold text-[#004730] bg-white/40"
+                              : "font-medium text-foreground hover:bg-white/50"
+                          }`}
                           type="button"
                         >
                           <div className="flex items-center gap-2">
@@ -559,13 +756,39 @@ export default function OfficialV3Client() {
                             <span>Recently Added</span>
                           </div>
                         </button>
+
+                        {/* Item Name (A-Z) */}
+                        <button
+                          onClick={() => {
+                            setSelectedSort("name");
+                            setIsSortMenuOpen(false);
+                            showToast("Sorted by: Item Name (A-Z)");
+                          }}
+                          className={`flex items-center justify-between px-3 py-2 text-xs rounded-xl mx-1 cursor-pointer ${
+                            selectedSort === "name"
+                              ? "font-bold text-[#004730] bg-white/40"
+                              : "font-medium text-foreground hover:bg-white/50"
+                          }`}
+                          type="button"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm">sort_by_alpha</span>
+                            <span>Item Name (A-Z)</span>
+                          </div>
+                        </button>
+
+                        {/* Quantity / Portion */}
                         <button
                           onClick={() => {
                             setSelectedSort("qty");
                             setIsSortMenuOpen(false);
                             showToast("Sorted by: Quantity");
                           }}
-                          className="flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-white/50 rounded-xl mx-1 cursor-pointer"
+                          className={`flex items-center justify-between px-3 py-2 text-xs rounded-xl mx-1 cursor-pointer ${
+                            selectedSort === "qty"
+                              ? "font-bold text-[#004730] bg-white/40"
+                              : "font-medium text-foreground hover:bg-white/50"
+                          }`}
                           type="button"
                         >
                           <div className="flex items-center gap-2">
@@ -612,21 +835,34 @@ export default function OfficialV3Client() {
                     className="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2"
                   >
                     <div className="card-media-row flex items-center gap-3">
-                      <div className="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative">
+                      {/* Clickable Card Photo Box: Opens View Picture & Info Modal */}
+                      <div
+                        onClick={() => setSelectedItemForDetail(card)}
+                        className="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative cursor-pointer group active:scale-95 transition-all"
+                        title="Click to view full picture & details"
+                      >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={card.photoUrl}
                           alt={card.name}
-                          className="w-full h-full object-cover rounded-lg"
+                          className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform"
                         />
-                        <div className="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px]">
+                        <div className="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px] shadow-sm">
                           {card.emoji}
+                        </div>
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="material-symbols-outlined text-white text-base drop-shadow-md">zoom_in</span>
                         </div>
                       </div>
 
                       <div className="card-info-box flex flex-col min-w-0 flex-1">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-extrabold text-foreground truncate">{card.name}</h4>
+                          <h4
+                            onClick={() => setSelectedItemForDetail(card)}
+                            className="text-xs font-extrabold text-foreground truncate cursor-pointer hover:text-[#004730]"
+                          >
+                            {card.name}
+                          </h4>
                           <button
                             onClick={() => setCardToDelete(card)}
                             className="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer"
@@ -640,7 +876,7 @@ export default function OfficialV3Client() {
                       </div>
                     </div>
 
-                    {/* Stepper Row: Flat Quantifier on Left, Uniform flex-1 Sunken Number on Right */}
+                    {/* Stepper Row: Flat Quantifier on Left, Stepper Controls with Exact Height on Right */}
                     <div className="card-stepper-row flex items-center justify-between pt-1 border-t border-black/5">
                       <button
                         type="button"
@@ -661,9 +897,12 @@ export default function OfficialV3Client() {
                         >
                           <span className="material-symbols-outlined text-xs font-black text-rose-600">remove</span>
                         </button>
-                        <div className="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+                        
+                        {/* Number Block: Set to exact h-7 (same height/thickness as the w-7 h-7 buttons) */}
+                        <div className="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
                           <span className="portion-val text-xs font-extrabold text-foreground">{card.qty}</span>
                         </div>
+
                         <button
                           onClick={() => adjustCardQty(card.id, 1)}
                           className="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer"
@@ -687,7 +926,7 @@ export default function OfficialV3Client() {
         {/* ========================================================= */}
         {activeTab === "scanner" && (
           <>
-            {/* Header with Stack Back Button & Context Title */}
+            {/* Header with Stack Back Button, Context Title & Fullscreen Button */}
             <header className="w-full z-20 neo-bar-top backdrop-blur-md rounded-t-[32px] shrink-0">
               <div className="h-16 px-3 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -704,7 +943,19 @@ export default function OfficialV3Client() {
                     <span className="text-[9px] text-[#004730] uppercase font-bold tracking-wider">ZeroWaste Kitchen</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={toggleFullscreen}
+                    className="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer"
+                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      {isFullscreen ? "fullscreen_exit" : "fullscreen"}
+                    </span>
+                  </button>
+
                   <button
                     aria-label="Go to Pantry"
                     className="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-muted hover:text-foreground active:scale-95 transition-transform cursor-pointer"
@@ -726,22 +977,20 @@ export default function OfficialV3Client() {
                   <div className="flex items-center gap-2">
                     <button
                       aria-label="Toggle Torch"
-                      onClick={() => {
-                        setTorchOn(!torchOn);
-                        showToast(torchOn ? "Torch deactivated" : "Torch activated");
-                      }}
+                      onClick={toggleTorch}
                       className={`h-10 w-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                        torchOn ? "neo-sunken text-[#004730]" : "neo-raised-sm text-foreground"
+                        isTorchOn ? "neo-sunken text-[#004730]" : "neo-raised-sm text-foreground"
                       }`}
                       type="button"
                     >
                       <span className="material-symbols-outlined text-lg">
-                        {torchOn ? "flash_on" : "flash_off"}
+                        {isTorchOn ? "flash_on" : "flash_off"}
                       </span>
                     </button>
+
                     <button
                       aria-label="Switch Camera"
-                      onClick={() => showToast("Flipping sensor to macro mode")}
+                      onClick={toggleCameraFacing}
                       className="h-10 w-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground active:scale-95 transition-all cursor-pointer"
                       type="button"
                     >
@@ -771,16 +1020,31 @@ export default function OfficialV3Client() {
                   </div>
                 </div>
 
-                {/* Viewfinder Frame Section */}
+                {/* Viewfinder Frame Section (Real Camera Feed + Fallback) */}
                 <div className="w-full neo-raised rounded-2xl p-2.5 relative flex flex-col">
-                  <div className="relative w-full rounded-xl overflow-hidden bg-slate-200 shadow-inner aspect-square">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80"
-                      alt="Sweet Corn Live View"
-                      className="w-full h-full object-cover select-none"
+                  <div className="relative w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner aspect-square">
+                    {/* Live Camera Video Stream */}
+                    <video
+                      ref={videoRef}
+                      playsInline
+                      autoPlay
+                      muted
+                      className={`w-full h-full object-cover select-none ${isCameraActive ? "block" : "hidden"}`}
                     />
+
+                    {/* Fallback Camera Preview Image if Camera Not Active */}
+                    {!isCameraActive && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80"
+                        alt="Sweet Corn Live View"
+                        className="w-full h-full object-cover select-none"
+                      />
+                    )}
+
                     <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
+
+                    {/* Viewfinder Reticle with Pulsing Scanning Beam */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl border border-[#006948]/40 animate-reticle">
                         <span className="absolute -top-1 -left-1 w-6 h-6 border-t-2 border-l-2 border-[#006948] rounded-tl-lg"></span>
@@ -792,7 +1056,7 @@ export default function OfficialV3Client() {
                           <div className="w-2 h-2 rounded-full bg-[#006948] ring-4 ring-[#006948]/20"></div>
                         </div>
                         <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[10px] font-bold">
-                          Center 1 ingredient here
+                          {isCameraActive ? "Point camera at ingredient" : "Center 1 ingredient here"}
                         </div>
                       </div>
                     </div>
@@ -807,8 +1071,9 @@ export default function OfficialV3Client() {
                 {/* Bottom Shutter & Mode Action Deck */}
                 <div className="w-full neo-raised rounded-2xl p-4 flex flex-col space-y-4">
                   <div className="w-full neo-sunken rounded-2xl p-3 flex items-center justify-around">
+                    {/* Upload -> Coming Soon */}
                     <button
-                      onClick={() => showToast("Upload Photo from Camera Roll")}
+                      onClick={() => showToast("Coming Soon: Upload from gallery")}
                       className="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-foreground cursor-pointer"
                       type="button"
                     >
@@ -816,6 +1081,7 @@ export default function OfficialV3Client() {
                       <span className="text-[10px] font-semibold text-muted">Upload</span>
                     </button>
 
+                    {/* Central Shutter Button: Green Background + White Icon */}
                     <div className="flex flex-col items-center">
                       <div className="relative w-20 h-20 flex items-center justify-center">
                         <div className="absolute inset-0 rounded-full flex items-center justify-center pointer-events-none">
@@ -829,13 +1095,13 @@ export default function OfficialV3Client() {
                               cy="40"
                               r="34"
                               fill="none"
-                              stroke="url(#shutterGradV3)"
+                              stroke="url(#shutterGradV3b)"
                               strokeWidth="4.5"
                               strokeLinecap="round"
                               strokeDasharray="140 75"
                             />
                             <defs>
-                              <linearGradient id="shutterGradV3" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <linearGradient id="shutterGradV3b" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stopColor="#004730" />
                                 <stop offset="50%" stopColor="#00855D" />
                                 <stop offset="100%" stopColor="#38B2AC" />
@@ -844,15 +1110,18 @@ export default function OfficialV3Client() {
                           </svg>
                         </div>
 
-                        {/* Central Shutter Button */}
+                        {/* Central AI Scan Shutter Button: Green Background with White Camera Icon */}
                         <button
                           onClick={triggerShutter}
                           disabled={isScanning}
-                          className="relative z-10 h-14 w-14 rounded-full bg-[#E0E5EC] flex items-center justify-center neo-raised-sm active:scale-90 transition-all cursor-pointer"
+                          className="relative z-10 h-14 w-14 rounded-full bg-[#004730] flex items-center justify-center shadow-lg active:scale-90 transition-all cursor-pointer group"
+                          style={{
+                            boxShadow: "4px 4px 12px rgba(0, 71, 48, 0.45), -2px -2px 8px rgba(255, 255, 255, 0.7)",
+                          }}
                           type="button"
                           title="Snap & Identify"
                         >
-                          <span className="material-symbols-outlined text-[#006948] text-3xl font-bold">
+                          <span className="material-symbols-outlined text-white text-3xl font-bold group-hover:scale-105 transition-transform">
                             photo_camera
                           </span>
                         </button>
@@ -862,8 +1131,9 @@ export default function OfficialV3Client() {
                       </span>
                     </div>
 
+                    {/* Manual -> Coming Soon */}
                     <button
-                      onClick={() => showToast("Manual ingredient logging modal")}
+                      onClick={() => showToast("Coming Soon: Manual ingredient entry")}
                       className="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-foreground cursor-pointer"
                       type="button"
                     >
@@ -872,6 +1142,7 @@ export default function OfficialV3Client() {
                     </button>
                   </div>
 
+                  {/* Secondary Pills */}
                   <div className="flex items-center gap-2">
                     <button
                       className="flex-1 py-2.5 px-3 rounded-full neo-sunken text-[11px] font-semibold text-muted opacity-75 flex items-center justify-center gap-1.5 cursor-not-allowed"
@@ -881,8 +1152,10 @@ export default function OfficialV3Client() {
                       <span className="material-symbols-outlined text-base opacity-60">barcode_scanner</span>
                       <span>Coming Soon</span>
                     </button>
+
+                    {/* Scan Receipt -> Coming Soon */}
                     <button
-                      onClick={() => showToast("Opening Receipt OCR scanner")}
+                      onClick={() => showToast("Coming Soon: Scan Receipt OCR")}
                       className="flex-1 py-2.5 px-3 rounded-full neo-raised-sm text-[11px] font-semibold text-foreground hover:text-[#004730] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                       type="button"
                     >
@@ -906,7 +1179,7 @@ export default function OfficialV3Client() {
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full neo-sunken text-[#006948] text-xs font-black">
                       <span className="material-symbols-outlined text-sm font-bold">verified</span>
-                      98% Match &bull; Cameron Highlands
+                      {detectedConfidence}% Match &bull; {detectedSubtitle}
                     </span>
                     <button
                       onClick={() => setShowPopOutCard(false)}
@@ -922,16 +1195,18 @@ export default function OfficialV3Client() {
                     <div className="w-16 h-16 rounded-2xl neo-sunken p-1 shrink-0 overflow-hidden relative">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=300&q=80"
-                        alt="Sweet Corn"
+                        src={capturedPhotoUrl}
+                        alt={detectedItemName}
                         className="w-full h-full object-cover rounded-xl"
                       />
-                      <div className="absolute top-1 left-1 bg-white/90 rounded-full w-5 h-5 flex items-center justify-center text-[10px]">🌽</div>
+                      <div className="absolute top-1 left-1 bg-white/90 rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+                        {detectedEmoji}
+                      </div>
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <h2 className="text-base font-extrabold text-foreground tracking-tight">Fresh Sweet Corn</h2>
-                      <span className="text-xs text-muted font-medium">Jagung Manis &bull; Produce</span>
-                      <span className="text-[10px] text-emerald-800 font-bold mt-0.5">High Quality &bull; Crispy &amp; Sweet</span>
+                      <h2 className="text-base font-extrabold text-foreground tracking-tight">{detectedItemName}</h2>
+                      <span className="text-xs text-muted font-medium">{detectedMalayName} &bull; {detectedCategory}</span>
+                      <span className="text-[10px] text-emerald-800 font-bold mt-0.5">High Quality &bull; Fresh &amp; Ready</span>
                     </div>
                   </div>
 
@@ -951,7 +1226,8 @@ export default function OfficialV3Client() {
                         <span className="material-symbols-outlined text-base font-black text-rose-600">remove</span>
                       </button>
 
-                      <div className="neo-sunken rounded-full py-1 px-3 min-w-[36px] text-center flex items-center justify-center">
+                      {/* Number Well: same height as buttons */}
+                      <div className="h-8 min-h-[32px] max-h-[32px] neo-sunken rounded-full px-3 min-w-[36px] text-center flex items-center justify-center">
                         <span className="text-xs font-extrabold text-foreground">{popPortion}</span>
                       </div>
 
@@ -1032,7 +1308,7 @@ export default function OfficialV3Client() {
                     <button
                       onClick={() => {
                         setShowPopOutCard(false);
-                        showToast("Scan next item...");
+                        showToast("Point camera at next ingredient...");
                       }}
                       className="py-2.5 px-3 rounded-full neo-raised-sm text-xs font-bold text-[#004730] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                       type="button"
@@ -1113,9 +1389,7 @@ export default function OfficialV3Client() {
         )}
 
         {/* ========================================================= */}
-        {/* BOTTOM NAV: FROM THE VERCEL SYSTEM (As User Requested)     */}
-        {/* "everything except for the bttom nav, should be exactly   */}
-        {/* the same"                                                 */}
+        {/* BOTTOM NAV: FROM THE VERCEL SYSTEM                        */}
         {/* ========================================================= */}
         <nav className="mt-2 mb-1 mx-1 h-16 px-1.5 rounded-3xl bg-[#E0E5EC] neo-raised grid grid-cols-4 items-center gap-1 shrink-0 z-40 border-0">
           {/* 1. Scanner Tab */}
@@ -1188,7 +1462,82 @@ export default function OfficialV3Client() {
         {/* POPUPS & MODALS: EXACTLY FROM THE HTML                    */}
         {/* ========================================================= */}
         
-        {/* Floating Quantifier Dropdown Sheet for Pantry Cards */}
+        {/* 1. Item Picture & Info Modal (User Requirement #4) */}
+        {selectedItemForDetail && (
+          <div
+            className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-opacity animate-pop-up"
+            onClick={() => setSelectedItemForDetail(null)}
+          >
+            <div
+              className="w-full max-w-[340px] rounded-[32px] neo-raised bg-[#E0E5EC] p-5 flex flex-col gap-4 shadow-2xl relative max-h-[85vh] overflow-y-auto no-scrollbar"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedItemForDetail(null)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-foreground active:scale-90 transition-all cursor-pointer z-10"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-base">close</span>
+              </button>
+
+              {/* Large Image View */}
+              <div className="w-full h-48 rounded-2xl neo-sunken p-1 overflow-hidden relative shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={selectedItemForDetail.photoUrl}
+                  alt={selectedItemForDetail.name}
+                  className="w-full h-full object-cover rounded-xl"
+                />
+                <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full bg-white/95 text-xs font-black shadow-md flex items-center gap-1 text-slate-800">
+                  <span>{selectedItemForDetail.emoji}</span>
+                  <span className="capitalize">{selectedItemForDetail.category}</span>
+                </div>
+              </div>
+
+              {/* Ingredient Title & Details */}
+              <div className="flex flex-col gap-1 text-left">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-extrabold text-foreground tracking-tight">
+                    {selectedItemForDetail.name}
+                  </h3>
+                  <span className="text-xs font-black px-2.5 py-0.5 rounded-full neo-sunken text-[#004730]">
+                    {selectedItemForDetail.qty} {selectedItemForDetail.unit}
+                  </span>
+                </div>
+                <span className="text-xs font-semibold text-muted">
+                  {selectedItemForDetail.nameMalay}
+                </span>
+                <span className="text-[11px] font-medium text-emerald-800 mt-0.5">
+                  {selectedItemForDetail.subtitle}
+                </span>
+              </div>
+
+              {/* Culinary & Storage Info Box */}
+              <div className="p-3.5 rounded-2xl neo-sunken text-left flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#004730]">
+                  <span className="material-symbols-outlined text-sm">info</span>
+                  <span>Culinary Notes &amp; Storage</span>
+                </div>
+                <p className="text-[11px] text-muted leading-relaxed font-normal">
+                  {selectedItemForDetail.culinaryNote ||
+                    "Fresh Malaysian kitchen staple. Keep refrigerated or stored in a cool dry pantry shelf to preserve maximum freshness."}
+                </p>
+              </div>
+
+              {/* Close CTA */}
+              <button
+                onClick={() => setSelectedItemForDetail(null)}
+                className="w-full py-3 rounded-2xl bg-[#004730] text-white text-xs font-black active:scale-95 transition-all shadow-md cursor-pointer"
+                type="button"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 2. Floating Quantifier Dropdown Sheet for Pantry Cards */}
         {activeUnitCardId && (
           <div
             className="absolute inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-xs"
@@ -1225,7 +1574,7 @@ export default function OfficialV3Client() {
           </div>
         )}
 
-        {/* Floating Quantifier Dropdown Sheet for Pop-Out Card */}
+        {/* 3. Floating Quantifier Dropdown Sheet for Pop-Out Card */}
         {isPopUnitOpen && (
           <div
             className="absolute inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-xs"
@@ -1266,7 +1615,7 @@ export default function OfficialV3Client() {
           </div>
         )}
 
-        {/* Neumorphic Delete Confirmation Modal */}
+        {/* 4. Neumorphic Delete Confirmation Modal */}
         {cardToDelete && (
           <div className="absolute inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-xs transition-opacity">
             <div className="w-full max-w-[300px] rounded-3xl neo-raised bg-[#E0E5EC] p-5 flex flex-col items-center text-center gap-3.5 shadow-2xl">
@@ -1302,7 +1651,7 @@ export default function OfficialV3Client() {
 
         {/* Toast Notification Pill */}
         {toastMsg && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-full bg-slate-900/90 text-white text-xs font-bold shadow-2xl flex items-center gap-2 z-50 animate-pop-up">
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-full bg-slate-900/95 text-white text-xs font-bold shadow-2xl flex items-center gap-2 z-50 animate-pop-up border border-white/10">
             <span className="material-symbols-outlined text-emerald-400 text-base">check_circle</span>
             <span>{toastMsg}</span>
           </div>

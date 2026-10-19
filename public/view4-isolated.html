@@ -138,9 +138,14 @@
         </div>
       </div>
 
-      <button class="w-10 h-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-primary active:scale-95 transition-all" title="Search">
-        <span class="material-symbols-outlined text-base">search</span>
-      </button>
+      <div class="flex items-center gap-1.5">
+        <button id="fullscreenToggleBtn" onclick="toggleFullscreen()" class="w-10 h-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer" title="Toggle Fullscreen">
+          <span class="material-symbols-outlined text-base" id="fullscreenIcon">fullscreen</span>
+        </button>
+        <button onclick="showToast('Coming Soon: Search')" class="w-10 h-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer" title="Search">
+          <span class="material-symbols-outlined text-base">search</span>
+        </button>
+      </div>
     </header>
 
     <!-- Main Scrollable Content -->
@@ -170,7 +175,7 @@
         <!-- Action Buttons Row: Dark Green with White Icon & Text + Tactile Shadow -->
         <div class="grid grid-cols-2 gap-2.5">
           <!-- Left: Generate Meals (Dark Green with White Icon/Text + Tactile Shadow) -->
-          <button onclick="triggerGenerateMeals()" class="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
+          <button onclick="showToast('Coming Soon: Generate Meals')" class="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
             style="box-shadow: 4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9);"
             title="Generate Meals">
             <span class="material-symbols-outlined text-base font-bold text-white group-hover:rotate-12 transition-transform">auto_awesome</span>
@@ -340,7 +345,7 @@
               <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
                 <span class="material-symbols-outlined text-xs font-bold">remove</span>
               </button>
-              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+              <div class="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
                 <span class="portion-val text-xs font-extrabold text-foreground">2</span>
               </div>
               <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
@@ -382,7 +387,7 @@
               <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
                 <span class="material-symbols-outlined text-xs font-bold">remove</span>
               </button>
-              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+              <div class="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
                 <span class="portion-val text-xs font-extrabold text-foreground">1</span>
               </div>
               <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
@@ -424,7 +429,7 @@
               <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
                 <span class="material-symbols-outlined text-xs font-bold">remove</span>
               </button>
-              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+              <div class="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
                 <span class="portion-val text-xs font-extrabold text-foreground">3</span>
               </div>
               <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
@@ -461,7 +466,7 @@
               <button onclick="changePortion(this, -50)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
                 <span class="material-symbols-outlined text-xs font-bold">remove</span>
               </button>
-              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+              <div class="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
                 <span class="portion-val text-xs font-extrabold text-foreground">500</span>
               </div>
               <button onclick="changePortion(this, 50)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
@@ -498,7 +503,7 @@
               <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
                 <span class="material-symbols-outlined text-xs font-bold">remove</span>
               </button>
-              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+              <div class="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
                 <span class="portion-val text-xs font-extrabold text-foreground">1</span>
               </div>
               <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
@@ -535,7 +540,7 @@
               <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
                 <span class="material-symbols-outlined text-xs font-bold">remove</span>
               </button>
-              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+              <div class="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
                 <span class="portion-val text-xs font-extrabold text-foreground">2</span>
               </div>
               <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
@@ -572,7 +577,7 @@
               <button onclick="changePortion(this, -1)" class="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer">
                 <span class="material-symbols-outlined text-xs font-bold">remove</span>
               </button>
-              <div class="neo-sunken rounded-full py-0.5 px-2 flex-1 text-center flex items-center justify-center">
+              <div class="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
                 <span class="portion-val text-xs font-extrabold text-foreground">1</span>
               </div>
               <button onclick="changePortion(this, 1)" class="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer">
@@ -591,6 +596,51 @@
     <div class="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-full bg-slate-800 text-white text-xs font-bold shadow-xl flex items-center gap-2 transition-all duration-300 z-50 opacity-0 pointer-events-none" id="scanner-toast">
       <span class="material-symbols-outlined text-emerald-400 text-base">check_circle</span>
       <span id="toast-message">Camera ready</span>
+    </div>
+
+    <!-- Item Detail & Info Modal (User Requirement #4) -->
+    <div id="itemDetailModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-opacity duration-200" onclick="closeCardDetail()">
+      <div class="w-full max-w-[340px] rounded-[32px] neo-raised bg-[#E0E5EC] p-5 flex flex-col gap-3.5 shadow-2xl relative max-h-[85vh] overflow-y-auto no-scrollbar" onclick="event.stopPropagation()">
+        <!-- Close Button -->
+        <button onclick="closeCardDetail()" class="absolute top-4 right-4 w-8 h-8 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-foreground active:scale-90 transition-all cursor-pointer z-10" type="button">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+
+        <!-- Enlarged Ingredient Photo -->
+        <div class="w-full h-44 rounded-2xl neo-sunken p-1 overflow-hidden relative shrink-0">
+          <img id="detailModalPhoto" src="" alt="Ingredient" class="w-full h-full object-cover rounded-xl" />
+          <div class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full bg-white/95 text-xs font-black shadow-md flex items-center gap-1 text-slate-800">
+            <span id="detailModalEmoji">🥬</span>
+            <span id="detailModalCategory" class="capitalize">Produce</span>
+          </div>
+        </div>
+
+        <!-- Ingredient Title & Details -->
+        <div class="flex flex-col gap-1 text-left">
+          <div class="flex items-center justify-between">
+            <h3 id="detailModalName" class="text-base font-extrabold text-foreground tracking-tight">Ingredient Name</h3>
+            <span id="detailModalQty" class="text-xs font-black px-2.5 py-0.5 rounded-full neo-sunken text-[#004730]">1 unit</span>
+          </div>
+          <span id="detailModalMalay" class="text-xs font-semibold text-muted">Malay Name</span>
+          <span id="detailModalSubtitle" class="text-[11px] font-medium text-emerald-800 mt-0.5">Origin & Storage info</span>
+        </div>
+
+        <!-- Culinary & Storage Info Box -->
+        <div class="p-3.5 rounded-2xl neo-sunken text-left flex flex-col gap-1.5">
+          <div class="flex items-center gap-1.5 text-xs font-extrabold text-[#004730]">
+            <span class="material-symbols-outlined text-sm">restaurant</span>
+            <span>Chef's Zero-Waste Notes</span>
+          </div>
+          <p id="detailModalNote" class="text-[11px] text-muted leading-relaxed font-normal">
+            Fresh Malaysian kitchen staple. Keep refrigerated or stored in a cool dry pantry shelf to preserve maximum freshness.
+          </p>
+        </div>
+
+        <!-- Close CTA -->
+        <button onclick="closeCardDetail()" class="w-full py-3 rounded-2xl bg-[#004730] text-white text-xs font-black active:scale-95 transition-all shadow-md cursor-pointer" type="button">
+          Done
+        </button>
+      </div>
     </div>
 
     <!-- Neumorphic Delete Confirmation Modal -->
@@ -984,6 +1034,121 @@
       let cur = parseInt(valEl.textContent) || 0;
       let next = Math.max(1, cur + delta);
       valEl.textContent = next;
+    }
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      const icon = document.getElementById('fullscreenIcon');
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        if (icon) icon.textContent = 'fullscreen_exit';
+        showToast('Entered Fullscreen');
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+        if (icon) icon.textContent = 'fullscreen';
+        showToast('Exited Fullscreen');
+      }
+    }
+    document.addEventListener('fullscreenchange', () => {
+      const icon = document.getElementById('fullscreenIcon');
+      if (icon) {
+        icon.textContent = document.fullscreenElement ? 'fullscreen_exit' : 'fullscreen';
+      }
+    });
+
+    // Detail Modal Logic (User Requirement #4)
+    const PANTRY_ITEM_DETAILS = {
+      "Sweet Corn": {
+        nameMalay: "Jagung Manis",
+        note: "Fresh Cameron Highlands sweet corn. Crispy, sweet, and rich in fiber. Best for corn soup, grilling with butter, or steamed as a quick snack."
+      },
+      "Baby Spinach": {
+        nameMalay: "Bayam Hijau",
+        note: "Fresh crisp green leaves from local farm. Packed with iron, folate, and vitamins. Ideal for stir-fried Bayam with garlic or wholesome soups."
+      },
+      "Lemon": {
+        nameMalay: "Lemon Segar",
+        note: "Juicy citrus with vibrant acidity. Essential for balancing rich sambals, dressings, detox teas, and marinating fish or seafood."
+      },
+      "Chicken Breast": {
+        nameMalay: "Dada Ayam Segar",
+        note: "Lean fresh poultry breast. Low fat, high protein. Great for Ayam Goreng Kunyit, shredded chicken soup, or healthy meal-prep bowls."
+      },
+      "Coconut Milk": {
+        nameMalay: "Santan Kelapa Segar",
+        note: "Creamy first-press coconut milk. Indispensable base for Malaysian curries, rendang, masak lemak cili api, and traditional kuih-muih."
+      },
+      "Bird's Eye Chili": {
+        nameMalay: "Cili Padi Kampung",
+        note: "Fiery small chilies with intense heat. The cornerstone of Malaysian sambals, dipping kicap, tom yum, and spicy stir-fries."
+      },
+      "Ginger Root": {
+        nameMalay: "Halia Tua",
+        note: "Aromatic warming rhizome. Digestive aid and flavor enhancer for poultry marinades, ginger chicken, soups, and traditional herbal broths."
+      }
+    };
+
+    function openCardDetail(el) {
+      const card = el.closest('article');
+      if (!card) return;
+      const name = card.getAttribute('data-name') || 'Ingredient';
+      const cat = card.getAttribute('data-category') || 'produce';
+      const qty = card.querySelector('.portion-val') ? card.querySelector('.portion-val').textContent : '1';
+      const unit = card.querySelector('.portion-unit') ? card.querySelector('.portion-unit').textContent : 'unit';
+      const imgEl = card.querySelector('.card-photo-box img');
+      const photoUrl = imgEl ? imgEl.src : 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80';
+      const emojiEl = card.querySelector('.card-photo-box div');
+      const emoji = emojiEl ? emojiEl.textContent : '🥬';
+      const subtitleEl = card.querySelector('.card-info-box span');
+      const subtitle = subtitleEl ? subtitleEl.textContent : 'Fresh kitchen stock';
+
+      const info = PANTRY_ITEM_DETAILS[name] || {
+        nameMalay: name,
+        note: "Fresh Malaysian kitchen staple. Keep refrigerated or stored in a cool dry pantry shelf to preserve maximum freshness."
+      };
+
+      const photo = document.getElementById('detailModalPhoto');
+      if (photo) {
+        photo.src = photoUrl;
+        photo.alt = name;
+      }
+      const emojiTarget = document.getElementById('detailModalEmoji');
+      if (emojiTarget) emojiTarget.textContent = emoji;
+      const catTarget = document.getElementById('detailModalCategory');
+      if (catTarget) catTarget.textContent = cat;
+      const nameTarget = document.getElementById('detailModalName');
+      if (nameTarget) nameTarget.textContent = name;
+      const malayTarget = document.getElementById('detailModalMalay');
+      if (malayTarget) malayTarget.textContent = info.nameMalay;
+      const qtyTarget = document.getElementById('detailModalQty');
+      if (qtyTarget) qtyTarget.textContent = `${qty} ${unit}`;
+      const subTarget = document.getElementById('detailModalSubtitle');
+      if (subTarget) subTarget.textContent = subtitle;
+      const noteTarget = document.getElementById('detailModalNote');
+      if (noteTarget) noteTarget.textContent = info.note;
+
+      const modal = document.getElementById('itemDetailModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeCardDetail() {
+      const modal = document.getElementById('itemDetailModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    // Attach click listener to all card thumbnails & titles
+    function setupCardClicks() {
+      document.querySelectorAll('.card-photo-box, .card-info-box h4').forEach(el => {
+        el.classList.add('cursor-pointer');
+        el.onclick = () => openCardDetail(el);
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupCardClicks);
+    } else {
+      setupCardClicks();
     }
 
     // Toast Messenger
