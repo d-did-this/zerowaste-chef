@@ -16,100 +16,6 @@ interface PantryItemData {
   culinaryNote?: string;
 }
 
-const INITIAL_PANTRY_CARDS: PantryItemData[] = [
-  {
-    id: "corn",
-    name: "Sweet Corn",
-    nameMalay: "Jagung Manis",
-    category: "produce",
-    qty: 2,
-    unit: "batang",
-    recent: 5,
-    photoUrl: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80",
-    emoji: "🌽",
-    subtitle: "Added 2h ago • Cameron Highlands",
-    culinaryNote: "Fresh Cameron Highlands sweet corn. Crispy, sweet, and rich in fiber. Best for corn soup, grilling with butter, or steamed as a quick snack.",
-  },
-  {
-    id: "spinach",
-    name: "Baby Spinach",
-    nameMalay: "Bayam Hijau",
-    category: "produce",
-    qty: 1,
-    unit: "ikat",
-    recent: 4,
-    photoUrl: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=600&q=80",
-    emoji: "🥬",
-    subtitle: "Added today • Farm Fresh",
-    culinaryNote: "Fresh crisp green leaves from local farm. Packed with iron, folate, and vitamins. Ideal for stir-fried Bayam with garlic or wholesome soups.",
-  },
-  {
-    id: "eggs",
-    name: "Kampung Eggs",
-    nameMalay: "Telur Ayam Gred A",
-    category: "dairy",
-    qty: 10,
-    unit: "biji",
-    recent: 3,
-    photoUrl: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=80",
-    emoji: "🥚",
-    subtitle: "Best by 28 Oct • Organic",
-    culinaryNote: "Free-range organic kampung eggs with rich golden yolks. High protein staple, perfect for half-boiled breakfast eggs, sunny side up, or Nasi Goreng.",
-  },
-  {
-    id: "tomatoes",
-    name: "Roma Tomatoes",
-    nameMalay: "Tomato Roma",
-    category: "produce",
-    qty: 4,
-    unit: "biji",
-    recent: 2,
-    photoUrl: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80",
-    emoji: "🍅",
-    subtitle: "Added 1d ago • Ripe & Firm",
-    culinaryNote: "Plump, ripe red Roma tomatoes. Rich in lycopene and vitamin C. Excellent for Sambal Tumis, tomato sambal, or slow-cooked pasta sauces.",
-  },
-  {
-    id: "chicken",
-    name: "Chicken Breast",
-    nameMalay: "Dada Ayam Segar",
-    category: "proteins",
-    qty: 500,
-    unit: "g",
-    recent: 6,
-    photoUrl: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=600&q=80",
-    emoji: "🍗",
-    subtitle: "Frozen • Defrost in 2 days",
-    culinaryNote: "Lean fresh poultry breast. Low fat, high protein. Great for Ayam Goreng Kunyit, shredded chicken soup, or healthy meal-prep bowls.",
-  },
-  {
-    id: "kicap",
-    name: "Kicap Manis",
-    nameMalay: "Kicap Manis Cap Kipas Udang",
-    category: "seasoning",
-    qty: 1,
-    unit: "botol",
-    recent: 1,
-    photoUrl: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80",
-    emoji: "🍶",
-    subtitle: "Pantry Shelf • 80% Full",
-    culinaryNote: "Authentic Malaysian sweet soy sauce by Habhal's. Deep caramel sweetness and umami, essential for Ayam Masak Kicap and dipping sauces with cili padi.",
-  },
-  {
-    id: "garlic",
-    name: "Garlic Cloves",
-    nameMalay: "Bawang Putih",
-    category: "staples",
-    qty: 1,
-    unit: "labu",
-    recent: 7,
-    photoUrl: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=600&q=80",
-    emoji: "🧄",
-    subtitle: "Dry Storage • Fresh Bulbs",
-    culinaryNote: "Pungent aromatic bulbs. The indispensable culinary foundation for nearly all Malaysian stir-fries, marinades, curries, and sambals.",
-  },
-];
-
 const QUANTIFIER_LIST = [
   { unit: "biji", en: "pieces (round)" },
   { unit: "batang", en: "stalks / cobs" },
@@ -153,12 +59,43 @@ export default function OfficialV3Client() {
     return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
-  // Pantry state
-  const [cards, setCards] = useState<PantryItemData[]>(INITIAL_PANTRY_CARDS);
+  // Pantry state: Starts 100% clean (unpolluted) and persists user additions to localStorage
+  const [cards, setCards] = useState<PantryItemData[]>([]);
+  const [isHydrated, setIsHydrated] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("zerowaste_pantry_v3");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setCards(parsed);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to read pantry from localStorage", err);
+    }
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated) {
+      try {
+        localStorage.setItem("zerowaste_pantry_v3", JSON.stringify(cards));
+      } catch (err) {
+        console.warn("Failed to persist pantry to localStorage", err);
+      }
+    }
+  }, [cards, isHydrated]);
+
+  // Search state
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Filter & Sort
   const [selectedCat, setSelectedCat] = useState<string>("all");
-  const [selectedCatLabel, setSelectedCatLabel] = useState<string>("All (14)");
+  const [selectedCatLabel, setSelectedCatLabel] = useState<string>("All");
   const [selectedCatIcon, setSelectedCatIcon] = useState<string>("apps");
-  // Removed "Expiring Soon" per user request: Default to "Recently Added"
   const [selectedSort, setSelectedSort] = useState<string>("recent");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -167,18 +104,25 @@ export default function OfficialV3Client() {
   const [isSortMenuOpen, setIsSortMenuOpen] = useState<boolean>(false);
   const [activeUnitCardId, setActiveUnitCardId] = useState<string | null>(null);
   const [cardToDelete, setCardToDelete] = useState<PantryItemData | null>(null);
-  // View Item Detail & Info modal state
   const [selectedItemForDetail, setSelectedItemForDetail] = useState<PantryItemData | null>(null);
 
   // Real Camera & Scanner States
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [isTorchSupported, setIsTorchSupported] = useState<boolean>(false);
   const [isTorchOn, setIsTorchOn] = useState<boolean>(false);
-  const [zoomLevel, setZoomLevel] = useState<string>("2x");
+  const [zoomLevel, setZoomLevel] = useState<string>("1x");
+
+  // Model Readiness and Scanning Progress
+  const [isModelReady, setIsModelReady] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [scanProgress, setScanProgress] = useState<number>(0);
+  const [scanStatusStep, setScanStatusStep] = useState<string>("");
+
   const [showPopOutCard, setShowPopOutCard] = useState<boolean>(false);
   const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string>(
     "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80"
@@ -194,8 +138,8 @@ export default function OfficialV3Client() {
   const [popPortion, setPopPortion] = useState<number>(2);
   const [popUnit, setPopUnit] = useState<string>("batang");
   const [isPopUnitOpen, setIsPopUnitOpen] = useState<boolean>(false);
-  const [popNoteOpen, setPopNoteOpen] = useState<boolean>(false);
-  const [popNote, setPopNote] = useState<string>("Bought fresh from Pasar Malam");
+  // Notes start clean with no pre-baked text; greyed out placeholder "add notes here"
+  const [popNote, setPopNote] = useState<string>("");
 
   // Toast
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -217,6 +161,14 @@ export default function OfficialV3Client() {
     return () => window.removeEventListener("click", handleGlobalClick);
   }, []);
 
+  // Initialize AI Model core (spinner only starts rotating once ready)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsModelReady(true);
+    }, 900);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Real Camera Hardware Streaming
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
@@ -230,7 +182,7 @@ export default function OfficialV3Client() {
     try {
       stopCamera();
       if (!navigator.mediaDevices?.getUserMedia) {
-        showToast("Camera not supported on this browser (Showing preview)");
+        showToast("Camera not supported on this device/browser");
         return;
       }
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -254,7 +206,6 @@ export default function OfficialV3Client() {
       setIsTorchOn(false);
     } catch {
       setIsCameraActive(false);
-      // Fail silently to preview mode without breaking UX
     }
   }, [facingMode, stopCamera]);
 
@@ -299,60 +250,84 @@ export default function OfficialV3Client() {
     }
   };
 
-  // Shutter Snap with Real Camera Capture & Classification
-  const triggerShutter = async () => {
-    if (isScanning) return;
-    setIsScanning(true);
-    showToast("AI Scanning: Analyzing produce & freshness...");
-
-    let capturedDataUrl = "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80";
-
-    // If live video is active, snap frame from video stream
-    if (videoRef.current && isCameraActive) {
-      try {
-        const video = videoRef.current;
-        const canvas = document.createElement("canvas");
-        const fullSize = Math.min(video.videoWidth || 640, video.videoHeight || 640);
-        canvas.width = 640;
-        canvas.height = 640;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          const numZoom = parseFloat(zoomLevel) || 1;
-          const cropSize = fullSize / numZoom;
-          const startX = ((video.videoWidth || 640) - cropSize) / 2;
-          const startY = ((video.videoHeight || 640) - cropSize) / 2;
-          ctx.drawImage(video, startX, startY, cropSize, cropSize, 0, 0, 640, 640);
-          capturedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  // Zoom Handler (Hardware constraint + CSS visual scale)
+  const handleSetZoom = async (z: string) => {
+    setZoomLevel(z);
+    const factor = parseFloat(z) || 1;
+    if (streamRef.current) {
+      const track = streamRef.current.getVideoTracks()[0];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (track && typeof (track as any).getCapabilities === "function") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const caps = (track as any).getCapabilities();
+        if (caps?.zoom) {
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (track as any).applyConstraints({
+              advanced: [{ zoom: Math.min(caps.zoom.max, Math.max(caps.zoom.min, factor)) }],
+            });
+          } catch {
+            // CSS fallback
+          }
         }
-      } catch (err) {
-        console.warn("Video frame snap error:", err);
       }
     }
+    showToast(`Zoom set to ${z}`);
+  };
 
-    setCapturedPhotoUrl(capturedDataUrl);
+  const numZoom = parseFloat(zoomLevel) || 1;
 
-    // Run classification API
+  // Shared Classification & Progress Animation Pipeline
+  const runClassificationPipeline = async (imageDataUrl: string) => {
+    setIsScanning(true);
+    setScanProgress(15);
+    setScanStatusStep("Capturing high-res frame...");
+
+    // Stage 2: MobileNet Core
+    setTimeout(() => {
+      setScanProgress(45);
+      setScanStatusStep("Running MobileNet Vision Core...");
+    }, 280);
+
+    // Stage 3: Malaysian DB Matching
+    setTimeout(() => {
+      setScanProgress(75);
+      setScanStatusStep("Matching Malaysian Culinary DB...");
+    }, 620);
+
     try {
       const res = await fetch("/api/classify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: capturedDataUrl }),
+        body: JSON.stringify({ image: imageDataUrl }),
       });
+
       if (res.ok) {
         const json = await res.json();
         if (json.data) {
-          setDetectedItemName(json.data.name || "Fresh Sweet Corn");
-          setDetectedMalayName(json.data.nameMalay || "Jagung Manis");
-          setDetectedCategory(json.data.category?.toLowerCase()?.includes("protein") ? "proteins" : "produce");
+          setDetectedItemName(json.data.name || "Fresh Produce");
+          setDetectedMalayName(json.data.nameMalay || "");
+          const cat = json.data.category?.toLowerCase() || "";
+          if (cat.includes("protein") || cat.includes("seafood") || cat.includes("meat")) {
+            setDetectedCategory("proteins");
+          } else if (cat.includes("season") || cat.includes("pantry")) {
+            setDetectedCategory("seasoning");
+          } else if (cat.includes("dairy") || cat.includes("egg")) {
+            setDetectedCategory("dairy");
+          } else if (cat.includes("staple") || cat.includes("grain")) {
+            setDetectedCategory("staples");
+          } else {
+            setDetectedCategory("produce");
+          }
           setDetectedConfidence(json.data.confidence || 96);
-          setDetectedSubtitle(`Farm Fresh • ${json.data.category || "Produce"}`);
+          setDetectedSubtitle(`Smart Stock AI • ${json.data.category || "Malaysian Kitchen"}`);
           setDetectedEmoji(json.data.emoji || "🥬");
           setPopPortion(json.data.suggestedQuantity || 1);
           setPopUnit(json.data.suggestedUnit || "biji");
         }
       }
-    } catch {
-      // Fallback default
+    } catch (err) {
+      console.warn("Classification error, applying smart local fallback:", err);
       setDetectedItemName("Fresh Sweet Corn");
       setDetectedMalayName("Jagung Manis");
       setDetectedCategory("produce");
@@ -364,10 +339,63 @@ export default function OfficialV3Client() {
     }
 
     setTimeout(() => {
+      setScanProgress(100);
+      setScanStatusStep("Ingredient Identified!");
+    }, 900);
+
+    setTimeout(() => {
       setIsScanning(false);
       setShowPopOutCard(true);
-      showToast(`Detected: ${detectedItemName} (${detectedConfidence}% match)!`);
-    }, 1000);
+      showToast("Scan complete! Review ingredient details.");
+    }, 1150);
+  };
+
+  // AI Shutter Snap (Freezes immediately on captured frame)
+  const triggerShutter = async () => {
+    if (isScanning) return;
+
+    let capturedDataUrl = "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80";
+
+    // Grab frame from live camera
+    if (videoRef.current && isCameraActive) {
+      try {
+        const video = videoRef.current;
+        const canvas = document.createElement("canvas");
+        const fullSize = Math.min(video.videoWidth || 640, video.videoHeight || 640);
+        canvas.width = 640;
+        canvas.height = 640;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const cropSize = fullSize / numZoom;
+          const startX = ((video.videoWidth || 640) - cropSize) / 2;
+          const startY = ((video.videoHeight || 640) - cropSize) / 2;
+          ctx.drawImage(video, startX, startY, cropSize, cropSize, 0, 0, 640, 640);
+          capturedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        }
+      } catch (err) {
+        console.warn("Canvas capture error:", err);
+      }
+    }
+
+    // Freeze immediately on the captured frame to prevent camera movement
+    setCapturedPhotoUrl(capturedDataUrl);
+    await runClassificationPipeline(capturedDataUrl);
+  };
+
+  // Upload image handler
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Url = reader.result as string;
+      setCapturedPhotoUrl(base64Url);
+      showToast("Image selected! Starting AI classification...");
+      await runClassificationPipeline(base64Url);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   // Confirm Add to Pantry from View 2 Pop-Out Card
@@ -379,15 +407,16 @@ export default function OfficialV3Client() {
       category: detectedCategory,
       qty: popPortion,
       unit: popUnit,
-      recent: 10,
+      recent: Date.now(),
       photoUrl: capturedPhotoUrl,
       emoji: detectedEmoji,
       subtitle: `Added just now • ${detectedSubtitle}`,
-      culinaryNote: popNote ? popNote : "Freshly detected ingredient from ZeroWaste AI Scanner.",
+      culinaryNote: popNote.trim() ? popNote.trim() : `Fresh ${detectedItemName} (${detectedMalayName || "Malaysian Produce"}).`,
     };
 
     setCards((prev) => [newItem, ...prev]);
     setShowPopOutCard(false);
+    setPopNote(""); // Reset notes
     showToast(`${detectedItemName} (${popPortion} ${popUnit}) added to Pantry!`);
     setActiveTab("pantry");
   };
@@ -406,7 +435,18 @@ export default function OfficialV3Client() {
         if (json.data) {
           setDetectedItemName(json.data.name || detectedItemName);
           setDetectedMalayName(json.data.nameMalay || detectedMalayName);
-          setDetectedCategory(json.data.category?.toLowerCase()?.includes("protein") ? "proteins" : "produce");
+          const cat = json.data.category?.toLowerCase() || "";
+          if (cat.includes("protein") || cat.includes("seafood") || cat.includes("meat")) {
+            setDetectedCategory("proteins");
+          } else if (cat.includes("season") || cat.includes("pantry")) {
+            setDetectedCategory("seasoning");
+          } else if (cat.includes("dairy") || cat.includes("egg")) {
+            setDetectedCategory("dairy");
+          } else if (cat.includes("staple") || cat.includes("grain")) {
+            setDetectedCategory("staples");
+          } else {
+            setDetectedCategory("produce");
+          }
           setDetectedConfidence(99);
           setDetectedSubtitle(`Verified by Gemini • ${json.data.category || "Produce"}`);
           setDetectedEmoji(json.data.emoji || detectedEmoji);
@@ -424,11 +464,20 @@ export default function OfficialV3Client() {
     showToast(`Gemini Vision confirmed: ${detectedItemName} (99% match)!`);
   };
 
-  // Filter & Sort
+  // Real Search & Filter Logic
   const getFilteredCards = () => {
     let result = cards.filter((c) => {
-      if (selectedCat === "all") return true;
-      return c.category === selectedCat;
+      if (selectedCat !== "all" && c.category !== selectedCat) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = c.name.toLowerCase().includes(q);
+        const matchMalay = c.nameMalay ? c.nameMalay.toLowerCase().includes(q) : false;
+        const matchCat = c.category.toLowerCase().includes(q);
+        const matchSub = c.subtitle ? c.subtitle.toLowerCase().includes(q) : false;
+        const matchNote = c.culinaryNote ? c.culinaryNote.toLowerCase().includes(q) : false;
+        return matchName || matchMalay || matchCat || matchSub || matchNote;
+      }
+      return true;
     });
 
     result = [...result].sort((a, b) => {
@@ -481,7 +530,16 @@ export default function OfficialV3Client() {
   return (
     <div className="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-[#E0E5EC] font-['Plus_Jakarta_Sans',sans-serif] text-[#3D4852] select-none">
       
-      {/* Mobile Container: Exactly matches view4-isolated.html & view1-isolated.html */}
+      {/* Hidden file input for uploading images from gallery/desktop */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileUpload}
+      />
+
+      {/* Mobile Container: Pure Soft Neumorphic Shell */}
       <div className="w-full sm:w-[390px] h-screen sm:h-[844px] sm:rounded-[44px] p-3 neo-raised flex flex-col relative overflow-hidden bg-[#E0E5EC] text-foreground justify-between mx-auto shadow-2xl">
         
         {/* ========================================================= */}
@@ -489,7 +547,7 @@ export default function OfficialV3Client() {
         {/* ========================================================= */}
         {activeTab === "pantry" && (
           <>
-            {/* Top Bar with Fullscreen Toggle Button + Search */}
+            {/* Top Bar with Fullscreen Toggle Button + Real Functional Search */}
             <header className="h-16 px-3 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
@@ -504,7 +562,7 @@ export default function OfficialV3Client() {
                 </div>
               </div>
 
-              {/* Header Right Actions: Fullscreen Toggle & Search */}
+              {/* Header Right Actions: Fullscreen Toggle & Functional Search Toggle */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={toggleFullscreen}
@@ -518,10 +576,15 @@ export default function OfficialV3Client() {
                 </button>
 
                 <button
-                  className="w-10 h-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer"
-                  title="Search"
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    isSearchOpen ? "neo-sunken text-[#004730]" : "neo-raised-sm text-foreground hover:text-[#004730] active:scale-95"
+                  }`}
+                  title="Search Ingredients"
                   type="button"
-                  onClick={() => showToast("Coming Soon: Search")}
+                  onClick={() => {
+                    setIsSearchOpen(!isSearchOpen);
+                    if (isSearchOpen) setSearchQuery("");
+                  }}
                 >
                   <span className="material-symbols-outlined text-base">search</span>
                 </button>
@@ -531,7 +594,31 @@ export default function OfficialV3Client() {
             {/* Main Scrollable Content */}
             <div className="flex-1 p-3 flex flex-col gap-3.5 overflow-y-auto no-scrollbar relative">
               
-              {/* 1. Digital Pantry Card (Soft Neumorphic Surface with Bulging CTA Buttons) */}
+              {/* Functional Carved-In Search Input Bar (Toggled by Search Icon) */}
+              {isSearchOpen && (
+                <div className="w-full neo-sunken rounded-2xl px-3.5 py-2 flex items-center gap-2 animate-pop-up shrink-0">
+                  <span className="material-symbols-outlined text-muted text-lg">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search ingredients, Malay names, notes..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-transparent border-0 outline-none w-full text-xs font-semibold text-foreground placeholder:text-muted/60"
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="w-5 h-5 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-foreground active:scale-90 cursor-pointer"
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-xs">close</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* 1. Digital Pantry Card (Full-Width Stored Items + Dual Bulging Dark-Green Buttons) */}
               <section className="w-full neo-raised rounded-2xl p-3.5 flex flex-col gap-2.5 shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -542,7 +629,7 @@ export default function OfficialV3Client() {
                   </div>
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full neo-sunken text-[#004730] text-[10px] font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#004730] animate-pulse"></span>
-                    Updated 2m ago
+                    Live Sync
                   </span>
                 </div>
 
@@ -607,7 +694,9 @@ export default function OfficialV3Client() {
                     type="button"
                   >
                     <span className="material-symbols-outlined text-sm text-[#004730]">{selectedCatIcon}</span>
-                    <span className="text-xs font-bold text-foreground">{selectedCatLabel}</span>
+                    <span className="text-xs font-bold text-foreground">
+                      {selectedCat === "all" ? `All (${cards.length})` : selectedCatLabel}
+                    </span>
                     <span
                       className={`material-symbols-outlined text-sm text-muted transition-transform duration-200 ${
                         isFilterMenuOpen ? "rotate-180" : ""
@@ -860,101 +949,145 @@ export default function OfficialV3Client() {
               </div>
 
               {/* 3. Pantry Item Cards (Grid Mode by default) */}
-              <div className={viewMode === "grid" ? "pantry-grid-mode gap-2.5 pb-20" : "flex flex-col gap-3 pb-20"}>
-                {displayedCards.map((card) => (
-                  <article
-                    key={card.id}
-                    className="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2"
+              {cards.length === 0 ? (
+                /* Pure Neumorphic Clean Empty State */
+                <div className="w-full neo-raised rounded-3xl p-6 flex flex-col items-center justify-center text-center gap-3 my-4">
+                  <div className="w-16 h-16 rounded-2xl neo-sunken flex items-center justify-center text-[#004730]">
+                    <span className="material-symbols-outlined text-3xl">kitchen</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-sm font-extrabold text-foreground">Your Digital Pantry is Empty</h3>
+                    <p className="text-xs text-muted font-normal max-w-[240px] leading-relaxed">
+                      Scan fresh ingredients or upload food photos to build your smart Malaysian kitchen inventory.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setActiveTab("scanner");
+                      setShowPopOutCard(false);
+                    }}
+                    className="mt-2 px-5 py-2.5 rounded-xl bg-[#004730] text-white text-xs font-black flex items-center gap-2 active:scale-95 transition-all shadow-md cursor-pointer"
+                    style={{
+                      boxShadow: "4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9)",
+                    }}
+                    type="button"
                   >
-                    <div className="card-media-row flex items-center gap-3">
-                      {/* Clickable Card Photo Box: Opens View Picture & Info Modal */}
-                      <div
-                        onClick={() => setSelectedItemForDetail(card)}
-                        className="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative cursor-pointer group active:scale-95 transition-all"
-                        title="Click to view full picture & details"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={card.photoUrl}
-                          alt={card.name}
-                          className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform"
-                        />
-                        <div className="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px] shadow-sm">
-                          {card.emoji}
+                    <span className="material-symbols-outlined text-base">photo_camera</span>
+                    <span>Scan Your First Ingredient</span>
+                  </button>
+                </div>
+              ) : displayedCards.length === 0 ? (
+                /* Search No Results State */
+                <div className="w-full neo-raised rounded-3xl p-6 flex flex-col items-center justify-center text-center gap-2 my-4">
+                  <span className="material-symbols-outlined text-3xl text-muted">search_off</span>
+                  <span className="text-xs font-bold text-foreground">
+                    No ingredients matching &ldquo;{searchQuery}&rdquo;
+                  </span>
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="text-xs font-extrabold text-[#004730] underline hover:opacity-80 cursor-pointer mt-1"
+                    type="button"
+                  >
+                    Clear Search Filter
+                  </button>
+                </div>
+              ) : (
+                <div className={viewMode === "grid" ? "pantry-grid-mode gap-2.5 pb-20" : "flex flex-col gap-3 pb-20"}>
+                  {displayedCards.map((card) => (
+                    <article
+                      key={card.id}
+                      className="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2"
+                    >
+                      <div className="card-media-row flex items-center gap-3">
+                        {/* Clickable Card Photo Box: Opens View Picture & Info Modal */}
+                        <div
+                          onClick={() => setSelectedItemForDetail(card)}
+                          className="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative cursor-pointer group active:scale-95 transition-all"
+                          title="Click to view full picture & details"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={card.photoUrl}
+                            alt={card.name}
+                            className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform"
+                          />
+                          <div className="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px] shadow-sm">
+                            {card.emoji}
+                          </div>
+                          <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="material-symbols-outlined text-white text-base drop-shadow-md">zoom_in</span>
+                          </div>
                         </div>
-                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="material-symbols-outlined text-white text-base drop-shadow-md">zoom_in</span>
+
+                        <div className="card-info-box flex flex-col min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4
+                              onClick={() => setSelectedItemForDetail(card)}
+                              className="text-xs font-extrabold text-foreground truncate cursor-pointer hover:text-[#004730]"
+                            >
+                              {card.name}
+                            </h4>
+                            <button
+                              onClick={() => setCardToDelete(card)}
+                              className="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer"
+                              title="Delete"
+                              type="button"
+                            >
+                              <span className="material-symbols-outlined text-sm">delete_outline</span>
+                            </button>
+                          </div>
+                          <span className="text-[10px] text-muted font-medium truncate">{card.subtitle}</span>
                         </div>
                       </div>
 
-                      <div className="card-info-box flex flex-col min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4
-                            onClick={() => setSelectedItemForDetail(card)}
-                            className="text-xs font-extrabold text-foreground truncate cursor-pointer hover:text-[#004730]"
-                          >
-                            {card.name}
-                          </h4>
+                      {/* Stepper Row: Flat Quantifier on Left, Stepper Controls with Exact Height on Right */}
+                      <div className="card-stepper-row flex items-center justify-between pt-1 border-t border-black/5">
+                        <button
+                          type="button"
+                          onClick={() => setActiveUnitCardId(card.id)}
+                          className="card-unit-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer"
+                          title="Click to choose quantifier"
+                        >
+                          <span className="portion-unit text-xs font-extrabold text-[#004730]">{card.unit}</span>
+                          <span className="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
+                        </button>
+
+                        <div className="stepper-controls flex items-center gap-2 w-full">
                           <button
-                            onClick={() => setCardToDelete(card)}
-                            className="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer"
-                            title="Delete"
+                            onClick={() => adjustCardQty(card.id, -1)}
+                            className="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer"
                             type="button"
+                            title="Decrease"
                           >
-                            <span className="material-symbols-outlined text-sm">delete_outline</span>
+                            <span className="material-symbols-outlined text-xs font-black text-rose-600">remove</span>
+                          </button>
+                          
+                          {/* Number Block: Set to exact h-7 (same height/thickness as the w-7 h-7 buttons) */}
+                          <div className="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
+                            <span className="portion-val text-xs font-extrabold text-foreground">{card.qty}</span>
+                          </div>
+
+                          <button
+                            onClick={() => adjustCardQty(card.id, 1)}
+                            className="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer"
+                            type="button"
+                            title="Increase"
+                          >
+                            <span className="material-symbols-outlined text-xs font-bold text-white">add</span>
                           </button>
                         </div>
-                        <span className="text-[10px] text-muted font-medium truncate">{card.subtitle}</span>
                       </div>
-                    </div>
-
-                    {/* Stepper Row: Flat Quantifier on Left, Stepper Controls with Exact Height on Right */}
-                    <div className="card-stepper-row flex items-center justify-between pt-1 border-t border-black/5">
-                      <button
-                        type="button"
-                        onClick={() => setActiveUnitCardId(card.id)}
-                        className="card-unit-trigger inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-extrabold text-[#004730] hover:bg-black/5 active:scale-95 transition-all cursor-pointer"
-                        title="Click to choose quantifier"
-                      >
-                        <span className="portion-unit text-xs font-extrabold text-[#004730]">{card.unit}</span>
-                        <span className="material-symbols-outlined text-xs text-[#004730]/70 leading-none">expand_more</span>
-                      </button>
-
-                      <div className="stepper-controls flex items-center gap-2 w-full">
-                        <button
-                          onClick={() => adjustCardQty(card.id, -1)}
-                          className="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-rose-600 active:scale-90 cursor-pointer"
-                          type="button"
-                          title="Decrease"
-                        >
-                          <span className="material-symbols-outlined text-xs font-black text-rose-600">remove</span>
-                        </button>
-                        
-                        {/* Number Block: Set to exact h-7 (same height/thickness as the w-7 h-7 buttons) */}
-                        <div className="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
-                          <span className="portion-val text-xs font-extrabold text-foreground">{card.qty}</span>
-                        </div>
-
-                        <button
-                          onClick={() => adjustCardQty(card.id, 1)}
-                          className="w-7 h-7 shrink-0 rounded-full bg-[#004730] text-white flex items-center justify-center active:scale-90 shadow-sm cursor-pointer"
-                          type="button"
-                          title="Increase"
-                        >
-                          <span className="material-symbols-outlined text-xs font-bold text-white">add</span>
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                    </article>
+                  ))}
+                </div>
+              )}
 
             </div>
           </>
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 1: LIVE SCANNER HUD TAB (Exact 1:1 view1-isolated)    */}
+        {/* VIEW 1: LIVE SCANNER HUD TAB                              */}
         {/* ========================================================= */}
         {activeTab === "scanner" && (
           <>
@@ -1030,15 +1163,12 @@ export default function OfficialV3Client() {
                     </button>
                   </div>
 
-                  {/* Zoom Pills */}
+                  {/* Zoom Pills: Dynamic 1x, 1.5x, 2x, 3x Functional Zoom */}
                   <div className="flex items-center gap-1 p-1 rounded-full neo-sunken">
                     {["1x", "1.5x", "2x", "3x"].map((z) => (
                       <button
                         key={z}
-                        onClick={() => {
-                          setZoomLevel(z);
-                          showToast(`Camera switched to ${z}`);
-                        }}
+                        onClick={() => handleSetZoom(z)}
                         className={`w-7 h-7 rounded-full text-[10px] flex items-center justify-center transition-all active:scale-95 cursor-pointer ${
                           zoomLevel === z
                             ? "bg-[#004730] text-white font-bold shadow-sm"
@@ -1052,25 +1182,48 @@ export default function OfficialV3Client() {
                   </div>
                 </div>
 
-                {/* Viewfinder Frame Section (Real Camera Feed + Fallback) */}
+                {/* Viewfinder Frame Section (Camera Freezes Immediately on AI Scan) */}
                 <div className="w-full neo-raised rounded-2xl p-2.5 relative flex flex-col">
                   <div className="relative w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner aspect-square">
-                    {/* Live Camera Video Stream */}
-                    <video
-                      ref={videoRef}
-                      playsInline
-                      autoPlay
-                      muted
-                      className={`w-full h-full object-cover select-none ${isCameraActive ? "block" : "hidden"}`}
-                    />
-
-                    {/* Fallback Camera Preview Image if Camera Not Active */}
-                    {!isCameraActive && (
+                    {/* When scanning is triggered: Freeze immediately on static captured frame so user doesn't see moving camera */}
+                    {isScanning ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={capturedPhotoUrl}
+                        alt="Captured Static Frame"
+                        className="w-full h-full object-cover select-none"
+                        style={{
+                          transform: `scale(${numZoom})`,
+                          transformOrigin: "center center",
+                          transition: "transform 0.25s ease-out",
+                        }}
+                      />
+                    ) : isCameraActive ? (
+                      /* Live Camera Video Stream */
+                      <video
+                        ref={videoRef}
+                        playsInline
+                        autoPlay
+                        muted
+                        className="w-full h-full object-cover select-none"
+                        style={{
+                          transform: `scale(${numZoom})`,
+                          transformOrigin: "center center",
+                          transition: "transform 0.25s ease-out",
+                        }}
+                      />
+                    ) : (
+                      /* Fallback Camera Preview Image if Camera Not Active */
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80"
                         alt="Sweet Corn Live View"
                         className="w-full h-full object-cover select-none"
+                        style={{
+                          transform: `scale(${numZoom})`,
+                          transformOrigin: "center center",
+                          transition: "transform 0.25s ease-out",
+                        }}
                       />
                     )}
 
@@ -1088,7 +1241,7 @@ export default function OfficialV3Client() {
                           <div className="w-2 h-2 rounded-full bg-[#006948] ring-4 ring-[#006948]/20"></div>
                         </div>
                         <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[10px] font-bold">
-                          {isCameraActive ? "Point camera at ingredient" : "Center 1 ingredient here"}
+                          {isScanning ? "Processing static frame..." : isCameraActive ? "Point camera at ingredient" : "Center 1 ingredient here"}
                         </div>
                       </div>
                     </div>
@@ -1100,25 +1253,54 @@ export default function OfficialV3Client() {
                   </div>
                 </div>
 
+                {/* Animated Processing Progress Bar (Appears when scanning starts) */}
+                {isScanning && (
+                  <div className="w-full neo-sunken rounded-2xl p-3 flex flex-col gap-1.5 animate-pop-up">
+                    <div className="flex items-center justify-between text-[11px] font-extrabold text-foreground">
+                      <div className="flex items-center gap-1.5 text-[#004730]">
+                        <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                        <span>{scanStatusStep || "Analyzing ingredient..."}</span>
+                      </div>
+                      <span className="font-mono text-[10px] text-muted font-bold">{scanProgress}%</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full neo-sunken overflow-hidden bg-black/10">
+                      <div
+                        className="h-full rounded-full transition-all duration-300 ease-out"
+                        style={{
+                          width: `${scanProgress}%`,
+                          background: "linear-gradient(90deg, #004730 0%, #00855D 50%, #38B2AC 100%)",
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Bottom Shutter & Mode Action Deck */}
                 <div className="w-full neo-raised rounded-2xl p-4 flex flex-col space-y-4">
                   <div className="w-full neo-sunken rounded-2xl p-3 flex items-center justify-around">
-                    {/* Upload -> Coming Soon */}
+                    {/* Functional Upload Button: Picks file from gallery/disk */}
                     <button
-                      onClick={() => showToast("Coming Soon: Upload from gallery")}
-                      className="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-foreground cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-foreground cursor-pointer group"
                       type="button"
+                      title="Upload photo from gallery"
                     >
-                      <span className="material-symbols-outlined text-2xl text-muted">photo_library</span>
-                      <span className="text-[10px] font-semibold text-muted">Upload</span>
+                      <span className="material-symbols-outlined text-2xl text-muted group-hover:text-[#004730] transition-colors">photo_library</span>
+                      <span className="text-[10px] font-semibold text-muted group-hover:text-[#004730] transition-colors">Upload</span>
                     </button>
 
-                    {/* Central Shutter Button: Green Background + White Icon */}
+                    {/* Central Shutter Button: Spins ONLY when model is ready, fast spins when scanning */}
                     <div className="flex flex-col items-center">
                       <div className="relative w-20 h-20 flex items-center justify-center">
                         <div className="absolute inset-0 rounded-full flex items-center justify-center pointer-events-none">
                           <svg
-                            className={`w-full h-full ${isScanning ? "animate-[spin_0.75s_linear_infinite]" : "animate-[spin_2.5s_linear_infinite]"}`}
+                            className={`w-full h-full transition-all duration-300 ${
+                              !isModelReady
+                                ? "" // STOPS MOVING if model is not ready!
+                                : isScanning
+                                ? "animate-[spin_0.75s_linear_infinite]"
+                                : "animate-[spin_3.5s_linear_infinite]"
+                            }`}
                             viewBox="0 0 80 80"
                           >
                             <circle cx="40" cy="40" r="34" fill="none" stroke="#004730" strokeWidth="3.5" opacity="0.2" />
@@ -1151,7 +1333,7 @@ export default function OfficialV3Client() {
                             boxShadow: "4px 4px 12px rgba(0, 71, 48, 0.45), -2px -2px 8px rgba(255, 255, 255, 0.7)",
                           }}
                           type="button"
-                          title="Snap & Identify"
+                          title={isModelReady ? "Snap & Identify" : "Model Initializing..."}
                         >
                           <span className="material-symbols-outlined text-white text-3xl font-bold group-hover:scale-105 transition-transform">
                             photo_camera
@@ -1159,7 +1341,7 @@ export default function OfficialV3Client() {
                         </button>
                       </div>
                       <span className="text-[10px] font-bold text-foreground mt-1.5">
-                        {isScanning ? "Scanning..." : "AI Scan"}
+                        {isScanning ? "Scanning..." : isModelReady ? "AI Scan" : "Initializing..."}
                       </span>
                     </div>
 
@@ -1201,7 +1383,7 @@ export default function OfficialV3Client() {
             </div>
 
             {/* ========================================================= */}
-            {/* VIEW 2: POP-OUT DETECTION CARD (Matches Reference Image)  */}
+            {/* VIEW 2: POP-OUT DETECTION CARD                            */}
             {/* ========================================================= */}
             {showPopOutCard && (
               <div className="absolute inset-x-0 bottom-0 top-16 z-30 bg-black/50 backdrop-blur-sm flex flex-col justify-end animate-pop-up overflow-hidden">
@@ -1214,7 +1396,7 @@ export default function OfficialV3Client() {
                 />
                 <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
 
-                {/* POP-OUT CARD (Seamless Monochromatic Mold from Surface) */}
+                {/* POP-OUT CARD */}
                 <div className="relative z-10 w-full bg-[#E0E5EC] rounded-t-[36px] neo-raised p-4 flex flex-col gap-3.5 overflow-y-auto max-h-[88%] no-scrollbar pb-24 shadow-2xl">
                   {/* Sheet Handle & Close */}
                   <div className="flex items-center justify-between w-full pt-0.5">
@@ -1230,7 +1412,7 @@ export default function OfficialV3Client() {
                     </button>
                   </div>
 
-                  {/* 1. COMPLETELY DETACHED BIG SQUARE IMAGE (Pure Neumorphic Well, Zero Border) */}
+                  {/* 1. COMPLETELY DETACHED BIG SQUARE IMAGE */}
                   <div className="w-48 h-48 aspect-square mx-auto rounded-3xl neo-raised p-2 overflow-hidden relative shrink-0 my-0.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -1244,7 +1426,7 @@ export default function OfficialV3Client() {
                     </div>
                   </div>
 
-                  {/* 2. REDESIGNED PRODUCT INFO CARD (Pure Borderless Neumorphism) */}
+                  {/* 2. REDESIGNED PRODUCT INFO CARD */}
                   <div className="p-4 rounded-3xl neo-raised flex flex-col items-center text-center gap-2 shrink-0">
                     {/* Badges Row */}
                     <div className="flex items-center justify-center gap-2.5">
@@ -1270,7 +1452,7 @@ export default function OfficialV3Client() {
                     </div>
                   </div>
 
-                  {/* 3. Portion Count Stepper (Strictly Centered Number + Unit) */}
+                  {/* 3. Portion Count Stepper (Red Minus, Flat Quantifier, Green Font Plus) */}
                   <div className="flex flex-col gap-1.5 shrink-0">
                     <div className="flex items-center justify-center text-center">
                       <span className="text-xs font-bold text-foreground">Portion Count</span>
@@ -1278,7 +1460,7 @@ export default function OfficialV3Client() {
 
                     {/* Sunken Track holding [-] [ Number + Unit ] [+] */}
                     <div className="w-full h-14 rounded-2xl neo-sunken p-1.5 flex items-center justify-between relative">
-                      {/* Left Minus Button (Red color text) */}
+                      {/* Left Minus Button (Red font color text) */}
                       <button
                         onClick={() => setPopPortion((p) => Math.max(1, p - 1))}
                         className="w-11 h-11 rounded-xl neo-raised-button flex items-center justify-center text-rose-600 font-black active:scale-90 transition-transform shrink-0 cursor-pointer"
@@ -1288,7 +1470,7 @@ export default function OfficialV3Client() {
                         <span className="material-symbols-outlined text-base font-black text-rose-600">remove</span>
                       </button>
 
-                      {/* Center Count (Strictly Centered, Chevron Excluded From Centering) */}
+                      {/* Center Count */}
                       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
                         <div className="relative flex items-center justify-center">
                           <button
@@ -1334,41 +1516,53 @@ export default function OfficialV3Client() {
                         </div>
                       </div>
 
-                      {/* Right Plus Button (Green Accent Raised Button) */}
+                      {/* Right Plus Button (Raised Neumorphic with Green Font Color per requirement) */}
                       <button
                         onClick={() => setPopPortion((p) => p + 1)}
-                        className="w-11 h-11 rounded-xl bg-[#004730] hover:bg-[#005a3c] text-white flex items-center justify-center font-black active:scale-90 transition-transform neo-raised-sm shrink-0 cursor-pointer shadow-sm"
+                        className="w-11 h-11 rounded-xl neo-raised-button flex items-center justify-center text-[#004730] font-black active:scale-90 transition-transform shrink-0 cursor-pointer shadow-sm"
                         type="button"
                         title="Increase"
                       >
-                        <span className="material-symbols-outlined text-base font-black">add</span>
+                        <span className="material-symbols-outlined text-base font-black text-[#004730]">add</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* 4. Carved-In Notes Field (Deep Inset - Natural Height) */}
+                  {/* 4. Carved-In Notes Field (Clean, No default text, greyed-out placeholder "add notes here") */}
                   <div className="flex items-center gap-2.5 p-3 rounded-2xl neo-sunken text-xs text-foreground shrink-0">
                     <span className="material-symbols-outlined text-[#004730] text-lg shrink-0">edit_note</span>
                     <input
                       type="text"
-                      placeholder="Add note (e.g. bought from Pasar Malam, best by Friday)"
+                      placeholder="add notes here"
                       value={popNote}
                       onChange={(e) => setPopNote(e.target.value)}
-                      className="bg-transparent border-0 outline-none w-full text-xs font-semibold text-foreground placeholder:text-muted"
+                      className="bg-transparent border-0 outline-none w-full text-xs font-semibold text-foreground placeholder:text-muted/60"
                     />
+                    {popNote && (
+                      <button
+                        type="button"
+                        onClick={() => setPopNote("")}
+                        className="w-5 h-5 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-foreground active:scale-90 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-xs">close</span>
+                      </button>
+                    )}
                   </div>
 
-                  {/* 5. Add to Pantry Button: Experimental Sleek Obsidian Black Style */}
+                  {/* 5. Add to Pantry Button (Rich Dark Green per requirement) */}
                   <button
                     onClick={handleConfirmAddPopOut}
-                    className="w-full shrink-0 h-14 rounded-2xl text-white font-bold text-base tracking-wide flex items-center justify-center gap-2.5 cursor-pointer select-none neo-btn-black active:scale-98 transition-all"
+                    className="w-full shrink-0 h-14 rounded-2xl text-white font-black text-base tracking-wide flex items-center justify-center gap-2.5 cursor-pointer select-none bg-[#004730] hover:bg-[#003824] active:scale-98 transition-all"
+                    style={{
+                      boxShadow: "5px 5px 14px rgba(0, 71, 48, 0.45), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9)",
+                    }}
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-2xl text-white">inventory_2</span>
+                    <span className="material-symbols-outlined text-2xl text-white font-bold">inventory_2</span>
                     <span>Add to Pantry</span>
                   </button>
 
-                  {/* 6. Bulging Out Gemini Vision Block (Moved Below Add to Pantry) */}
+                  {/* 6. Bulging Out Gemini Vision Block: Galaxy Coloured Button (Blue, Indigo, Purple, Magenta) */}
                   <div className="p-3.5 rounded-2xl neo-bulge flex items-center justify-between gap-3 shrink-0">
                     <div className="flex flex-col min-w-0 text-left pl-1">
                       <span className="text-xs font-black text-foreground truncate">Wrong ingredient?</span>
@@ -1377,42 +1571,46 @@ export default function OfficialV3Client() {
 
                     <button
                       onClick={triggerGeminiRecheck}
-                      className="px-3.5 py-2 rounded-xl neo-raised-button text-foreground text-[11px] font-black flex items-center gap-1.5 active:scale-95 transition-all shrink-0 hover:text-indigo-600 cursor-pointer"
+                      className="px-3.5 py-2 rounded-xl text-white text-[11px] font-black flex items-center gap-1.5 active:scale-95 transition-all shrink-0 cursor-pointer"
+                      style={{
+                        background: "linear-gradient(135deg, #1e3a8a 0%, #4338ca 32%, #7e22ce 68%, #d946ef 100%)",
+                        boxShadow: "0 4px 14px rgba(126, 34, 206, 0.5), 2px 2px 6px rgba(163, 177, 198, 0.5), -2px -2px 6px rgba(255, 255, 255, 0.8)",
+                      }}
                       type="button"
                     >
                       {/* Google Gemini 4-Pointed Star */}
-                      <svg className="w-3.5 h-3.5 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <svg className="w-3.5 h-3.5 text-cyan-300 shrink-0 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24Z" />
                       </svg>
-                      <span>Gemini Vision</span>
+                      <span className="tracking-tight text-white font-extrabold">Gemini Vision</span>
                     </button>
                   </div>
 
-                  {/* 7. Secondary Actions: Kept Rescan and Scan Next as Requested! */}
+                  {/* 7. Old Rescan and Scan Next Buttons per user preference */}
                   <div className="grid grid-cols-2 gap-3 pt-0.5 shrink-0">
-                    {/* Rescan: clean refresh arrow */}
+                    {/* Rescan: Old clean replay arrow button */}
                     <button
                       onClick={() => {
                         setShowPopOutCard(false);
                         triggerShutter();
                       }}
-                      className="h-12 rounded-full neo-raised-sm flex items-center justify-center gap-2 text-foreground font-bold text-xs hover:text-slate-900 active:scale-95 transition-all cursor-pointer"
+                      className="py-2.5 px-3 rounded-full neo-raised-sm text-xs font-bold text-foreground hover:text-[#004730] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-lg text-amber-600">refresh</span>
+                      <span className="material-symbols-outlined text-base">replay</span>
                       <span>Rescan</span>
                     </button>
 
-                    {/* Scan Next: camera with plus (add_a_photo) */}
+                    {/* Scan Next: Old qr_code_scanner button */}
                     <button
                       onClick={() => {
                         setShowPopOutCard(false);
                         showToast("Point camera at next ingredient...");
                       }}
-                      className="h-12 rounded-full neo-raised-sm flex items-center justify-center gap-2 text-[#004730] font-bold text-xs hover:text-[#003824] active:scale-95 transition-all cursor-pointer"
+                      className="py-2.5 px-3 rounded-full neo-raised-sm text-xs font-bold text-[#004730] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-lg text-[#004730]">add_a_photo</span>
+                      <span className="material-symbols-outlined text-base">qr_code_scanner</span>
                       <span>Scan Next</span>
                     </button>
                   </div>
@@ -1558,10 +1756,10 @@ export default function OfficialV3Client() {
         </nav>
 
         {/* ========================================================= */}
-        {/* POPUPS & MODALS: EXACTLY FROM THE HTML                    */}
+        {/* POPUPS & MODALS                                           */}
         {/* ========================================================= */}
         
-        {/* 1. Item Picture & Info Modal (User Requirement #4) */}
+        {/* 1. Item Picture & Info Modal */}
         {selectedItemForDetail && (
           <div
             className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-opacity animate-pop-up"

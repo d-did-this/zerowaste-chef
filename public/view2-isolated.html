@@ -294,58 +294,61 @@
               </div>
             </div>
 
-            <!-- Right Plus Button (Green Accent Raised Button) -->
-            <button onclick="adjustCount(1)" class="w-11 h-11 rounded-xl bg-[#004730] hover:bg-[#005a3c] text-white flex items-center justify-center font-black active:scale-90 transition-transform neo-raised-sm shrink-0">
-              <span class="material-symbols-outlined text-base font-black">add</span>
+            <!-- Right Plus Button (Raised Neumorphic with Green Font Color per requirement) -->
+            <button onclick="adjustCount(1)" class="w-11 h-11 rounded-xl neo-raised-button flex items-center justify-center text-[#004730] font-black active:scale-90 transition-transform shrink-0 shadow-sm" title="Increase">
+              <span class="material-symbols-outlined text-base font-black text-[#004730]">add</span>
             </button>
           </div>
         </div>
 
-        <!-- Carved-In Notes Field (Deep Inset - Natural Height) -->
+        <!-- Carved-In Notes Field (Clean, No default text, greyed-out placeholder "add notes here") -->
         <div class="flex items-center gap-2.5 p-3 rounded-2xl neo-sunken text-xs text-foreground shrink-0">
-          <span class="material-symbols-outlined text-primary text-lg shrink-0">edit_note</span>
+          <span class="material-symbols-outlined text-[#004730] text-lg shrink-0">edit_note</span>
           <input
             type="text"
-            placeholder="Add note (e.g. bought from Pasar Malam, best by Friday)"
-            value="Bought fresh from Pasar Malam"
-            class="bg-transparent border-0 outline-none w-full text-xs font-semibold text-foreground placeholder:text-muted"
+            placeholder="add notes here"
+            value=""
+            class="bg-transparent border-0 outline-none w-full text-xs font-semibold text-foreground placeholder:text-muted/60"
           />
         </div>
 
-        <!-- Add to Pantry Button: Experimental Sleek Obsidian Black Style -->
+        <!-- Add to Pantry Button (Rich Dark Green per requirement) -->
         <button onclick="alert('Sweet Corn (' + pCount + ' ' + currentQuantifier + ') added to Pantry!')"
-          class="w-full shrink-0 h-14 rounded-2xl text-white font-bold text-base tracking-wide flex items-center justify-center gap-2.5 cursor-pointer select-none neo-btn-black">
-          <span class="material-symbols-outlined text-2xl text-white">inventory_2</span>
+          class="w-full shrink-0 h-14 rounded-2xl text-white font-black text-base tracking-wide flex items-center justify-center gap-2.5 cursor-pointer select-none bg-[#004730] hover:bg-[#003824] active:scale-98 transition-all"
+          style="box-shadow: 5px 5px 14px rgba(0, 71, 48, 0.45), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9);">
+          <span class="material-symbols-outlined text-2xl text-white font-bold">inventory_2</span>
           <span>Add to Pantry</span>
         </button>
 
-        <!-- 3. BULGING OUT GEMINI VISION BLOCK (Pure Neumorphic Convex Bulge - Moved Below Add to Pantry) -->
+        <!-- 3. BULGING OUT GEMINI VISION BLOCK: Galaxy Coloured Button -->
         <div class="p-3.5 rounded-2xl neo-bulge flex items-center justify-between gap-3 shrink-0">
           <div class="flex flex-col min-w-0 text-left pl-1">
             <span class="text-xs font-black text-foreground truncate">Wrong ingredient?</span>
             <span class="text-[10px] text-muted font-medium truncate">Re-check with one tap!</span>
           </div>
 
-          <button onclick="alert('Gemini Vision re-analysis launched!')" class="px-3.5 py-2 rounded-xl neo-raised-button text-foreground text-[11px] font-black flex items-center gap-1.5 active:scale-95 transition-all shrink-0 hover:text-indigo-600">
+          <button onclick="alert('Gemini Vision re-analysis launched!')"
+            class="px-3.5 py-2 rounded-xl text-white text-[11px] font-black flex items-center gap-1.5 active:scale-95 transition-all shrink-0 cursor-pointer"
+            style="background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 32%, #7e22ce 68%, #d946ef 100%); box-shadow: 0 4px 14px rgba(126, 34, 206, 0.5), 2px 2px 6px rgba(163, 177, 198, 0.5), -2px -2px 6px rgba(255, 255, 255, 0.8);">
             <!-- Google Gemini 4-Pointed Star -->
-            <svg class="w-3.5 h-3.5 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <svg class="w-3.5 h-3.5 text-cyan-300 shrink-0 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24Z"/>
             </svg>
-            <span>Gemini Vision</span>
+            <span class="tracking-tight text-white font-extrabold">Gemini Vision</span>
           </button>
         </div>
 
-        <!-- Secondary Actions: Same style as View 1 Scan Receipt (Pill rounded-full + neo-raised-sm) -->
+        <!-- Secondary Actions: Old Rescan & Scan Next buttons per user preference -->
         <div class="grid grid-cols-2 gap-3 pt-0.5 shrink-0">
-          <!-- Rescan: clean refresh arrow -->
-          <button onclick="alert('Rescan initiated!')" class="h-12 rounded-full neo-raised-sm flex items-center justify-center gap-2 text-foreground font-bold text-xs hover:text-slate-900 active:scale-95 transition-all">
-            <span class="material-symbols-outlined text-lg text-amber-600">refresh</span>
+          <!-- Rescan: clean replay arrow -->
+          <button onclick="alert('Rescan initiated!')" class="py-2.5 px-3 rounded-full neo-raised-sm text-xs font-bold text-foreground hover:text-[#004730] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-base">replay</span>
             <span>Rescan</span>
           </button>
 
-          <!-- Scan Next: camera with plus (add_a_photo) -->
-          <button onclick="alert('Ready for next scan!')" class="h-12 rounded-full neo-raised-sm flex items-center justify-center gap-2 text-primary font-bold text-xs hover:text-[#004730] active:scale-95 transition-all">
-            <span class="material-symbols-outlined text-lg text-primary">add_a_photo</span>
+          <!-- Scan Next: qr_code_scanner -->
+          <button onclick="alert('Ready for next scan!')" class="py-2.5 px-3 rounded-full neo-raised-sm text-xs font-bold text-[#004730] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-base">qr_code_scanner</span>
             <span>Scan Next</span>
           </button>
         </div>
