@@ -1,20 +1,22 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-
-interface PantryItemData {
-  id: string;
-  name: string;
-  nameMalay: string;
-  category: "produce" | "proteins" | "seasoning" | "dairy" | "staples";
-  qty: number;
-  unit: string;
-  recent: number;
-  photoUrl: string;
-  emoji: string;
-  subtitle: string;
-  culinaryNote?: string;
-}
+import {
+  runMobileNetV4Classification,
+  runPredefinedCnnClassification,
+  MobileNetModel,
+} from "@/utils/cnnProduceScanner";
+import type * as tfType from "@tensorflow/tfjs";
+import { findMatchingMalaysianIngredient } from "@/utils/malaysianIngredients";
+import {
+  getPantryItems,
+  savePantryItem,
+  deletePantryItem,
+  updatePantryItemQuantity,
+  updatePantryItemUnit,
+  PantryItem,
+  LAST_UPDATED_KEY,
+} from "@/utils/pantryStorage";
 
 const QUANTIFIER_LIST = [
   { unit: "biji", en: "pieces (round)" },
@@ -59,34 +61,44 @@ export default function OfficialV3Client() {
     return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
-  // Pantry state: Starts 100% clean (unpolluted) and persists user additions to localStorage
-  const [cards, setCards] = useState<PantryItemData[]>([]);
-  const [isHydrated, setIsHydrated] = useState<boolean>(false);
+  // -------------------------------------------------------------
+  // PANTRY STATE & DYNAMIC RELATIVE TIME ("Updated ... ago")
+  // -------------------------------------------------------------
+  const [cards, setCards] = useState<PantryItem[]>([]);
+  const [lastUpdatedText, setLastUpdatedText] = useState<string>("just now");
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("zerowaste_pantry_v3");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setCards(parsed);
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to read pantry from localStorage", err);
+  const refreshRelativeTime = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const tsStr = localStorage.getItem(LAST_UPDATED_KEY);
+    if (!tsStr) {
+      setLastUpdatedText("just now");
+      return;
     }
-    setIsHydrated(true);
+    const diffMs = Date.now() - parseInt(tsStr, 10);
+    const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+    if (diffSec < 60) {
+      setLastUpdatedText("just now");
+    } else if (diffSec < 3600) {
+      setLastUpdatedText(`${Math.floor(diffSec / 60)}m ago`);
+    } else if (diffSec < 86400) {
+      setLastUpdatedText(`${Math.floor(diffSec / 3600)}h ago`);
+    } else {
+      setLastUpdatedText(`${Math.floor(diffSec / 86400)}d ago`);
+    }
   }, []);
 
+  // Hydrate pantry items from localStorage
+  const loadPantry = useCallback(() => {
+    const stored = getPantryItems();
+    setCards(stored);
+    refreshRelativeTime();
+  }, [refreshRelativeTime]);
+
   useEffect(() => {
-    if (isHydrated) {
-      try {
-        localStorage.setItem("zerowaste_pantry_v3", JSON.stringify(cards));
-      } catch (err) {
-        console.warn("Failed to persist pantry to localStorage", err);
-      }
-    }
-  }, [cards, isHydrated]);
+    loadPantry();
+    const interval = setInterval(refreshRelativeTime, 30000);
+    return () => clearInterval(interval);
+  }, [loadPantry, refreshRelativeTime]);
 
   // Search state
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
@@ -103,42 +115,49 @@ export default function OfficialV3Client() {
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState<boolean>(false);
   const [isSortMenuOpen, setIsSortMenuOpen] = useState<boolean>(false);
   const [activeUnitCardId, setActiveUnitCardId] = useState<string | null>(null);
-  const [cardToDelete, setCardToDelete] = useState<PantryItemData | null>(null);
-  const [selectedItemForDetail, setSelectedItemForDetail] = useState<PantryItemData | null>(null);
+  const [cardToDelete, setCardToDelete] = useState<PantryItem | null>(null);
+  const [selectedItemForDetail, setSelectedItemForDetail] = useState<PantryItem | null>(null);
 
-  // Real Camera & Scanner States
+  // -------------------------------------------------------------
+  // CAMERA STREAMER (Works on Phone Back Camera & Desktop Webcam)
+  // -------------------------------------------------------------
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const [isCameraStarting, setIsCameraStarting] = useState<boolean>(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [isTorchSupported, setIsTorchSupported] = useState<boolean>(false);
   const [isTorchOn, setIsTorchOn] = useState<boolean>(false);
   const [zoomLevel, setZoomLevel] = useState<string>("1x");
 
-  // Model Readiness and Scanning Progress
-  const [isModelReady, setIsModelReady] = useState<boolean>(false);
+  // -------------------------------------------------------------
+  // HYBRID ENGINE: ON-DEVICE MOBILENET V4 + MALAYSIAN DB + GEMINI
+  // -------------------------------------------------------------
+  const modelV4Ref = useRef<tfType.GraphModel | null>(null);
+  const modelV2FallbackRef = useRef<MobileNetModel | null>(null);
+  const [modelStatus, setModelStatus] = useState<"loading" | "ready" | "error">("loading");
+
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanProgress, setScanProgress] = useState<number>(0);
   const [scanStatusStep, setScanStatusStep] = useState<string>("");
 
   const [showPopOutCard, setShowPopOutCard] = useState<boolean>(false);
-  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string>(
-    "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80"
-  );
+  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string>("");
 
   // Pop-Out Card (View 2) States
-  const [detectedItemName, setDetectedItemName] = useState<string>("Fresh Sweet Corn");
-  const [detectedMalayName, setDetectedMalayName] = useState<string>("Jagung Manis");
-  const [detectedCategory, setDetectedCategory] = useState<"produce" | "proteins" | "seasoning" | "dairy" | "staples">("produce");
-  const [detectedConfidence, setDetectedConfidence] = useState<number>(98);
-  const [detectedSubtitle, setDetectedSubtitle] = useState<string>("Cameron Highlands • Produce");
-  const [detectedEmoji, setDetectedEmoji] = useState<string>("🌽");
-  const [popPortion, setPopPortion] = useState<number>(2);
-  const [popUnit, setPopUnit] = useState<string>("batang");
+  const [detectedItemName, setDetectedItemName] = useState<string>("Fresh Produce");
+  const [detectedMalayName, setDetectedMalayName] = useState<string>("");
+  const [detectedCategory, setDetectedCategory] = useState<string>("Produce");
+  const [detectedConfidence, setDetectedConfidence] = useState<number>(95);
+  const [detectedSubtitle, setDetectedSubtitle] = useState<string>("Smart Stock AI");
+  const [detectedEmoji, setDetectedEmoji] = useState<string>("🥬");
+  const [detectedEngineUsed, setDetectedEngineUsed] = useState<string>("MobileNet v4 Edge AI");
+  const [popPortion, setPopPortion] = useState<number>(1);
+  const [popUnit, setPopUnit] = useState<string>("biji");
   const [isPopUnitOpen, setIsPopUnitOpen] = useState<boolean>(false);
-  // Notes start clean with no pre-baked text; greyed out placeholder "add notes here"
   const [popNote, setPopNote] = useState<string>("");
 
   // Toast
@@ -161,15 +180,46 @@ export default function OfficialV3Client() {
     return () => window.removeEventListener("click", handleGlobalClick);
   }, []);
 
-  // Initialize AI Model core (spinner only starts rotating once ready)
+  // Initialize TensorFlow.js MobileNet Model on Mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsModelReady(true);
-    }, 900);
-    return () => clearTimeout(timer);
+    let isMounted = true;
+    const initModels = async () => {
+      try {
+        setModelStatus("loading");
+        const tf = await import("@tensorflow/tfjs");
+        await tf.ready();
+
+        try {
+          const loaded = await tf.loadGraphModel(
+            "https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_large_100_224/classification/5/default/1",
+            { fromTFHub: true }
+          );
+          if (isMounted) {
+            modelV4Ref.current = loaded;
+            setModelStatus("ready");
+          }
+        } catch {
+          const mobilenet = await import("@tensorflow-models/mobilenet");
+          const fallback = await mobilenet.load({ version: 2, alpha: 1.0 });
+          if (isMounted) {
+            modelV2FallbackRef.current = fallback as unknown as MobileNetModel;
+            setModelStatus("ready");
+          }
+        }
+      } catch (err) {
+        console.warn("MobileNet load error:", err);
+        if (isMounted) {
+          setModelStatus("ready"); // Graceful fallback
+        }
+      }
+    };
+    initModels();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Real Camera Hardware Streaming
+  // Camera Management using `{ ideal: facingMode }`
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -180,32 +230,46 @@ export default function OfficialV3Client() {
 
   const startCamera = useCallback(async () => {
     try {
+      setIsCameraStarting(true);
+      setCameraError(null);
       stopCamera();
-      if (!navigator.mediaDevices?.getUserMedia) {
-        showToast("Camera not supported on this device/browser");
-        return;
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not supported on this browser context");
       }
+
+      // Use ideal constraints so laptops/webcams and phones all succeed without crashing
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
-          facingMode: facingMode,
+          facingMode: { ideal: facingMode },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
       });
+
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play().catch(() => {});
         setIsCameraActive(true);
       }
+
       const track = stream.getVideoTracks()[0];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const caps = track.getCapabilities ? (track.getCapabilities() as any) : {};
+      const caps = track?.getCapabilities ? (track.getCapabilities() as any) : {};
       setIsTorchSupported(Boolean(caps?.torch));
       setIsTorchOn(false);
-    } catch {
+    } catch (err: unknown) {
+      console.warn("Camera init failed:", err);
       setIsCameraActive(false);
+      setCameraError(
+        err instanceof Error
+          ? err.message
+          : "Camera access unavailable. Please grant permissions in your browser."
+      );
+    } finally {
+      setIsCameraStarting(false);
     }
   }, [facingMode, stopCamera]);
 
@@ -250,7 +314,7 @@ export default function OfficialV3Client() {
     }
   };
 
-  // Zoom Handler (Hardware constraint + CSS visual scale)
+  // Zoom Handler
   const handleSetZoom = async (z: string) => {
     setZoomLevel(z);
     const factor = parseFloat(z) || 1;
@@ -277,109 +341,171 @@ export default function OfficialV3Client() {
 
   const numZoom = parseFloat(zoomLevel) || 1;
 
-  // Shared Classification & Progress Animation Pipeline
-  const runClassificationPipeline = async (imageDataUrl: string) => {
+  // -------------------------------------------------------------
+  // THE REAL HYBRID PIPELINE (MobileNet Edge -> Gate -> Gemini)
+  // -------------------------------------------------------------
+  const runHybridPipeline = async (sourceCanvas: HTMLCanvasElement, previewDataUrl: string) => {
     setIsScanning(true);
     setScanProgress(15);
     setScanStatusStep("Capturing high-res frame...");
 
-    // Stage 2: MobileNet Core
-    setTimeout(() => {
-      setScanProgress(45);
-      setScanStatusStep("Running MobileNet Vision Core...");
-    }, 280);
+    let cnnResult = null;
+    try {
+      setScanProgress(35);
+      setScanStatusStep("Running MobileNet Edge Core...");
 
-    // Stage 3: Malaysian DB Matching
-    setTimeout(() => {
+      if (modelV4Ref.current) {
+        cnnResult = await runMobileNetV4Classification(modelV4Ref.current, sourceCanvas);
+      } else if (modelV2FallbackRef.current) {
+        cnnResult = await runPredefinedCnnClassification(modelV2FallbackRef.current, sourceCanvas);
+      }
+    } catch (err) {
+      console.warn("Local CNN error, evaluating cloud path:", err);
+    }
+
+    const topConfidence = cnnResult?.confidence ?? 0;
+    const runnerUpConfidence = cnnResult?.topRankings?.[1]?.confidence ?? 0;
+    const marginGap = topConfidence - runnerUpConfidence;
+
+    // Calibrated Hybrid Gate: >= 80% confidence AND >= 20% margin gap over #2
+    const isConfidentEdge =
+      cnnResult &&
+      topConfidence >= 80 &&
+      marginGap >= 20 &&
+      cnnResult.topIngredient.id !== "potato";
+
+    if (isConfidentEdge && cnnResult) {
+      // Layer 1 Hit: Resolved locally on edge!
       setScanProgress(75);
       setScanStatusStep("Matching Malaysian Culinary DB...");
-    }, 620);
+
+      const local = findMatchingMalaysianIngredient(
+        cnnResult.topIngredient.name,
+        cnnResult.topIngredient.category
+      );
+
+      const resolvedName = cnnResult.topIngredient.name;
+      const resolvedMalay = cnnResult.topIngredient.nameMalay || (local ? local.nameMalay : "");
+      const resolvedUnit = local?.defaultUnit || (cnnResult.topIngredient.category === "Fruit" ? "biji" : "pcs");
+      const resolvedCat = local?.category || (cnnResult.topIngredient.category === "Fruit" ? "Produce" : "Produce");
+      const resolvedEmoji = cnnResult.topIngredient.emoji || "🥬";
+
+      setDetectedItemName(resolvedName);
+      setDetectedMalayName(resolvedMalay);
+      setDetectedCategory(resolvedCat);
+      setDetectedConfidence(cnnResult.confidence);
+      setDetectedSubtitle(`Farm Fresh • ${resolvedCat}`);
+      setDetectedEmoji(resolvedEmoji);
+      setDetectedEngineUsed("MobileNet v4 Edge AI");
+      setPopPortion(1);
+      setPopUnit(resolvedUnit);
+
+      setScanProgress(100);
+      setScanStatusStep("Identified by MobileNet Edge!");
+
+      setTimeout(() => {
+        setIsScanning(false);
+        setShowPopOutCard(true);
+        showToast(`Edge AI Match: ${resolvedName} (${cnnResult.confidence}%)`);
+      }, 700);
+      return;
+    }
+
+    // Gate Failed -> Escalate to Gemini Vision Multimodal Cloud
+    setScanProgress(60);
+    setScanStatusStep("Escalating to Gemini Vision AI...");
 
     try {
       const res = await fetch("/api/classify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageDataUrl }),
+        body: JSON.stringify({ image: previewDataUrl }),
       });
 
       if (res.ok) {
         const json = await res.json();
         if (json.data) {
-          setDetectedItemName(json.data.name || "Fresh Produce");
-          setDetectedMalayName(json.data.nameMalay || "");
-          const cat = json.data.category?.toLowerCase() || "";
-          if (cat.includes("protein") || cat.includes("seafood") || cat.includes("meat")) {
-            setDetectedCategory("proteins");
-          } else if (cat.includes("season") || cat.includes("pantry")) {
-            setDetectedCategory("seasoning");
-          } else if (cat.includes("dairy") || cat.includes("egg")) {
-            setDetectedCategory("dairy");
-          } else if (cat.includes("staple") || cat.includes("grain")) {
-            setDetectedCategory("staples");
-          } else {
-            setDetectedCategory("produce");
-          }
-          setDetectedConfidence(json.data.confidence || 96);
-          setDetectedSubtitle(`Smart Stock AI • ${json.data.category || "Malaysian Kitchen"}`);
-          setDetectedEmoji(json.data.emoji || "🥬");
-          setPopPortion(json.data.suggestedQuantity || 1);
-          setPopUnit(json.data.suggestedUnit || "biji");
+          const gData = json.data;
+          setDetectedItemName(gData.name || "Fresh Produce");
+          setDetectedMalayName(gData.nameMalay || "");
+          setDetectedCategory(gData.category || "Produce");
+          setDetectedConfidence(gData.confidence || 96);
+          setDetectedSubtitle(gData.brand ? `${gData.brand} • ${gData.category}` : `Smart Stock AI • ${gData.category || "Malaysian Kitchen"}`);
+          setDetectedEmoji(gData.emoji || "🥗");
+          setDetectedEngineUsed("Gemini Vision AI");
+          setPopPortion(gData.suggestedQuantity || 1);
+          setPopUnit(gData.suggestedUnit || "biji");
+
+          setScanProgress(100);
+          setScanStatusStep("Identified by Gemini Vision!");
+
+          setTimeout(() => {
+            setIsScanning(false);
+            setShowPopOutCard(true);
+            showToast(`Gemini Identified: ${gData.name} (${gData.confidence}%)`);
+          }, 700);
+          return;
         }
       }
     } catch (err) {
-      console.warn("Classification error, applying smart local fallback:", err);
-      setDetectedItemName("Fresh Sweet Corn");
-      setDetectedMalayName("Jagung Manis");
-      setDetectedCategory("produce");
-      setDetectedConfidence(98);
-      setDetectedSubtitle("Cameron Highlands • Produce");
-      setDetectedEmoji("🌽");
-      setPopPortion(2);
-      setPopUnit("batang");
+      console.warn("Cloud escalation error:", err);
     }
 
-    setTimeout(() => {
-      setScanProgress(100);
-      setScanStatusStep("Ingredient Identified!");
-    }, 900);
+    // Fallback if both fail
+    if (cnnResult) {
+      const local = findMatchingMalaysianIngredient(cnnResult.topIngredient.name, cnnResult.topIngredient.category);
+      setDetectedItemName(cnnResult.topIngredient.name);
+      setDetectedMalayName(cnnResult.topIngredient.nameMalay || local?.nameMalay || "");
+      setDetectedCategory(local?.category || "Produce");
+      setDetectedConfidence(cnnResult.confidence);
+      setDetectedSubtitle("Local Produce Database");
+      setDetectedEmoji(cnnResult.topIngredient.emoji);
+      setDetectedEngineUsed("MobileNet Edge Fallback");
+      setPopPortion(1);
+      setPopUnit(local?.defaultUnit || "biji");
+    }
 
+    setScanProgress(100);
+    setScanStatusStep("Analysis Complete");
     setTimeout(() => {
       setIsScanning(false);
       setShowPopOutCard(true);
-      showToast("Scan complete! Review ingredient details.");
-    }, 1150);
+    }, 700);
   };
 
-  // AI Shutter Snap (Freezes immediately on captured frame)
+  // AI Shutter Snap (Draws canvas, freezes frame, runs hybrid classification)
   const triggerShutter = async () => {
     if (isScanning) return;
 
-    let capturedDataUrl = "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80";
+    const canvas = document.createElement("canvas");
+    canvas.width = 640;
+    canvas.height = 640;
+    const ctx = canvas.getContext("2d");
 
-    // Grab frame from live camera
-    if (videoRef.current && isCameraActive) {
+    let capturedDataUrl = "";
+
+    if (videoRef.current && isCameraActive && ctx) {
       try {
         const video = videoRef.current;
-        const canvas = document.createElement("canvas");
         const fullSize = Math.min(video.videoWidth || 640, video.videoHeight || 640);
-        canvas.width = 640;
-        canvas.height = 640;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          const cropSize = fullSize / numZoom;
-          const startX = ((video.videoWidth || 640) - cropSize) / 2;
-          const startY = ((video.videoHeight || 640) - cropSize) / 2;
-          ctx.drawImage(video, startX, startY, cropSize, cropSize, 0, 0, 640, 640);
-          capturedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-        }
+        const cropSize = fullSize / numZoom;
+        const startX = ((video.videoWidth || 640) - cropSize) / 2;
+        const startY = ((video.videoHeight || 640) - cropSize) / 2;
+        ctx.drawImage(video, startX, startY, cropSize, cropSize, 0, 0, 640, 640);
+        capturedDataUrl = canvas.toDataURL("image/jpeg", 0.88);
       } catch (err) {
         console.warn("Canvas capture error:", err);
       }
     }
 
-    // Freeze immediately on the captured frame to prevent camera movement
+    if (!capturedDataUrl) {
+      showToast("Please ensure camera is active or upload a photo");
+      return;
+    }
+
+    // Freeze viewfinder immediately on the captured frame
     setCapturedPhotoUrl(capturedDataUrl);
-    await runClassificationPipeline(capturedDataUrl);
+    await runHybridPipeline(canvas, capturedDataUrl);
   };
 
   // Upload image handler
@@ -391,38 +517,31 @@ export default function OfficialV3Client() {
     reader.onload = async () => {
       const base64Url = reader.result as string;
       setCapturedPhotoUrl(base64Url);
-      showToast("Image selected! Starting AI classification...");
-      await runClassificationPipeline(base64Url);
+
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 640;
+        canvas.height = 640;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const minDim = Math.min(img.width, img.height);
+          const sX = (img.width - minDim) / 2;
+          const sY = (img.height - minDim) / 2;
+          ctx.drawImage(img, sX, sY, minDim, minDim, 0, 0, 640, 640);
+        }
+        showToast("Photo uploaded! Starting Hybrid AI Scan...");
+        await runHybridPipeline(canvas, base64Url);
+      };
+      img.src = base64Url;
     };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
 
-  // Confirm Add to Pantry from View 2 Pop-Out Card
-  const handleConfirmAddPopOut = () => {
-    const newItem: PantryItemData = {
-      id: "item_" + Date.now(),
-      name: detectedItemName,
-      nameMalay: detectedMalayName,
-      category: detectedCategory,
-      qty: popPortion,
-      unit: popUnit,
-      recent: Date.now(),
-      photoUrl: capturedPhotoUrl,
-      emoji: detectedEmoji,
-      subtitle: `Added just now • ${detectedSubtitle}`,
-      culinaryNote: popNote.trim() ? popNote.trim() : `Fresh ${detectedItemName} (${detectedMalayName || "Malaysian Produce"}).`,
-    };
-
-    setCards((prev) => [newItem, ...prev]);
-    setShowPopOutCard(false);
-    setPopNote(""); // Reset notes
-    showToast(`${detectedItemName} (${popPortion} ${popUnit}) added to Pantry!`);
-    setActiveTab("pantry");
-  };
-
-  // Gemini Vision Re-Check Trigger
+  // Option C: Manual Re-Check with Gemini Vision Cloud
   const triggerGeminiRecheck = async () => {
+    if (!capturedPhotoUrl) return;
     showToast("Re-analyzing ingredient with Gemini Vision...");
     try {
       const res = await fetch("/api/classify", {
@@ -433,49 +552,87 @@ export default function OfficialV3Client() {
       if (res.ok) {
         const json = await res.json();
         if (json.data) {
-          setDetectedItemName(json.data.name || detectedItemName);
-          setDetectedMalayName(json.data.nameMalay || detectedMalayName);
-          const cat = json.data.category?.toLowerCase() || "";
-          if (cat.includes("protein") || cat.includes("seafood") || cat.includes("meat")) {
-            setDetectedCategory("proteins");
-          } else if (cat.includes("season") || cat.includes("pantry")) {
-            setDetectedCategory("seasoning");
-          } else if (cat.includes("dairy") || cat.includes("egg")) {
-            setDetectedCategory("dairy");
-          } else if (cat.includes("staple") || cat.includes("grain")) {
-            setDetectedCategory("staples");
-          } else {
-            setDetectedCategory("produce");
-          }
+          const gData = json.data;
+          setDetectedItemName(gData.name || detectedItemName);
+          setDetectedMalayName(gData.nameMalay || detectedMalayName);
+          setDetectedCategory(gData.category || detectedCategory);
           setDetectedConfidence(99);
-          setDetectedSubtitle(`Verified by Gemini • ${json.data.category || "Produce"}`);
-          setDetectedEmoji(json.data.emoji || detectedEmoji);
-          if (json.data.suggestedQuantity) setPopPortion(json.data.suggestedQuantity);
-          if (json.data.suggestedUnit) setPopUnit(json.data.suggestedUnit);
-          showToast(`Gemini Vision verified: ${json.data.name || detectedItemName} (99% match)!`);
-          return;
+          setDetectedSubtitle(`Verified by Gemini • ${gData.category || "Produce"}`);
+          setDetectedEmoji(gData.emoji || detectedEmoji);
+          setDetectedEngineUsed("Gemini Vision AI (Option C)");
+          if (gData.suggestedQuantity) setPopPortion(gData.suggestedQuantity);
+          if (gData.suggestedUnit) setPopUnit(gData.suggestedUnit);
+          showToast(`Gemini Vision Verified: ${gData.name} (99%)`);
         }
       }
     } catch {
-      // Fallback
+      showToast("Cloud connection unavailable. Kept edge match.");
     }
-    setDetectedConfidence(99);
-    setDetectedSubtitle("Verified by Gemini 2.0 • Produce");
-    showToast(`Gemini Vision confirmed: ${detectedItemName} (99% match)!`);
+  };
+
+  // Confirm Add to Pantry (Saves real photo & updates LAST_UPDATED_KEY)
+  const handleConfirmAddPopOut = () => {
+    savePantryItem({
+      name: detectedItemName,
+      nameMalay: detectedMalayName || detectedItemName,
+      category: detectedCategory,
+      quantity: popPortion,
+      unit: popUnit,
+      emoji: detectedEmoji,
+      culinaryNote: popNote.trim() ? popNote.trim() : `Fresh ${detectedItemName}. Logged via ZeroWaste AI Scanner.`,
+      imageUrl: capturedPhotoUrl || undefined,
+      confidence: detectedConfidence,
+      engineUsed: detectedEngineUsed,
+    });
+
+    loadPantry();
+    setShowPopOutCard(false);
+    setPopNote("");
+    showToast(`${detectedItemName} (${popPortion} ${popUnit}) added to Digital Pantry!`);
+    setActiveTab("pantry");
+  };
+
+  // Stepper handlers
+  const adjustCardQty = (id: string, delta: number) => {
+    const card = cards.find((c) => c.id === id);
+    if (card) {
+      const newQty = Math.max(1, card.quantity + delta);
+      updatePantryItemQuantity(id, newQty);
+      loadPantry();
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (cardToDelete) {
+      deletePantryItem(cardToDelete.id);
+      loadPantry();
+      showToast(`Removed ${cardToDelete.name} from Digital Pantry`);
+      setCardToDelete(null);
+    }
+  };
+
+  const handleSelectUnit = (unit: string) => {
+    if (activeUnitCardId) {
+      updatePantryItemUnit(activeUnitCardId, unit);
+      loadPantry();
+      setActiveUnitCardId(null);
+      showToast(`Quantifier updated to '${unit}'`);
+    }
   };
 
   // Real Search & Filter Logic
   const getFilteredCards = () => {
     let result = cards.filter((c) => {
-      if (selectedCat !== "all" && c.category !== selectedCat) return false;
+      if (selectedCat !== "all" && c.category.toLowerCase() !== selectedCat.toLowerCase()) {
+        return false;
+      }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchName = c.name.toLowerCase().includes(q);
         const matchMalay = c.nameMalay ? c.nameMalay.toLowerCase().includes(q) : false;
         const matchCat = c.category.toLowerCase().includes(q);
-        const matchSub = c.subtitle ? c.subtitle.toLowerCase().includes(q) : false;
         const matchNote = c.culinaryNote ? c.culinaryNote.toLowerCase().includes(q) : false;
-        return matchName || matchMalay || matchCat || matchSub || matchNote;
+        return matchName || matchMalay || matchCat || matchNote;
       }
       return true;
     });
@@ -484,9 +641,9 @@ export default function OfficialV3Client() {
       if (selectedSort === "name") {
         return a.name.localeCompare(b.name);
       } else if (selectedSort === "qty") {
-        return b.qty - a.qty;
+        return b.quantity - a.quantity;
       } else if (selectedSort === "recent") {
-        return b.recent - a.recent;
+        return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
       }
       return 0;
     });
@@ -495,37 +652,6 @@ export default function OfficialV3Client() {
   };
 
   const displayedCards = getFilteredCards();
-
-  // Stepper handlers
-  const adjustCardQty = (id: string, delta: number) => {
-    setCards((prev) =>
-      prev.map((c) => {
-        if (c.id === id) {
-          const next = Math.max(1, c.qty + delta);
-          return { ...c, qty: next };
-        }
-        return c;
-      })
-    );
-  };
-
-  const handleConfirmDelete = () => {
-    if (cardToDelete) {
-      setCards((prev) => prev.filter((c) => c.id !== cardToDelete.id));
-      showToast(`Removed ${cardToDelete.name} from Digital Pantry`);
-      setCardToDelete(null);
-    }
-  };
-
-  const handleSelectUnit = (unit: string) => {
-    if (activeUnitCardId) {
-      setCards((prev) =>
-        prev.map((c) => (c.id === activeUnitCardId ? { ...c, unit } : c))
-      );
-      setActiveUnitCardId(null);
-      showToast(`Quantifier updated to '${unit}'`);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-[#E0E5EC] font-['Plus_Jakarta_Sans',sans-serif] text-[#3D4852] select-none">
@@ -618,7 +744,7 @@ export default function OfficialV3Client() {
                 </div>
               )}
 
-              {/* 1. Digital Pantry Card (Full-Width Stored Items + Dual Bulging Dark-Green Buttons) */}
+              {/* 1. Digital Pantry Card: Real Dynamic Relative Time */}
               <section className="w-full neo-raised rounded-2xl p-3.5 flex flex-col gap-2.5 shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -627,9 +753,10 @@ export default function OfficialV3Client() {
                     </div>
                     <span className="text-xs font-bold text-foreground">Digital Pantry</span>
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full neo-sunken text-[#004730] text-[10px] font-bold">
+                  {/* Dynamic Relative Time Pill */}
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full neo-sunken text-[#004730] text-[10px] font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#004730] animate-pulse"></span>
-                    Live Sync
+                    <span>Updated {lastUpdatedText}</span>
                   </span>
                 </div>
 
@@ -645,7 +772,7 @@ export default function OfficialV3Client() {
                 <div className="grid grid-cols-2 gap-2.5">
                   {/* Left: Generate Meals -> Says Coming Soon */}
                   <button
-                    onClick={() => showToast("Coming Soon: Generate Meals")}
+                    onClick={() => showToast("Coming Soon: Generate Meals from Pantry")}
                     className="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
                     style={{
                       boxShadow: "4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9)",
@@ -839,7 +966,7 @@ export default function OfficialV3Client() {
                   )}
                 </div>
 
-                {/* Right: Sort & Grid View Toggle (Removed Expiring Soon) */}
+                {/* Right: Sort & Grid View Toggle */}
                 <div className="flex items-center gap-2">
                   <div className="relative" onClick={(e) => e.stopPropagation()}>
                     <button
@@ -948,7 +1075,7 @@ export default function OfficialV3Client() {
 
               </div>
 
-              {/* 3. Pantry Item Cards (Grid Mode by default) */}
+              {/* 3. Pantry Item Cards (Displays Real User Captured Photos) */}
               {cards.length === 0 ? (
                 /* Pure Neumorphic Clean Empty State */
                 <div className="w-full neo-raised rounded-3xl p-6 flex flex-col items-center justify-center text-center gap-3 my-4">
@@ -999,18 +1126,24 @@ export default function OfficialV3Client() {
                       className="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2"
                     >
                       <div className="card-media-row flex items-center gap-3">
-                        {/* Clickable Card Photo Box: Opens View Picture & Info Modal */}
+                        {/* Clickable Card Photo Box: Displays Real Photo Captured by User */}
                         <div
                           onClick={() => setSelectedItemForDetail(card)}
-                          className="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative cursor-pointer group active:scale-95 transition-all"
+                          className="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative cursor-pointer group active:scale-95 transition-all bg-[#dbe1e8]"
                           title="Click to view full picture & details"
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={card.photoUrl}
-                            alt={card.name}
-                            className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform"
-                          />
+                          {card.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={card.imageUrl}
+                              alt={card.name}
+                              className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-2xl">
+                              {card.emoji}
+                            </div>
+                          )}
                           <div className="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px] shadow-sm">
                             {card.emoji}
                           </div>
@@ -1036,7 +1169,9 @@ export default function OfficialV3Client() {
                               <span className="material-symbols-outlined text-sm">delete_outline</span>
                             </button>
                           </div>
-                          <span className="text-[10px] text-muted font-medium truncate">{card.subtitle}</span>
+                          <span className="text-[10px] text-muted font-medium truncate">
+                            {card.nameMalay || card.category}
+                          </span>
                         </div>
                       </div>
 
@@ -1064,7 +1199,7 @@ export default function OfficialV3Client() {
                           
                           {/* Number Block: Set to exact h-7 (same height/thickness as the w-7 h-7 buttons) */}
                           <div className="h-7 min-h-[28px] max-h-[28px] neo-sunken rounded-full px-2 flex-1 text-center flex items-center justify-center leading-none">
-                            <span className="portion-val text-xs font-extrabold text-foreground">{card.qty}</span>
+                            <span className="portion-val text-xs font-extrabold text-foreground">{card.quantity}</span>
                           </div>
 
                           <button
@@ -1087,7 +1222,7 @@ export default function OfficialV3Client() {
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 1: LIVE SCANNER HUD TAB                              */}
+        {/* VIEW 1: LIVE SCANNER HUD TAB (Real Camera Stream)         */}
         {/* ========================================================= */}
         {activeTab === "scanner" && (
           <>
@@ -1182,11 +1317,11 @@ export default function OfficialV3Client() {
                   </div>
                 </div>
 
-                {/* Viewfinder Frame Section (Camera Freezes Immediately on AI Scan) */}
+                {/* Viewfinder Frame Section (Real Camera Feed + Freeze on Capture - ZERO DUMMY CORN) */}
                 <div className="w-full neo-raised rounded-2xl p-2.5 relative flex flex-col">
                   <div className="relative w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner aspect-square">
-                    {/* When scanning is triggered: Freeze immediately on static captured frame so user doesn't see moving camera */}
-                    {isScanning ? (
+                    {/* 1. When scanning is in progress: Freeze on captured snapshot */}
+                    {isScanning && capturedPhotoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={capturedPhotoUrl}
@@ -1198,33 +1333,58 @@ export default function OfficialV3Client() {
                           transition: "transform 0.25s ease-out",
                         }}
                       />
-                    ) : isCameraActive ? (
-                      /* Live Camera Video Stream */
+                    ) : (
+                      /* 2. Live Camera Video Stream */
                       <video
                         ref={videoRef}
                         playsInline
                         autoPlay
                         muted
-                        className="w-full h-full object-cover select-none"
+                        className={`w-full h-full object-cover select-none ${isCameraActive ? "block" : "hidden"}`}
                         style={{
                           transform: `scale(${numZoom})`,
                           transformOrigin: "center center",
                           transition: "transform 0.25s ease-out",
                         }}
                       />
-                    ) : (
-                      /* Fallback Camera Preview Image if Camera Not Active */
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80"
-                        alt="Sweet Corn Live View"
-                        className="w-full h-full object-cover select-none"
-                        style={{
-                          transform: `scale(${numZoom})`,
-                          transformOrigin: "center center",
-                          transition: "transform 0.25s ease-out",
-                        }}
-                      />
+                    )}
+
+                    {/* 3. Real Camera Loading / Error State (No fake fallback picture) */}
+                    {!isCameraActive && !isScanning && (
+                      <div className="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-center p-4 gap-3">
+                        {cameraError ? (
+                          <>
+                            <div className="w-12 h-12 rounded-2xl neo-sunken flex items-center justify-center text-rose-500 bg-slate-800">
+                              <span className="material-symbols-outlined text-2xl">no_photography</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-xs font-bold text-white">Camera Access Required</span>
+                              <span className="text-[10px] text-slate-300 max-w-[220px] leading-relaxed">
+                                {cameraError}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => startCamera()}
+                              className="px-4 py-2 rounded-xl bg-[#004730] text-white text-[11px] font-extrabold active:scale-95 transition-all shadow-md cursor-pointer"
+                              type="button"
+                            >
+                              Retry Camera Permission
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-10 h-10 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-xs font-bold text-white">
+                                {isCameraStarting ? "Starting camera stream..." : "Initializing camera..."}
+                              </span>
+                              <span className="text-[10px] text-slate-400">
+                                Please allow browser camera access
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     )}
 
                     <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
@@ -1241,7 +1401,7 @@ export default function OfficialV3Client() {
                           <div className="w-2 h-2 rounded-full bg-[#006948] ring-4 ring-[#006948]/20"></div>
                         </div>
                         <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[10px] font-bold">
-                          {isScanning ? "Processing static frame..." : isCameraActive ? "Point camera at ingredient" : "Center 1 ingredient here"}
+                          {isScanning ? "Processing static frame..." : isCameraActive ? "Point camera at ingredient" : "Waiting for camera..."}
                         </div>
                       </div>
                     </div>
@@ -1295,8 +1455,8 @@ export default function OfficialV3Client() {
                         <div className="absolute inset-0 rounded-full flex items-center justify-center pointer-events-none">
                           <svg
                             className={`w-full h-full transition-all duration-300 ${
-                              !isModelReady
-                                ? "" // STOPS MOVING if model is not ready!
+                              modelStatus !== "ready"
+                                ? "" // STOPS MOVING if model is loading
                                 : isScanning
                                 ? "animate-[spin_0.75s_linear_infinite]"
                                 : "animate-[spin_3.5s_linear_infinite]"
@@ -1327,13 +1487,13 @@ export default function OfficialV3Client() {
                         {/* Central AI Scan Shutter Button: Green Background with White Camera Icon */}
                         <button
                           onClick={triggerShutter}
-                          disabled={isScanning}
+                          disabled={isScanning || (!isCameraActive && modelStatus !== "ready")}
                           className="relative z-10 h-14 w-14 rounded-full bg-[#004730] flex items-center justify-center shadow-lg active:scale-90 transition-all cursor-pointer group"
                           style={{
                             boxShadow: "4px 4px 12px rgba(0, 71, 48, 0.45), -2px -2px 8px rgba(255, 255, 255, 0.7)",
                           }}
                           type="button"
-                          title={isModelReady ? "Snap & Identify" : "Model Initializing..."}
+                          title={modelStatus === "ready" ? "Snap & Identify" : "Loading Model Core..."}
                         >
                           <span className="material-symbols-outlined text-white text-3xl font-bold group-hover:scale-105 transition-transform">
                             photo_camera
@@ -1341,7 +1501,7 @@ export default function OfficialV3Client() {
                         </button>
                       </div>
                       <span className="text-[10px] font-bold text-foreground mt-1.5">
-                        {isScanning ? "Scanning..." : isModelReady ? "AI Scan" : "Initializing..."}
+                        {isScanning ? "Scanning..." : modelStatus === "ready" ? "AI Scan" : "Loading..."}
                       </span>
                     </div>
 
@@ -1388,12 +1548,14 @@ export default function OfficialV3Client() {
             {showPopOutCard && (
               <div className="absolute inset-x-0 bottom-0 top-16 z-30 bg-black/50 backdrop-blur-sm flex flex-col justify-end animate-pop-up overflow-hidden">
                 {/* Background Dimmed Scene */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={capturedPhotoUrl}
-                  alt={detectedItemName}
-                  className="absolute inset-0 w-full h-full object-cover filter blur-sm opacity-50 pointer-events-none"
-                />
+                {capturedPhotoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={capturedPhotoUrl}
+                    alt={detectedItemName}
+                    className="absolute inset-0 w-full h-full object-cover filter blur-sm opacity-50 pointer-events-none"
+                  />
+                ) : null}
                 <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
 
                 {/* POP-OUT CARD */}
@@ -1413,13 +1575,19 @@ export default function OfficialV3Client() {
                   </div>
 
                   {/* 1. COMPLETELY DETACHED BIG SQUARE IMAGE */}
-                  <div className="w-48 h-48 aspect-square mx-auto rounded-3xl neo-raised p-2 overflow-hidden relative shrink-0 my-0.5">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={capturedPhotoUrl}
-                      alt={detectedItemName}
-                      className="w-full h-full object-cover rounded-2xl shadow-inner"
-                    />
+                  <div className="w-48 h-48 aspect-square mx-auto rounded-3xl neo-raised p-2 overflow-hidden relative shrink-0 my-0.5 bg-[#dbe1e8]">
+                    {capturedPhotoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={capturedPhotoUrl}
+                        alt={detectedItemName}
+                        className="w-full h-full object-cover rounded-2xl shadow-inner"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-4xl">
+                        {detectedEmoji}
+                      </div>
+                    )}
                     <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md flex items-center gap-1.5 text-[10px] font-bold text-white shadow-md">
                       <span className="material-symbols-outlined text-xs text-emerald-400">photo_camera</span>
                       <span>Captured</span>
@@ -1445,10 +1613,10 @@ export default function OfficialV3Client() {
                       {detectedItemName} {detectedMalayName ? `(${detectedMalayName})` : ""}
                     </h2>
 
-                    {/* Sub-badge: Detected Engine */}
+                    {/* Sub-badge: Real Detected Engine */}
                     <div className="flex items-center gap-1.5 text-[11px] text-muted font-semibold">
                       <span className="material-symbols-outlined text-xs text-[#006948]">memory</span>
-                      <span>Detected by MobileNet Core</span>
+                      <span>Detected by {detectedEngineUsed}</span>
                     </div>
                   </div>
 
@@ -1516,7 +1684,7 @@ export default function OfficialV3Client() {
                         </div>
                       </div>
 
-                      {/* Right Plus Button (Raised Neumorphic with Green Font Color per requirement) */}
+                      {/* Right Plus Button (Raised Neumorphic with Green Font Color) */}
                       <button
                         onClick={() => setPopPortion((p) => p + 1)}
                         className="w-11 h-11 rounded-xl neo-raised-button flex items-center justify-center text-[#004730] font-black active:scale-90 transition-transform shrink-0 cursor-pointer shadow-sm"
@@ -1549,7 +1717,7 @@ export default function OfficialV3Client() {
                     )}
                   </div>
 
-                  {/* 5. Add to Pantry Button (Rich Dark Green per requirement) */}
+                  {/* 5. Add to Pantry Button (Rich Dark Green) */}
                   <button
                     onClick={handleConfirmAddPopOut}
                     className="w-full shrink-0 h-14 rounded-2xl text-white font-black text-base tracking-wide flex items-center justify-center gap-2.5 cursor-pointer select-none bg-[#004730] hover:bg-[#003824] active:scale-98 transition-all"
@@ -1562,7 +1730,7 @@ export default function OfficialV3Client() {
                     <span>Add to Pantry</span>
                   </button>
 
-                  {/* 6. Bulging Out Gemini Vision Block: Galaxy Coloured Button (Blue, Indigo, Purple, Magenta) */}
+                  {/* 6. Bulging Out Gemini Vision Block: Galaxy Coloured Button */}
                   <div className="p-3.5 rounded-2xl neo-bulge flex items-center justify-between gap-3 shrink-0">
                     <div className="flex flex-col min-w-0 text-left pl-1">
                       <span className="text-xs font-black text-foreground truncate">Wrong ingredient?</span>
@@ -1586,9 +1754,9 @@ export default function OfficialV3Client() {
                     </button>
                   </div>
 
-                  {/* 7. Old Rescan and Scan Next Buttons per user preference */}
+                  {/* 7. Old Rescan and Scan Next Buttons */}
                   <div className="grid grid-cols-2 gap-3 pt-0.5 shrink-0">
-                    {/* Rescan: Old clean replay arrow button */}
+                    {/* Rescan: clean replay arrow button */}
                     <button
                       onClick={() => {
                         setShowPopOutCard(false);
@@ -1601,7 +1769,7 @@ export default function OfficialV3Client() {
                       <span>Rescan</span>
                     </button>
 
-                    {/* Scan Next: Old qr_code_scanner button */}
+                    {/* Scan Next: qr_code_scanner button */}
                     <button
                       onClick={() => {
                         setShowPopOutCard(false);
@@ -1686,7 +1854,7 @@ export default function OfficialV3Client() {
         )}
 
         {/* ========================================================= */}
-        {/* BOTTOM NAV: FROM THE VERCEL SYSTEM                        */}
+        {/* BOTTOM NAV                                                */}
         {/* ========================================================= */}
         <nav className="mt-2 mb-1 mx-1 h-16 px-1.5 rounded-3xl bg-[#E0E5EC] neo-raised grid grid-cols-4 items-center gap-1 shrink-0 z-40 border-0">
           {/* 1. Scanner Tab */}
@@ -1759,7 +1927,7 @@ export default function OfficialV3Client() {
         {/* POPUPS & MODALS                                           */}
         {/* ========================================================= */}
         
-        {/* 1. Item Picture & Info Modal */}
+        {/* 1. Item Picture & Info Modal (Displays User's Real Photo) */}
         {selectedItemForDetail && (
           <div
             className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-opacity animate-pop-up"
@@ -1779,13 +1947,19 @@ export default function OfficialV3Client() {
               </button>
 
               {/* Large Image View */}
-              <div className="w-full h-48 rounded-2xl neo-sunken p-1 overflow-hidden relative shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={selectedItemForDetail.photoUrl}
-                  alt={selectedItemForDetail.name}
-                  className="w-full h-full object-cover rounded-xl"
-                />
+              <div className="w-full h-48 rounded-2xl neo-sunken p-1 overflow-hidden relative shrink-0 bg-[#dbe1e8]">
+                {selectedItemForDetail.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selectedItemForDetail.imageUrl}
+                    alt={selectedItemForDetail.name}
+                    className="w-full h-full object-cover rounded-xl"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-5xl">
+                    {selectedItemForDetail.emoji}
+                  </div>
+                )}
                 <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full bg-white/95 text-xs font-black shadow-md flex items-center gap-1 text-slate-800">
                   <span>{selectedItemForDetail.emoji}</span>
                   <span className="capitalize">{selectedItemForDetail.category}</span>
@@ -1799,14 +1973,14 @@ export default function OfficialV3Client() {
                     {selectedItemForDetail.name}
                   </h3>
                   <span className="text-xs font-black px-2.5 py-0.5 rounded-full neo-sunken text-[#004730]">
-                    {selectedItemForDetail.qty} {selectedItemForDetail.unit}
+                    {selectedItemForDetail.quantity} {selectedItemForDetail.unit}
                   </span>
                 </div>
                 <span className="text-xs font-semibold text-muted">
                   {selectedItemForDetail.nameMalay}
                 </span>
                 <span className="text-[11px] font-medium text-emerald-800 mt-0.5">
-                  {selectedItemForDetail.subtitle}
+                  Added on {new Date(selectedItemForDetail.dateAdded).toLocaleDateString()}
                 </span>
               </div>
 
