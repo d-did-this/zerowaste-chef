@@ -1,0 +1,52 @@
+{
+  "cuisines": [
+    {
+      "id": "any",
+      "label": "Any",
+      "png": "png/any.png",
+      "svg": "svg/any.svg",
+      "width": 296,
+      "height": 170
+    },
+    {
+      "id": "malay",
+      "label": "Malay",
+      "png": "png/malay.png",
+      "svg": "svg/malay.svg",
+      "width": 293,
+      "height": 167
+    },
+    {
+      "id": "chinese",
+      "label": "Chinese",
+      "png": "png/chinese.png",
+      "svg": "svg/chinese.svg",
+      "width": 296,
+      "height": 162
+    },
+    {
+      "id": "indian",
+      "label": "Indian",
+      "png": "png/indian.png",
+      "svg": "svg/indian.svg",
+      "width": 294,
+      "height": 163
+    },
+    {
+      "id": "sabah-sarawak",
+      "label": "Sabah & Sarawak",
+      "png": "png/sabah-sarawak.png",
+      "svg": "svg/sabah-sarawak.svg",
+      "width": 263,
+      "height": 158
+    },
+    {
+      "id": "others",
+      "label": "Others",
+      "png": "png/others.png",
+      "svg": "svg/others.svg",
+      "width": 288,
+      "height": 157
+    }
+  ]
+}

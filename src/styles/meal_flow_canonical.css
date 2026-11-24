@@ -1,0 +1,552 @@
+/* ==============================================================================
+   CANONICAL ZERO-WASTE CHEF MEAL FLOW STYLESHEET (CLONED 100% FROM PROTOTYPE)
+   ============================================================================== */
+
+/* Scoped Meal Flow & Grocery Neumorphic Primitives (Zero Impact on Pantry / Scanner GitHub Styles) */
+.meal-flow-scope .neo-raised {
+  background: #E0E5EC;
+  box-shadow: 4px 4px 9px rgba(163, 177, 198, 0.52), -4px -4px 9px rgba(255, 255, 255, 0.72);
+  border: none !important;
+}
+
+.meal-flow-scope .neo-raised-sm {
+  background: #E0E5EC;
+  box-shadow: 3px 3px 6px rgba(163, 177, 198, 0.5), -3px -3px 6px rgba(255, 255, 255, 0.72);
+  border: none !important;
+}
+
+.meal-flow-scope .neo-sunken {
+  background: #E0E5EC;
+  box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.58), inset -4px -4px 8px rgba(255, 255, 255, 0.72);
+  border: none !important;
+}
+
+.meal-flow-scope .neo-bar-top {
+  background: rgba(224, 229, 236, 0.95);
+  box-shadow: 0 5px 10px -5px rgba(163, 177, 198, 0.48);
+  border: none !important;
+}
+
+.meal-flow-scope .neo-button {
+  background: #E0E5EC;
+  box-shadow: 3px 3px 7px rgba(163, 177, 198, 0.5), -3px -3px 7px rgba(255, 255, 255, 0.72);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.meal-flow-scope .neo-button:active {
+  box-shadow: inset 3px 3px 6px rgba(163, 177, 198, 0.6), inset -3px -3px 6px rgba(255, 255, 255, 0.65);
+  transform: translateY(1px);
+}
+
+/* Header Bar (Back button safely inside boundary with clear step context) */
+.header-bar {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: rgba(224, 229, 236, 0.95);
+  border-radius: 28px 28px 18px 18px;
+  box-shadow: 0 5px 10px -5px rgba(163, 177, 198, 0.42);
+  margin-bottom: 2px;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.header-left-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.header-context {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.header-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1E293B;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.header-sub {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #006948;
+  line-height: 1.15;
+}
+
+.header-step-pill {
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #004730;
+  background: #DCE2EA;
+  box-shadow: inset 2px 2px 5px rgba(163, 177, 198, 0.6), inset -2px -2px 5px rgba(255, 255, 255, 0.78);
+  flex-shrink: 0;
+}
+
+.header-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #004730;
+  font-size: 18px;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  background: #E0E5EC;
+  box-shadow: 3px 3px 6px rgba(163, 177, 198, 0.5), -3px -3px 6px rgba(255, 255, 255, 0.72);
+  flex-shrink: 0;
+}
+
+/* Main Scrollable (12px gutter prevents shadow edge clipping) */
+.main-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 12px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.main-scrollable::-webkit-scrollbar {
+  display: none;
+}
+.main-scrollable {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Progress Stepper */
+.stepper-stage-nav {
+  width: 100%;
+  height: 36px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.stepper-node {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.node-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #CBD5E1;
+  color: #475569;
+}
+
+.node-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  letter-spacing: -0.01em;
+}
+
+.stepper-node.is-active .node-num {
+  background: #006948;
+  color: #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0, 105, 72, 0.25);
+}
+
+.stepper-node.is-active .node-label {
+  color: #004730;
+  font-weight: 800;
+}
+
+.stepper-node.is-done .node-num {
+  background: #004730;
+  color: #FFFFFF;
+}
+
+.stepper-node.is-done .node-label {
+  color: #004730;
+  font-weight: 700;
+}
+
+.stepper-connector {
+  width: 14px;
+  height: 2px;
+  background: #CBD5E1;
+  border-radius: 1px;
+}
+
+.stepper-connector.is-done {
+  background: #006948;
+}
+
+/* Preference Selection Summary Card */
+.preference-summary-card {
+  border-radius: 20px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  background: #E0E5EC;
+  box-shadow: 3px 3px 7px rgba(163, 177, 198, 0.48), -3px -3px 7px rgba(255, 255, 255, 0.74);
+  border: none;
+}
+
+.preference-lines-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pref-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pref-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #004730;
+  letter-spacing: -0.01em;
+}
+
+.pref-chips-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pref-chips-container::-webkit-scrollbar {
+  display: none;
+}
+
+.pref-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2.5px 7.5px;
+  border-radius: 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  background: #004730;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pref-chip-secondary {
+  background: #2D3748;
+  color: #FFFFFF;
+}
+
+.pref-chip-empty {
+  font-size: 9.5px;
+  font-style: italic;
+  color: #94A3B8;
+}
+
+.pref-divider {
+  height: 1px;
+  background: rgba(163, 177, 198, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  margin: 2px 0;
+  width: 100%;
+}
+
+.recipe-match-square {
+  width: 66px;
+  height: 66px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #DCE2EA;
+  border: none;
+  box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.65), inset -4px -4px 8px rgba(255, 255, 255, 0.85);
+}
+
+.match-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #004730;
+  line-height: 1;
+}
+
+.match-lbl {
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #004730;
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.match-sub {
+  font-size: 6.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #64748B;
+  line-height: 1;
+}
+
+/* Prompt Heading */
+.prompt-section {
+  padding: 6px 4px 2px 4px;
+  flex-shrink: 0;
+}
+
+.prompt-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.prompt-sub {
+  font-size: 11px;
+  color: #64748B;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+/* Bottom CTA Button */
+.bottom-cta-wrap {
+  flex-shrink: 0;
+  padding: 8px 12px 2px 12px;
+  z-index: 20;
+}
+
+.cta-button {
+  width: 100%;
+  height: 48px;
+  border-radius: 20px;
+  background: #006948;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 4px 4px 9px rgba(163, 177, 198, 0.55), -4px -4px 9px rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.cta-button:active {
+  transform: translateY(1px);
+  box-shadow: inset 3px 3px 6px rgba(0, 30, 18, 0.75);
+}
+
+/* Step 1 Cuisine Cards Grid */
+.cuisine-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.cuisine-card {
+  position: relative;
+  border-radius: 18px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.cuisine-card.is-selected {
+  border-color: #006948;
+  box-shadow: 3px 3px 7px rgba(163, 177, 198, 0.5), -3px -3px 7px rgba(255, 255, 255, 0.72);
+}
+
+.card-check-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #006948;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 105, 72, 0.3);
+}
+
+.cuisine-card.is-selected .card-check-badge {
+  display: flex;
+}
+
+.card-img-wrap {
+  width: 100%;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cuisine-img {
+  max-width: 100%;
+  max-height: 82px;
+  object-fit: contain;
+  filter: none;
+}
+
+.cuisine-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1E293B;
+  text-align: center;
+  margin-top: 12px;
+  letter-spacing: -0.01em;
+}
+
+/* Step 2 Kitchen Stage: Perfect 928x1152 Coordinate Mapping */
+.kitchen-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 928 / 1152;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 3px 3px 8px rgba(163, 177, 198, 0.48), -3px -3px 8px rgba(255, 255, 255, 0.72), inset 2px 2px 6px rgba(163, 177, 198, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  background: #DCE1E8;
+}
+
+.kitchen-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.hotspot-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+.appliance-hotspot {
+  fill: rgba(228, 232, 238, 0.52);
+  stroke: transparent;
+  stroke-width: 4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  cursor: pointer;
+  outline: none;
+  transition: fill 200ms ease, stroke 200ms ease, stroke-width 200ms ease;
+}
+
+.appliance-hotspot:not(.is-selected):hover {
+  fill: rgba(228, 232, 238, 0.12);
+  stroke: rgba(16, 185, 129, 0.8);
+  stroke-width: 3.5;
+  stroke-dasharray: 8 5;
+}
+
+.appliance-hotspot.is-selected {
+  fill: rgba(16, 185, 129, 0.03);
+  stroke: #10B981;
+  stroke-width: 3.5;
+  filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.4));
+}
+
+.appliance-hotspot.is-selected:hover {
+  stroke: #059669;
+  stroke-width: 4;
+}
+
+.label-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.appliance-pill {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 9999px;
+  transition: all 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.appliance-pill.is-selected {
+  background: #10B981;
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+}
+
+.appliance-pill:not(.is-selected) {
+  background: rgba(30, 41, 59, 0.88);
+  color: #F8FAFC;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.appliance-pill:hover,
+.appliance-pill.is-hovered {
+  transform: translate(-50%, -50%) scale(1.06);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.45);
+}

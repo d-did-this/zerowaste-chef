@@ -13,7 +13,7 @@
     "@tensorflow/tfjs": "^4.22.0",
     "jpeg-js": "^0.4.4",
     "lucide-react": "^1.58.0",
-    "next": "16.4.2",
+    "next": "^16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

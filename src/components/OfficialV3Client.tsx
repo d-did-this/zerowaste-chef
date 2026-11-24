@@ -1,6 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import MealTransitionModal, { MealTransitionVariant } from "@/components/MealTransitionModal";
+import CuisinePreferenceView from "@/components/CuisinePreferenceView";
+import KitchenSetupView from "@/components/KitchenSetupView";
+import RecipeMatchesView from "@/components/RecipeMatchesView";
+import RecipeDetailModal from "@/components/RecipeDetailModal";
+import GroceryRestockView from "@/components/GroceryRestockView";
+import { calculateMatchedRecipes, MatchedRecipeResult } from "@/utils/recipesDb";
+import { getGroceryList, GroceryItem } from "@/utils/groceryStorage";
 import {
   runMobileNetV4Classification,
   runPredefinedCnnClassification,
@@ -37,6 +45,65 @@ const QUANTIFIER_LIST = [
 
 export default function OfficialV3Client() {
   const [activeTab, setActiveTab] = useState<"scanner" | "pantry" | "cook-now" | "grocery">("pantry");
+
+  // Real Meal Flow & Preferences State (Step 1 Cuisines, Step 2 Appliances, Step 3 Recipes)
+  const [transitionVariant, setTransitionVariant] = useState<MealTransitionVariant | null>(null);
+  const [mealFlowStep, setMealFlowStep] = useState<"cuisines" | "appliances" | "recipes" | "prompt">("cuisines");
+  const [hasGeneratedMeals, setHasGeneratedMeals] = useState<boolean>(false);
+  const [cuisinesState, setCuisinesState] = useState<Record<string, boolean>>({
+    any: false,
+    malay: false,
+    chinese: false,
+    indian: false,
+    "sabah-sarawak": false,
+    others: false,
+  });
+  const [appliancesState, setAppliancesState] = useState<Record<string, boolean>>({
+    microwave: false,
+    blender: false,
+    rice_cooker: false,
+    pot: false,
+    air_fryer: false,
+    stove: true,
+    wok: false,
+    oven: false,
+  });
+
+  const [selectedRecipeForDetail, setSelectedRecipeForDetail] = useState<MatchedRecipeResult | null>(null);
+  const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([]);
+
+  const pendingGroceryCount = useMemo(
+    () => groceryItems.filter((item) => !item.checked).length,
+    [groceryItems]
+  );
+
+  const matchCount = useMemo(() => {
+    return calculateMatchedRecipes(cuisinesState, appliancesState);
+  }, [cuisinesState, appliancesState]);
+
+  const selectedCuisineLabels = useMemo(() => {
+    if (cuisinesState.any) return ["All Cuisines (6)"];
+    const labels: string[] = [];
+    if (cuisinesState.malay) labels.push("Malay");
+    if (cuisinesState.chinese) labels.push("Chinese");
+    if (cuisinesState.indian) labels.push("Indian");
+    if (cuisinesState["sabah-sarawak"]) labels.push("Borneo");
+    if (cuisinesState.others) labels.push("Others");
+    return labels;
+  }, [cuisinesState]);
+
+  const selectedApplianceCount = useMemo(
+    () => Object.values(appliancesState).filter(Boolean).length,
+    [appliancesState]
+  );
+
+  const startMealFlow = useCallback(() => {
+    setTransitionVariant("start");
+  }, []);
+
+  const goToRecipesWithTransition = useCallback(() => {
+    setTransitionVariant("to-recipes");
+  }, []);
 
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -96,6 +163,20 @@ export default function OfficialV3Client() {
 
   useEffect(() => {
     loadPantry();
+    setGroceryItems(getGroceryList());
+    try {
+      const savedPlan = localStorage.getItem("zerowaste_chef_meal_plan_v1");
+      if (savedPlan) {
+        const parsed = JSON.parse(savedPlan);
+        if (parsed?.hasGenerated) {
+          setHasGeneratedMeals(true);
+          if (parsed.cuisinesState) setCuisinesState(parsed.cuisinesState);
+          if (parsed.appliancesState) setAppliancesState(parsed.appliancesState);
+        }
+      }
+    } catch {
+      // ignore malformed saved meal plan
+    }
     const interval = setInterval(refreshRelativeTime, 30000);
     return () => clearInterval(interval);
   }, [loadPantry, refreshRelativeTime]);
@@ -171,6 +252,28 @@ export default function OfficialV3Client() {
     setTimeout(() => {
       setToastMsg(null);
     }, 2400);
+  };
+
+  const handleFinishCooking = (recipe: MatchedRecipeResult) => {
+    let deductedCount = 0;
+    const seenIds = new Set<string>();
+    for (const item of recipe.analysis.haveItems) {
+      const p = item.matchedPantryItem;
+      if (p && !seenIds.has(p.id)) {
+        seenIds.add(p.id);
+        updatePantryItemQuantity(p.id, Math.max(0, Number(p.quantity) - 1));
+        deductedCount++;
+      }
+    }
+    if (deductedCount > 0) {
+      loadPantry();
+    }
+    setSelectedRecipeForDetail(null);
+    showToast(
+      deductedCount > 0
+        ? `Cooked ${recipe.name}! Updated ${deductedCount} pantry item${deductedCount > 1 ? "s" : ""}.`
+        : `Cooked ${recipe.name}!`
+    );
   };
 
   // Close menus on outside click
@@ -812,9 +915,9 @@ export default function OfficialV3Client() {
 
                 {/* Action Buttons Row: Dark Green with White Icon & Text + Tactile Shadow */}
                 <div className="grid grid-cols-2 gap-2.5">
-                  {/* Left: Generate Meals -> Says Coming Soon */}
+                  {/* Left: Generate Meals -> Launches Neumorphic Meal Flow */}
                   <button
-                    onClick={() => showToast("Coming Soon: Generate Meals from Pantry")}
+                    onClick={startMealFlow}
                     className="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
                     style={{
                       boxShadow: "4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9)",
@@ -1829,73 +1932,89 @@ export default function OfficialV3Client() {
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 5: COOK NOW (COMING SOON)                            */}
+        {/* VIEW 5: COOK NOW (CUISINES & APPLIANCES & RECIPES ENGINE) */}
         {/* ========================================================= */}
         {activeTab === "cook-now" && (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-20 h-20 rounded-full neo-sunken flex items-center justify-center mb-4 text-[#004730]">
-              <span className="material-symbols-outlined text-4xl">skillet</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300/60 text-amber-800 text-[10px] font-black uppercase tracking-wider mb-2 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              Coming Soon
-            </div>
-            <h2 className="text-lg font-extrabold text-foreground tracking-tight mb-1">
-              Smart Recipe Engine
-            </h2>
-            <span className="text-xs text-[#004730] font-bold uppercase tracking-wider mb-3">
-              v3.0 Roadmap
-            </span>
-            <p className="text-xs text-muted leading-relaxed max-w-xs mb-6">
-              ZeroWaste Chef is training high-affinity Malaysian culinary models to generate zero-waste recipes directly from your live pantry inventory.
-            </p>
-            <button
-              onClick={() => setActiveTab("scanner")}
-              className="w-full max-w-xs py-3.5 px-5 rounded-2xl bg-[#004730] text-white font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md cursor-pointer"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-lg">photo_camera</span>
-              <span>Scan Ingredients to Pantry</span>
-            </button>
-          </div>
+          <>
+            {mealFlowStep === "cuisines" && (
+              <CuisinePreferenceView
+                cuisinesState={cuisinesState}
+                setCuisinesState={setCuisinesState}
+                appliancesState={appliancesState}
+                onNext={() => setMealFlowStep("appliances")}
+                onBack={() => setActiveTab("pantry")}
+                matchCount={matchCount}
+              />
+            )}
+
+            {mealFlowStep === "appliances" && (
+              <KitchenSetupView
+                cuisinesState={cuisinesState}
+                appliancesState={appliancesState}
+                setAppliancesState={setAppliancesState}
+                onBack={() => setMealFlowStep("cuisines")}
+                onViewRecipes={goToRecipesWithTransition}
+                matchCount={matchCount}
+              />
+            )}
+
+            {mealFlowStep === "prompt" && (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-20 h-20 rounded-full neo-sunken flex items-center justify-center mb-4 text-[#004730]">
+                  <span className="material-symbols-outlined text-4xl">skillet</span>
+                </div>
+                <h2 className="text-lg font-extrabold text-foreground tracking-tight mb-1.5">
+                  No Meal Plan Generated Yet
+                </h2>
+                <p className="text-xs text-muted leading-relaxed max-w-xs mb-6">
+                  Pick your preferred cuisines and kitchen appliances first to generate curated recipes from your Digital Pantry.
+                </p>
+                <button
+                  onClick={startMealFlow}
+                  className="w-full max-w-xs py-3.5 px-5 rounded-2xl bg-[#004730] text-white font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md cursor-pointer"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-lg">auto_awesome</span>
+                  <span>Generate Meals</span>
+                </button>
+              </div>
+            )}
+
+            {mealFlowStep === "recipes" && (
+              <RecipeMatchesView
+                cuisinesState={cuisinesState}
+                appliancesState={appliancesState}
+                pantryItems={cards}
+                onGoToCuisines={() => setMealFlowStep("cuisines")}
+                onRegenerate={startMealFlow}
+                onSelectRecipe={(recipe) => setSelectedRecipeForDetail(recipe)}
+              />
+            )}
+          </>
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 6: GROCERY RESTOCK (COMING SOON)                     */}
+        {/* VIEW 6: SMART GROCERY RESTOCK (MODULE 2 MISSING SYNC)     */}
         {/* ========================================================= */}
         {activeTab === "grocery" && (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-20 h-20 rounded-full neo-sunken flex items-center justify-center mb-4 text-[#004730]">
-              <span className="material-symbols-outlined text-4xl">shopping_cart</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300/60 text-amber-800 text-[10px] font-black uppercase tracking-wider mb-2 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              Coming Soon
-            </div>
-            <h2 className="text-lg font-extrabold text-foreground tracking-tight mb-1">
-              Smart Grocery Restock
-            </h2>
-            <span className="text-xs text-[#004730] font-bold uppercase tracking-wider mb-3">
-              v3.0 Roadmap
-            </span>
-            <p className="text-xs text-muted leading-relaxed max-w-xs mb-6">
-              Automated threshold restock planner will forecast when your Malaysian aromatics and staples run low and create smart shopping lists.
-            </p>
-            <button
-              onClick={() => setActiveTab("pantry")}
-              className="w-full max-w-xs py-3.5 px-5 rounded-2xl bg-[#004730] text-white font-extrabold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md cursor-pointer"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-lg">kitchen</span>
-              <span>Check Digital Pantry</span>
-            </button>
-          </div>
+          <GroceryRestockView
+            groceryItems={groceryItems}
+            setGroceryItems={setGroceryItems}
+            onPantryRefresh={loadPantry}
+            onGoToPantry={() => setActiveTab("pantry")}
+            onStartMealLookup={() => {
+              setMealFlowStep(hasGeneratedMeals ? "recipes" : "prompt");
+              setActiveTab("cook-now");
+            }}
+            showToast={showToast}
+          />
         )}
 
         {/* ========================================================= */}
-        {/* BOTTOM NAV                                                */}
+        {/* BOTTOM NAV (HIDDEN ONLY ON STEP 1 & 2 WIZARD, BACK ON RECIPES) */}
         {/* ========================================================= */}
-        <nav className="mt-2 mb-1 mx-1 h-16 px-1.5 rounded-3xl bg-[#E0E5EC] neo-raised grid grid-cols-4 items-center gap-1 shrink-0 z-40 border-0">
+        {(activeTab !== "cook-now" || mealFlowStep === "recipes" || mealFlowStep === "prompt") && (
+          <nav className="mt-2 mb-1 mx-1 h-16 px-1.5 rounded-3xl bg-[#E0E5EC] neo-raised grid grid-cols-4 items-center gap-1 shrink-0 z-40 border-0">
           {/* 1. Scanner Tab */}
           <button
             onClick={() => {
@@ -1927,9 +2046,12 @@ export default function OfficialV3Client() {
             <span className="text-[10px] font-bold mt-0.5 leading-none">Pantry</span>
           </button>
 
-          {/* 3. Cook Now Tab */}
+          {/* 3. Cook Now Tab (Direct to Recipes if Generated, else Prompts to Generate) */}
           <button
-            onClick={() => setActiveTab("cook-now")}
+            onClick={() => {
+              setActiveTab("cook-now");
+              setMealFlowStep(hasGeneratedMeals ? "recipes" : "prompt");
+            }}
             className={`h-12 rounded-2xl flex flex-col items-center justify-center relative transition-all cursor-pointer ${
               activeTab === "cook-now"
                 ? "neo-crater font-bold text-[#004730]"
@@ -1938,10 +2060,7 @@ export default function OfficialV3Client() {
             type="button"
           >
             <span className="material-symbols-outlined text-2xl leading-none">skillet</span>
-            <span className="text-[10px] font-semibold mt-0.5 leading-none">Cook</span>
-            <span className="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5 border border-amber-300/50">
-              Soon
-            </span>
+            <span className="text-[10px] font-bold mt-0.5 leading-none">Cook</span>
           </button>
 
           {/* 4. Grocery Restock Tab */}
@@ -1956,11 +2075,67 @@ export default function OfficialV3Client() {
           >
             <span className="material-symbols-outlined text-2xl leading-none">shopping_cart</span>
             <span className="text-[10px] font-semibold mt-0.5 leading-none">Grocery</span>
-            <span className="text-[7px] font-extrabold uppercase px-1 rounded-full bg-amber-100 text-amber-800 absolute top-1 right-1.5 border border-amber-300/50">
-              Soon
-            </span>
+            {pendingGroceryCount > 0 && (
+              <span className="text-[8px] font-extrabold px-1.5 rounded-full bg-[#004730] text-white absolute top-1 right-1.5 shadow-xs">
+                {pendingGroceryCount}
+              </span>
+            )}
           </button>
         </nav>
+        )}
+
+        {/* Unique Contextual Transition Screens Between Meal Flow Steps */}
+        {transitionVariant && (
+          <MealTransitionModal
+            variant={transitionVariant}
+            pantryCount={cards.length}
+            cuisineLabels={selectedCuisineLabels}
+            applianceCount={selectedApplianceCount}
+            matchCount={matchCount}
+            onComplete={() => {
+              const finished = transitionVariant;
+              setTransitionVariant(null);
+              if (finished === "start") {
+                setMealFlowStep("cuisines");
+                setActiveTab("cook-now");
+              } else if (finished === "to-recipes") {
+                setHasGeneratedMeals(true);
+                try {
+                  localStorage.setItem(
+                    "zerowaste_chef_meal_plan_v1",
+                    JSON.stringify({
+                      hasGenerated: true,
+                      cuisinesState,
+                      appliancesState,
+                    })
+                  );
+                } catch {
+                  // ignore storage errors
+                }
+                setMealFlowStep("recipes");
+                showToast(`${matchCount} recipes curated for your kitchen!`);
+              }
+            }}
+          />
+        )}
+
+        {/* Module 2 Recipe Detail & Interactive Cooking Mode Modal */}
+        {selectedRecipeForDetail && (
+          <RecipeDetailModal
+            recipe={selectedRecipeForDetail}
+            appliancesState={appliancesState}
+            onClose={() => setSelectedRecipeForDetail(null)}
+            onFinishCooking={handleFinishCooking}
+            onGroceryUpdated={(addedCount, recipeName) => {
+              setGroceryItems(getGroceryList());
+              showToast(
+                addedCount > 0
+                  ? `Added ${addedCount} missing item${addedCount > 1 ? "s" : ""} for ${recipeName}`
+                  : "Missing items are already in your Grocery List"
+              );
+            }}
+          />
+        )}
 
         {/* ========================================================= */}
         {/* POPUPS & MODALS                                           */}

@@ -1,0 +1,1658 @@
+[
+  {
+    "id": 1,
+    "uid": "che_nom_1",
+    "name": "Telur Masak Kicap Gaya Makcik Kantin",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Eggs & Daily Comfort",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok"
+    ],
+    "ingredients": [
+      "5 eggs",
+      "Cooking oil, enough to submerge the eggs",
+      "1 ladle of the oil used to fry the eggs",
+      "2-3 shallots, thinly sliced",
+      "2 cloves garlic, thinly sliced",
+      "1/4 inch ginger, finely julienned",
+      "2 tbsp blended chilli",
+      "1 tomato, diced",
+      "3 tbsp chilli sauce",
+      "2 tbsp oyster sauce",
+      "1/4 cup sweet soy sauce (or as needed for the gravy)",
+      "1 tbsp tamarind water",
+      "1/2 tsp sugar",
+      "A pinch of salt",
+      "White pepper to taste (optional)",
+      "1 onion, sliced into rings",
+      "Red and green bird's eye chillies, roughly sliced (about 6)",
+      "A little Chinese celery, roughly chopped (or spring onion)"
+    ],
+    "instructions": "1. Crack an egg into a small bowl. Heat plenty of oil in a wok until very hot and slightly smoking. Fry the eggs one at a time; spoon hot oil over the top if needed and do not flip, so the yolks remain runny. Remove when the edges are crisp and drain. 2. Heat one ladle of the egg-frying oil in the wok. Sauté shallots, garlic and ginger until softened and fragrant. 3. Add blended chilli and fry until cooked and crisp. 4. Add the tomato and stir. 5. Add chilli sauce and oyster sauce. Stir in sweet soy sauce and tamarind water, then simmer. 6. Add sugar, a pinch of salt and white pepper if desired. Taste and adjust. Add onion rings and stir for about 15 seconds so they soften but remain crisp. 7. Arrange the fried eggs in the gravy just before serving and spoon gravy over them. Garnish with sliced chillies and Chinese celery. Serve hot with rice.",
+    "prepTime": "20 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/telur-masak-kicap"
+  },
+  {
+    "id": 2,
+    "uid": "che_nom_2",
+    "name": "Kari Ayam Pecah Minyak & Kuah Merah",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Pot",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok",
+        "pot"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "pot",
+      "blender"
+    ],
+    "ingredients": [
+      "1 cinnamon stick",
+      "2 star anise",
+      "4 cloves",
+      "4 cardamom pods",
+      "1-2 sprigs curry leaves",
+      "1/2 onion, thinly sliced",
+      "3 tbsp meat curry powder",
+      "1 tbsp chilli powder",
+      "1 tbsp blended chilli (optional)",
+      "A little water to mix the spice paste",
+      "4 small shallots",
+      "4 cloves garlic",
+      "1/2 inch ginger",
+      "A little water for blending",
+      "1/2 chicken, cut into small pieces",
+      "2 potatoes, each quartered",
+      "Tomato, optional (quantity not specified)",
+      "1/2 small carton coconut milk",
+      "3/4 cup cooking oil",
+      "1-2 tbsp tamarind water",
+      "Salt, to taste",
+      "Hot water, as needed",
+      "Extra water for the first and second additions, as needed",
+      "Seasoning, optional"
+    ],
+    "instructions": "1. Prepare the cinnamon, star anise, cloves, cardamom and curry leaves. Thinly slice half an onion. 2. Mix the curry powder, chilli powder and optional blended chilli with a little water to make a paste. 3. Roughly chop the shallots, garlic and ginger, then blend with a little water. Cut the chicken and quarter the potatoes. 4. Heat the oil in a heavy-bottomed wok. Fry the whole spices, curry leaves and sliced onion until softened and lightly golden. 5. Add the blended ingredients and cook until the moisture evaporates and the mixture turns lightly golden. 6. Add the spice paste and fry until the oil separates. Add water in two stages, frying until the oil separates after each addition. 7. Add chicken and stir for 4-5 minutes. Add potatoes, cover and cook for 5-10 minutes. 8. Add tamarind water, salt and coconut milk. Add hot water as needed and simmer uncovered over medium-low heat until the chicken and potatoes are cooked and red oil rises to the surface. 9. Taste and adjust seasoning. Turn off the heat while the gravy is still moderately loose and rest for 10-15 minutes to thicken slightly. Serve hot.",
+    "prepTime": "45 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/kari-ayam-pecah-minyak-kuah-merah"
+  },
+  {
+    "id": 3,
+    "uid": "che_nom_3",
+    "name": "Sambal Sotong Lembut Tak Liat (Pekat Bersalut)",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Seafood",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Blender",
+      "Pot"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ],
+      [
+        "blender"
+      ],
+      [
+        "pot"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "blender",
+      "pot"
+    ],
+    "ingredients": [
+      "800g-1kg squid, cleaned",
+      "1/2 cup cooking oil",
+      "1 stalk lemongrass, bruised",
+      "1 large shallot, roughly sliced for frying",
+      "2 tbsp oyster sauce",
+      "A little thick tamarind water, to taste",
+      "1-2 tbsp palm sugar",
+      "1 tbsp sweet soy sauce",
+      "Salt, to taste",
+      "1 onion, sliced into rings",
+      "1 tsp salt for cleaning the squid",
+      "15-20 dried chillies, boiled until soft and deseeded",
+      "4 small shallots",
+      "1 large shallot",
+      "5 cloves garlic",
+      "1/2 inch ginger",
+      "A little water for blending"
+    ],
+    "instructions": "1. Boil the dried chillies until soft and remove the seeds. Blend with the small shallots, large shallot, garlic and ginger, using only a little water. 2. Clean the squid by removing the innards, ink sac and digestive tract. Remove the skin if desired, and remove the beak. Cut the squid tubes into thick rings about 1 inch wide. 3. Rub the squid with 1 tsp salt for 30-60 seconds, rinse until the foam disappears, then drain thoroughly. 4. Heat the oil. Fry the bruised lemongrass and roughly sliced shallot until fragrant and softened. 5. Add the blended paste and cook over medium heat until thick and the oil separates. Add a little water if needed. 6. Add oyster sauce, tamarind water, palm sugar and sweet soy sauce. Cook until the sambal is thick and season with salt. 7. Pour hot water over the drained squid and leave for 1 minute only. Drain immediately. 8. Add the squid to the thick sambal and toss quickly to coat. Add onion rings, stir just until slightly softened, then turn off the heat.",
+    "prepTime": "35 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/resepi-sambal-sotong-lembut-tak-liat-pekat-bersalut"
+  },
+  {
+    "id": 4,
+    "uid": "che_nom_4",
+    "name": "Nasi Lemak Rice Cooker Tak Keras Bila Sejuk",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Rice & Carbs",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Rice Cooker"
+    ],
+    "applianceGroups": [
+      [
+        "rice_cooker"
+      ]
+    ],
+    "appliances": [
+      "rice_cooker"
+    ],
+    "ingredients": [
+      "3 cups fragrant/jasmine rice",
+      "1 cup boxed coconut milk",
+      "3.2 cups water (total liquid: 4.2 cups)",
+      "1 tsp salt",
+      "1/2 tsp sugar",
+      "3 slices ginger",
+      "2 pandan leaves, knotted",
+      "1 tbsp cooking oil"
+    ],
+    "instructions": "1. Measure 3 cups of rice. Wash and rinse several times until the water is fairly clear. 2. Drain the rice in a strainer so excess washing water is removed. 3. Put the rice into the rice cooker inner pot. 4. Pour in 1 cup coconut milk and 3.2 cups water. 5. Add ginger, knotted pandan leaves, salt and sugar. 6. Add cooking oil and stir gently to combine. 7. Select the White Rice setting and start the cooker. 8. When the rice is cooked, fluff it gently from the bottom upwards. Serve with sambal, boiled eggs, anchovies and cucumber.",
+    "prepTime": "35 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/nasi-lemak-tak-keras-bila-sejuk-teknik-masak-guna-rice-cooker"
+  },
+  {
+    "id": 5,
+    "uid": "che_nom_5",
+    "name": "Sambal Tumis Udang Petai Pekat & Wangi",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Seafood",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "blender"
+    ],
+    "ingredients": [
+      "10-12 large prawns",
+      "1 bowl petai, halved",
+      "1/2 onion, thinly sliced",
+      "1 tomato, roughly sliced",
+      "2 tbsp oyster sauce",
+      "1 tbsp palm sugar",
+      "1 tsp seasoning powder",
+      "Salt, to taste",
+      "1/2-1 cup cooking oil",
+      "1 onion, sliced into rings for garnish",
+      "1 large shallot",
+      "4 cloves garlic",
+      "10 dried chillies, boiled and drained",
+      "Ginger (quantity not specified)",
+      "A little water or oil for blending",
+      "A pinch of salt for the prawns"
+    ],
+    "instructions": "1. Clean the prawns, remove the sharp tips and the dark vein, then season with a pinch of salt. 2. Blend the large shallot, garlic, dried chillies and ginger with a little water or oil. 3. Heat a little oil and briefly fry the prawns until half-cooked. Remove and set aside. 4. Briefly fry the petai in the same oil, then remove. 5. Add cooking oil and sauté the sliced onion until soft and lightly golden. 6. Add the blended paste and cook over medium heat until the chilli is fully cooked and the oil separates. 7. Add tomato and cook until it softens into the sambal. 8. Season with palm sugar, oyster sauce, seasoning powder and salt. Cook until thick and dark red. 9. Return the prawns and petai to the wok and add the onion rings. Toss until combined and the onion softens slightly. Turn off the heat and serve.",
+    "prepTime": "25 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/sambal-tumis-udang-petai-pekat-wangi-cara-che-nom"
+  },
+  {
+    "id": 6,
+    "uid": "che_nom_6",
+    "name": "Sup Ayam Pekat Rempah Sendiri",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Pot",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "pot"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "pot",
+      "blender"
+    ],
+    "ingredients": [
+      "1/2-1 chicken",
+      "2 potatoes",
+      "1-2 carrots",
+      "1 tomato",
+      "Chinese celery",
+      "Spring onion",
+      "Fried shallots",
+      "1 cinnamon stick",
+      "2 star anise",
+      "4 cardamom pods",
+      "3 cloves",
+      "1/2-1 onion, depending on size",
+      "4 cloves garlic",
+      "2 inches ginger",
+      "2 tbsp ground coriander",
+      "1 tbsp fennel seeds or ground fennel",
+      "1 tbsp cumin",
+      "1 tbsp black pepper"
+    ],
+    "instructions": "1. Cut the carrot into large pieces. Separate the stems and leaves of the Chinese celery, and slice the spring onion. 2. Roughly slice the onion, garlic and ginger. 3. Combine the coriander, fennel, cumin and black pepper. Blend the spice mixture with the onion, garlic and ginger, adding water until smooth. 4. Heat a little oil in a pot. Fry the cinnamon, star anise, cardamom and cloves. 5. Add the blended mixture, then add the chicken and stir until it tightens slightly. 6. Add water and the celery stems. Simmer briefly. 7. Add carrot and simmer until tender. 8. Add potatoes, chicken stock cube, white pepper, salt, tomato and half the celery leaves. Turn off the heat when cooked. 9. Squeeze in a little lime juice and garnish with spring onion and fried shallots.",
+    "prepTime": "45 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/sup-ayam-pekat-rempah-sendiri"
+  },
+  {
+    "id": 7,
+    "uid": "che_nom_7",
+    "name": "Ayam Masak Merah Raya Special",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Pot",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok",
+        "pot"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "pot",
+      "blender"
+    ],
+    "ingredients": [
+      "1 large onion for blending",
+      "6 small shallots",
+      "6 cloves garlic",
+      "2 inches ginger",
+      "15-20 dried chillies",
+      "1 stalk lemongrass",
+      "1 large onion, sliced for frying and garnish",
+      "1 pandan leaf",
+      "4 cardamom pods",
+      "2 star anise",
+      "1 cinnamon stick",
+      "3 cloves",
+      "2 tomatoes",
+      "1 chicken",
+      "1 tsp turmeric powder",
+      "2 tsp salt",
+      "1/4 cup chilli sauce",
+      "2 tbsp oyster sauce",
+      "1 tsp seasoning powder",
+      "1 tbsp palm sugar",
+      "A little Chinese celery",
+      "Green peas"
+    ],
+    "instructions": "1. Roughly slice the onion for frying. Roughly chop the shallots, onion, garlic and ginger. Boil and deseed the dried chillies. Roughly chop the tomatoes and blend the shallots, onion, garlic, ginger and chillies until smooth. Bruise the lemongrass. 2. Coat the chicken with salt and turmeric. Fry until half-cooked, then remove and set aside. 3. Fry the lemongrass until fragrant. Add sliced onion, the whole spices and pandan leaf; sauté until fragrant. 4. Add the blended paste and cook until the oil rises. Add tomato and stir. 5. Add chilli sauce, oyster sauce and seasoning powder. When the gravy thickens and darkens, add palm sugar. 6. After about 10 minutes, add the fried chicken and coat well with the gravy. Cover briefly and cook until the chicken is fully cooked through. 7. Add green peas and cook until tender. Garnish with sliced onion and Chinese celery. Turn off the heat when the onion softens.",
+    "prepTime": "45 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/ayam-masak-merah-raya-sepcial"
+  },
+  {
+    "id": 8,
+    "uid": "che_nom_8",
+    "name": "Bihun Goreng Kicap",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Noodles",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok"
+    ],
+    "ingredients": [
+      "2 pieces chicken meat",
+      "1 packet/400g rice vermicelli",
+      "3-5 cloves garlic",
+      "1 packet fish balls",
+      "2-3 tbsp blended chilli",
+      "2 tbsp oyster sauce",
+      "2 tbsp light soy sauce",
+      "1 chicken stock cube",
+      "1-2 tbsp sesame oil, optional",
+      "Sweet soy sauce, to taste",
+      "Dark caramel soy sauce",
+      "1 tbsp white pepper powder",
+      "Mustard greens",
+      "Cabbage",
+      "Salt, to taste",
+      "Spring onion",
+      "Red chilli"
+    ],
+    "instructions": "1. Crush and finely slice the garlic. Halve the fish balls. Wash the mustard greens, separate the stems and leaves, and roughly chop them. Roughly chop the cabbage and chicken. Slice spring onion and red chilli for garnish; slice bird's eye chilli if using. 2. Soak the vermicelli for about 15 minutes until soft, then drain. 3. Heat oil and sauté the garlic. When golden, add blended chilli and fry until cooked. 4. Add chicken and cook until half-done. Add oyster sauce, fish balls, light and sweet soy sauces; stir well. 5. Add the chicken stock cube, white pepper, mustard stems and sesame oil. Add the vermicelli and combine. 6. Add a little water gradually until the vermicelli is soft. Adjust the colour with more caramel and sweet soy sauce if needed; season with salt. 7. Add cabbage and cook until it wilts, then add mustard leaves and cook just until wilted. Garnish with red chilli and spring onion. Serve with sliced bird's eye chilli and light soy sauce if desired.",
+    "prepTime": "25 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/bihun-goreng-kicap"
+  },
+  {
+    "id": 9,
+    "uid": "che_nom_9",
+    "name": "Rendang Ayam Dendang Perantau",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Pot",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok",
+        "pot"
+      ],
+      [
+        "blender"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "pot",
+      "blender"
+    ],
+    "ingredients": [
+      "4 inches ginger",
+      "4 pieces fresh turmeric",
+      "4 inches galangal",
+      "12-15 small shallots",
+      "10 cloves garlic",
+      "2 large shallots",
+      "5 stalks lemongrass",
+      "8-10 bird's eye chillies",
+      "30-35 dried chillies",
+      "7 candlenuts",
+      "2 tbsp coriander seeds",
+      "1 1/2 tbsp cumin",
+      "1 1/2 tbsp fennel seeds",
+      "2 cups cooking oil",
+      "Four-spice whole spice mix",
+      "2 chickens",
+      "2 pieces tamarind peel",
+      "3-4 cups thin coconut milk",
+      "2-3 cups thick coconut milk",
+      "4-6 tbsp toasted grated coconut (kerisik)",
+      "5-6 kaffir lime leaves",
+      "Salt, to taste",
+      "1-2 tsp palm sugar",
+      "2 turmeric leaves"
+    ],
+    "instructions": "1. Blend the fresh ingredients until smooth. Dry-roast the coriander, cumin and fennel seeds, then grind them finely. 2. Heat the oil and sauté the whole spice mix with the blended ingredients until darker and the oil separates. 3. Add the chicken, ground roasted spices, tamarind pieces and thin coconut milk. 4. Cook until the chicken is tender and the liquid has reduced. 5. Add thick coconut milk, kerisik, kaffir lime leaves with the centre ribs removed, salt and palm sugar. 6. Continue cooking until the rendang gravy is fairly dry. 7. Sprinkle in finely sliced turmeric leaves and serve.",
+    "prepTime": "75 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/rendang-ayam-dendang-perantau"
+  },
+  {
+    "id": 10,
+    "uid": "che_nom_10",
+    "name": "Set Ayam Goreng Kunyit",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Pot",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ],
+      [
+        "pot"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "pot",
+      "blender"
+    ],
+    "ingredients": [
+      "A small bowl of sliced chicken meat",
+      "Salt",
+      "1 tsp turmeric powder",
+      "1/2 tsp white pepper powder",
+      "1 tsp curry powder",
+      "A little coriander powder (optional)",
+      "1 tsp cornflour",
+      "2 cloves garlic",
+      "1/2 Holland onion",
+      "Carrot",
+      "Long beans",
+      "1 red chilli",
+      "Spring onion",
+      "2 shallots",
+      "3 cloves garlic for soup",
+      "1 inch ginger",
+      "1 soup spice sachet",
+      "Chicken bones",
+      "Water, as needed",
+      "Black pepper",
+      "White pepper",
+      "1 carrot",
+      "1 potato",
+      "Salt",
+      "Chinese celery",
+      "Sugar",
+      "6 red chillies",
+      "6-8 red bird's eye chillies",
+      "1 tomato",
+      "1 piece toasted shrimp paste (belacan)",
+      "Juice of 4 calamansi limes"
+    ],
+    "instructions": "1. Cut the chicken meat into small pieces. Marinate with salt, turmeric, white pepper, curry powder, optional coriander powder and cornflour. 2. Slice the Holland onion and carrot, roughly slice the red chilli, cut the long beans lengthwise and roughly chop the garlic. 3. Heat oil and fry the chicken until lightly golden and half-cooked, stirring regularly. Add garlic; when golden, add the vegetables and stir just until wilted. Remove. 4. For the soup, roughly slice shallots, garlic and ginger, then blend coarsely. Peel and cut carrot and potato into large pieces. Slice Chinese celery and spring onion. 5. Heat a pot with a little oil and sauté the blended ingredients until fragrant and lightly golden. Add the soup spice sachet and chicken bones. Add water, cover and simmer until boiling. Add potato and carrot, then chicken stock cube, black pepper, white pepper and salt. Cook until tender and garnish with Chinese celery and spring onion. 6. For the sambal belacan, roughly slice red chillies, bird's eye chillies and tomato. Blend with toasted belacan without adding water. Season with salt, sugar and calamansi juice.",
+    "prepTime": "35 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/set-ayam-goreng-kunyit"
+  },
+  {
+    "id": 11,
+    "uid": "che_nom_11",
+    "name": "Kuey Teow Goreng Dan Cili Potong Kicap",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Noodles",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "blender"
+    ],
+    "ingredients": [
+      "3 cloves garlic",
+      "2 small shallots",
+      "1/2 small bowl dried anchovies",
+      "A little cooking oil",
+      "1-2 tbsp blended chilli",
+      "2 slices fish cake, thinly sliced",
+      "2 tbsp chilli sauce",
+      "1 tbsp oyster sauce",
+      "2 tbsp thick/caramel soy sauce",
+      "1 tbsp fish sauce, optional",
+      "Prawns, peeled",
+      "A little water",
+      "1/2 tsp white pepper powder",
+      "1 packet/450g flat rice noodles (kuey teow)",
+      "1 egg",
+      "A little fish sauce",
+      "Bean sprouts",
+      "Chinese chives",
+      "5-6 bird's eye chillies",
+      "Sweet soy sauce, as needed",
+      "Lime juice"
+    ],
+    "instructions": "1. Blend the garlic, shallots and dried anchovies until fine. 2. Heat oil and sauté the blended ingredients until lightly golden. 3. Add blended chilli and fry until crisp and the oil separates, then add sliced fish cake. 4. Add chilli sauce, oyster sauce, caramel soy sauce, optional fish sauce, prawns and white pepper. Stir briefly. 5. Add the kuey teow and toss to coat. Push the noodles aside, crack in the egg and let it set briefly before scrambling and mixing through. 6. Add bean sprouts gradually and the Chinese chives. Remove from heat and serve with sliced bird's eye chillies mixed with sweet soy sauce and lime juice.",
+    "prepTime": "20 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/kuey-teow-goreng-dan-cili-potong-kicap"
+  },
+  {
+    "id": 12,
+    "uid": "che_nom_12",
+    "name": "Asam Pedas Ikan Pari",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Seafood",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Pot",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "pot"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "pot",
+      "blender"
+    ],
+    "ingredients": [
+      "1 stingray, cut into pieces",
+      "Cooking oil for sautéing",
+      "2 tsp fenugreek",
+      "1 stalk lemongrass",
+      "3-4 kaffir lime leaves",
+      "1 bowl blended chilli",
+      "A little tamarind water",
+      "Water, as needed",
+      "Okra",
+      "Tomato",
+      "Vietnamese coriander (daun kesum)",
+      "2 pieces fresh turmeric",
+      "2 inches ginger",
+      "5 cloves garlic",
+      "6 shallots",
+      "A little shrimp paste (belacan)"
+    ],
+    "instructions": "1. Blend the fresh turmeric, ginger, garlic, shallots and belacan until smooth; set aside. 2. Heat oil and sauté fenugreek, lemongrass and kaffir lime leaves, followed by the blended paste. 3. Add blended chilli and cook until the oil separates. Add a little water and cook until the oil separates again; repeat 3-4 times so the chilli mixture is thoroughly cooked. 4. Add tamarind concentrate and water to make the gravy. 5. Add the stingray and cook until the gravy boils. 6. Add okra, tomato and Vietnamese coriander; cook until the vegetables are tender. 7. Season with salt and sugar to taste.",
+    "prepTime": "40 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/asam-pedas-ikan-pari"
+  },
+  {
+    "id": 13,
+    "uid": "che_nom_13",
+    "name": "Mee Goreng Basah",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Noodles",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Pot"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ],
+      [
+        "pot"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "pot"
+    ],
+    "ingredients": [
+      "1 packet yellow noodles",
+      "4 cloves garlic, crushed and roughly chopped",
+      "2 tbsp blended chilli",
+      "Sliced fish cake",
+      "3-4 tbsp chilli sauce",
+      "Sweet soy sauce, as needed",
+      "2 tbsp oyster sauce",
+      "7-8 prawns, heads removed",
+      "3 squid",
+      "1 tsp white pepper",
+      "1 tomato, cut into 8 pieces",
+      "1 bowl prawn-shell stock",
+      "Mustard green stems",
+      "Mustard green leaves",
+      "Bean sprouts",
+      "Fried shallots",
+      "Sliced spring onion",
+      "Sliced red chilli",
+      "Calamansi or lime"
+    ],
+    "instructions": "1. Bring water to a boil, blanch the yellow noodles and drain. 2. Heat a little oil and sauté the garlic until golden. 3. Add blended chilli and fry until crisp. 4. Add fish cake, chilli sauce, sweet soy sauce, oyster sauce, prawns, squid, white pepper, tomato, a little prawn-shell stock and mustard stems. 5. Add the yellow noodles, mustard leaves and bean sprouts. Add more chilli sauce or soy sauce if desired. 6. Garnish with fried shallots, spring onion, red chilli and calamansi or lime.",
+    "prepTime": "25 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/mee-goreng-basah"
+  },
+  {
+    "id": 14,
+    "uid": "che_nom_14",
+    "name": "Sotong Goreng Kunyit",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Seafood",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok"
+    ],
+    "ingredients": [
+      "7-8 squid, cut into pieces",
+      "Capsicum, cut lengthwise",
+      "1 onion, sliced into rings or as desired",
+      "1 tomato",
+      "A little salt",
+      "A little turmeric powder",
+      "A little white pepper",
+      "Cooking oil for frying/sautéing"
+    ],
+    "instructions": "1. Toss the squid with salt and turmeric powder, then fry briefly. 2. Sauté the onion using 2-3 tbsp of the oil used to fry the squid. 3. Add capsicum and onion and toss briefly. 4. Return the squid to the wok. 5. Season with salt and white pepper, then add the tomato. 6. Toss until evenly combined and serve.",
+    "prepTime": "15 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/sotong-goreng-kunyit"
+  },
+  {
+    "id": 15,
+    "uid": "che_nom_15",
+    "name": "Ayam Goreng Madu",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "Che Nom (Malay)",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Halal"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "blender"
+    ],
+    "ingredients": [
+      "1/2 chicken, cut into medium-small pieces",
+      "Sweet soy sauce",
+      "2 tbsp honey",
+      "2 cm turmeric",
+      "2 cm ginger",
+      "4 shallots",
+      "4 cloves garlic",
+      "1 stalk lemongrass",
+      "A little salt"
+    ],
+    "instructions": "1. Marinate the chicken with the blended turmeric, ginger, shallots, garlic and lemongrass, sweet soy sauce, honey and a little salt for 1 hour. 2. Fry until the chicken is cooked and golden brown. 3. Drain, then toss once more with honey before serving.",
+    "prepTime": "30 mins",
+    "sourceUrl": "https://resepichenom.com/resepi/ayam-goreng-madu"
+  },
+  {
+    "id": 16,
+    "uid": "saji_1",
+    "name": "Nasi Beriani",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Rice & Flatbreads",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Rice Cooker",
+      "Frying Pan",
+      "Pot"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "rice_cooker"
+      ],
+      [
+        "wok",
+        "pot"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "rice_cooker",
+      "wok",
+      "pot"
+    ],
+    "ingredients": [
+      "1 cup basmati rice, washed (rice-to-water ratio 1:1/2)",
+      "Red onion, cut into large pieces",
+      "Four-spice mix (rempah 4 sekawan)",
+      "Ghee",
+      "Chicken",
+      "Biriani rice seasoning",
+      "Carrot, cut as desired",
+      "Tomato, cut as desired",
+      "Coriander leaves",
+      "**Cucumber pickle:** Cucumber, cut",
+      "Carrot, cut",
+      "Red onion, cut",
+      "Tomato, cut",
+      "Red chilli, cut",
+      "3 tbsp sugar",
+      "Lemon juice or vinegar"
+    ],
+    "instructions": "1. Soak the basmati rice for 30 minutes. 2. Sauté the red onion and four-spice mix in ghee until fragrant. 3. Add the chicken and stir to coat. 4. Add the biriani rice seasoning. 5. Add the carrot and tomato. 6. After the rice has soaked for 30 minutes, transfer the sautéed mixture into the rice cooker. 7. Cook the rice as usual. 8. Once cooked, add coriander leaves to enhance the aroma. 9. Leave for 5 minutes, then gently stir the rice. 10. To make the cucumber pickle, combine the cucumber, carrot, onion, tomato and red chilli. Sprinkle over the sugar. 11. Add lemon juice or vinegar and mix well. 12. Serve the biriani with the pickle.",
+    "prepTime": "50 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 17,
+    "uid": "saji_2",
+    "name": "Kentang Varuval",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Snacks & Street Bites",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Pot"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ],
+      [
+        "pot"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "pot"
+    ],
+    "ingredients": [
+      "Potatoes, boiled",
+      "Cooking oil, for frying",
+      "Cinnamon stick",
+      "Star anise",
+      "1 red onion",
+      "1 tbsp chopped garlic",
+      "1 tbsp chopped ginger",
+      "5 dried chillies, cut into pieces",
+      "1 sprig curry leaves",
+      "1 tbsp chilli powder",
+      "1 tbsp chicken curry powder",
+      "1 tsp garam masala",
+      "Salt, to taste"
+    ],
+    "instructions": "1. Fry the boiled potatoes in a little oil. Remove and set aside. 2. Add a little more oil to the pan and sauté the cinnamon and star anise until fragrant. 3. Add the red onion, garlic, ginger, dried chillies and curry leaves. Sauté until fragrant. 4. Add the chilli powder, chicken curry powder and garam masala. Season with salt and cook until the oil separates. 5. Add the fried potatoes and toss with the spices for 5 minutes. 6. Serve.",
+    "prepTime": "25 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 18,
+    "uid": "saji_3",
+    "name": "Tosai",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Rice & Flatbreads",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Blender",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "blender"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "blender",
+      "wok"
+    ],
+    "ingredients": [
+      "1 cup urad dal (ulundhu)",
+      "2 cups rice",
+      "1 handful freshly cooked rice",
+      "Salt, to taste",
+      "Water, as needed"
+    ],
+    "instructions": "1. Wash the rice thoroughly and soak it together with the urad dal for 8 hours. 2. Take a handful of freshly cooked rice and add it to the soaked mixture. 3. Transfer the soaked rice and urad dal, along with their soaking water, into a blender. 4. Blend until smooth, with no visible rice grains. 5. Add water if necessary. The batter should be neither too thick nor too runny. 6. Transfer the blended batter into a container and cover it. 7. Leave it overnight until the batter rises to about twice its original volume. 8. Pour the batter in a circular shape onto a flat griddle and cook until the surface becomes slightly golden brown. 9. Serve.",
+    "prepTime": "20 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 19,
+    "uid": "saji_4",
+    "name": "Parpu Telur",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Eggs & Dhal",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Pot",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "pot"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "pot",
+      "wok"
+    ],
+    "ingredients": [
+      "Split lentils or dhal, washed and boiled",
+      "Boiled eggs or scrambled eggs",
+      "Coconut milk",
+      "Potatoes",
+      "Salt and seasoning powder, to taste",
+      "**Blended ingredients:** Large onion",
+      "Ginger",
+      "Turmeric powder",
+      "**Tempering ingredients:** Large onion, sliced",
+      "Garlic, sliced",
+      "Dried chillies, cut into pieces",
+      "Curry leaves"
+    ],
+    "instructions": "1. Boil the split lentils (dhal) in water. 2. Add the blended onion, ginger and turmeric mixture, then continue boiling until the lentils are tender. 3. Once the lentils are soft, add the potatoes. 4. When the potatoes are tender, add the coconut milk, salt, seasoning powder and eggs. Alternatively, crack the eggs directly into the simmering gravy. 5. In a separate pan, sauté the sliced onion, garlic, dried chillies and curry leaves until golden. 6. Pour the tempering into the dhal mixture and combine. 7. Serve.",
+    "prepTime": "35 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 20,
+    "uid": "saji_5",
+    "name": "Gulab Jamun",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Desserts & Sweets",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Pot"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok",
+        "pot"
+      ],
+      [
+        "pot"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "pot"
+    ],
+    "ingredients": [
+      "1 cup khoya/mawa",
+      "1/2 cup wheat flour",
+      "1/2 tsp baking powder",
+      "2 tbsp ghee, for forming the dough balls",
+      "Ghee or cooking oil, for frying",
+      "**Sugar syrup:** 2 cups sugar",
+      "2 cups water",
+      "3-4 cardamom pods",
+      "1 tsp rose water, optional",
+      "1/2 tsp saffron, optional",
+      "1/2 tsp lemon or lime juice"
+    ],
+    "instructions": "1. Combine the khoya, wheat flour, baking powder and ghee. Knead and press the mixture until no lumps remain. Shape into small balls and set aside. 2. Heat the ghee or oil over medium heat; it should not be too hot or too cool. 3. Fry the balls until evenly brown. Remove and set aside. 4. To make the syrup, combine the sugar, water, cardamom, optional rose water and saffron, and lemon or lime juice. Cook until the syrup becomes thick and sticky. Allow it to cool until warm. 5. Place the warm fried balls into the warm syrup. 6. Leave them to soak for 2-5 hours, or until the syrup has penetrated the balls. 7. Serve.",
+    "prepTime": "40 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 21,
+    "uid": "saji_6",
+    "name": "Kheema Kambing",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan",
+      "Pot",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok",
+        "pot"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok",
+      "pot",
+      "blender"
+    ],
+    "ingredients": [
+      "1 kg minced meat",
+      "2 tbsp fennel powder",
+      "2 tbsp chilli powder",
+      "2 tbsp paprika powder",
+      "1 tbsp turmeric powder",
+      "1 tbsp black pepper",
+      "3 tbsp yogurt",
+      "**Tempering and cooking ingredients:** 5 cardamom pods",
+      "7-10 cloves",
+      "4-6 bay leaves",
+      "2 large onions",
+      "7 cloves garlic",
+      "2 inches ginger",
+      "2 tbsp masala spice",
+      "1 large glass sour milk (1 glass of milk curdled with 4 calamansi limes)",
+      "Water, as needed for cooking",
+      "Onion and ginger, finely blended without water or thinly sliced",
+      "Cooking oil or ghee",
+      "Salt, to taste (approximately 2 tsp)",
+      "1 tsp seasoning powder",
+      "Coriander leaves, chopped"
+    ],
+    "instructions": "1. Season the minced meat with the fennel powder, chilli powder, paprika, turmeric powder, black pepper and yogurt. 2. Heat oil or ghee in a pan and sauté the cardamom, cloves and bay leaves. 3. Add the finely blended or sliced onion and ginger. Stir until golden brown. 4. Add the masala spice and stir carefully so it does not burn. Add a little water and cook until the oil separates. 5. Add the seasoned minced meat and stir until evenly combined and the meat changes colour. 6. Once the mixture has dried slightly and the oil separates, add the sour milk. 7. Simmer until the gravy thickens. Season with salt and seasoning powder. 8. Add chopped coriander leaves. 9. Serve.",
+    "prepTime": "45 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 22,
+    "uid": "saji_7",
+    "name": "Rasam",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Vegetarian & Soups",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Pot",
+      "Blender",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "pot"
+      ],
+      [
+        "blender"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "pot",
+      "blender",
+      "wok"
+    ],
+    "ingredients": [
+      "**Tamarind-turmeric mixture:** 1 tbsp cumin seeds",
+      "1/2 tbsp coriander seeds",
+      "1 1/2 tbsp black pepper",
+      "Tamarind water mixed with 1/2 tbsp turmeric powder (use a golf-ball-sized amount of tamarind)",
+      "6 garlic cloves, with skin",
+      "1 small onion, crushed",
+      "**Coarsely crushed ingredients:** Coriander leaves",
+      "Dried chillies",
+      "Curry leaves",
+      "Coriander roots",
+      "2 tomatoes",
+      "1/2 tbsp mustard seeds",
+      "Optional asafoetida/rasam powder",
+      "Cooking oil, a little",
+      "Salt, to taste",
+      "Water, as needed"
+    ],
+    "instructions": "1. Heat a little oil in a pot and add the mustard seeds. 2. Add the curry leaves and dried chillies. 3. Add the optional asafoetida powder. 4. Add the coarsely crushed garlic and small onion. 5. Add the tomatoes and a little water to help them cook. 6. Add the coriander roots and the remaining coarsely crushed ingredients. 7. Pour in the tamarind water and add more water until the sourness is balanced. Cook over low heat. 8. If the rasam is too sour, add more water; if it is not sour enough, add more tamarind water. 9. After 2 minutes, add coriander leaves and salt to taste. Stir and let it cook gently. 10. When small bubbles begin to appear around the edges, stir once and let it continue heating. 11. When it begins to boil, turn off the heat. 12. Serve.",
+    "prepTime": "25 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 23,
+    "uid": "saji_8",
+    "name": "Tikka Masala",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok"
+    ],
+    "ingredients": [
+      "500 g chicken breast, diced",
+      "100 ml yogurt",
+      "2 tbsp chilli powder",
+      "1 tsp turmeric powder",
+      "1 tsp cumin powder",
+      "1 tsp coriander powder",
+      "1 tsp garam masala, optional",
+      "1 large onion, chopped",
+      "2 cloves garlic, chopped",
+      "1 inch ginger, chopped",
+      "2 tbsp tomato paste or purée",
+      "100 ml heavy cream (cooking cream may be used instead)",
+      "1 sprig coriander leaves",
+      "Salt, to taste",
+      "Sugar, to taste",
+      "Water, as needed",
+      "Cooking oil, as needed"
+    ],
+    "instructions": "1. Use half of the powdered spices, salt and yogurt to marinate the chicken. 2. Mix the marinade thoroughly with the chicken and refrigerate for 2-3 hours. 3. Heat oil in a pan and sear the chicken until lightly browned. Remove and set aside. 4. In the same pan, sauté the onion, garlic and ginger until softened and fragrant. 5. Add the remaining powdered spices and cook until the spices are thoroughly cooked. 6. Add the tomato paste or purée, starting with a little and adjusting to suit the desired level of acidity. 7. Add water and simmer. 8. Stir in the heavy cream or cooking cream. 9. Return the chicken to the pan and simmer for 10 minutes. 10. Season with salt and sugar. 11. Sprinkle coriander leaves over the dish. 12. Serve.",
+    "prepTime": "40 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 24,
+    "uid": "saji_9",
+    "name": "Kheer",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Desserts & Sweets",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Pot",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "pot"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "pot",
+      "wok"
+    ],
+    "ingredients": [
+      "1/2 cup rice, washed and soaked for 25 minutes",
+      "1 litre milk",
+      "Palm sugar, to taste",
+      "1 carrot",
+      "Ghee",
+      "3 cardamom pods",
+      "Saffron",
+      "Almonds",
+      "Cashew nuts"
+    ],
+    "instructions": "1. Wash and soak the rice for 25 minutes, then drain. 2. Heat 1 tbsp ghee and fry the rice for 1 minute. 3. Add the milk, palm sugar, cardamom and carrot. 4. Cook, stirring frequently to prevent the mixture from sticking. 5. Add more milk if the liquid reduces too much. 6. Check the rice and sugar; the cooking time is approximately 20-25 minutes. 7. For the garnish, fry the saffron, almonds and cashew nuts in ghee, then sprinkle them over the kheer.",
+    "prepTime": "35 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 25,
+    "uid": "saji_10",
+    "name": "Bubur Kuthiraivali",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Rice & Flatbreads",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Pot"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "pot"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "pot"
+    ],
+    "ingredients": [
+      "1 cup kuthiraivali (barnyard millet)",
+      "1/2 cup vegetables of choice",
+      "A little ginger-garlic paste",
+      "6 shallots, chopped",
+      "Cinnamon stick",
+      "Cardamom pods",
+      "Dried bay leaves",
+      "Star anise",
+      "Cloves",
+      "Ghee",
+      "Coriander leaves, sliced",
+      "Curry leaves, sliced",
+      "Salt, to taste",
+      "Black pepper powder, to taste",
+      "Water, as needed"
+    ],
+    "instructions": "1. Heat the ghee in a pot and sauté the whole spices until fragrant. 2. Add the chopped shallots and ginger-garlic paste. Sauté until the raw smell disappears. 3. Add the vegetables and cook briefly. 4. Pour in water and bring to a boil for 3 minutes. 5. Add the kuthiraivali millet and cook for 10 minutes. 6. Season with salt and black pepper to taste. 7. Continue cooking until the millet becomes soft. 8. Turn off the heat and garnish with sliced coriander and curry leaves.",
+    "prepTime": "25 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 26,
+    "uid": "saji_11",
+    "name": "Golgapa / Pani Puri",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Snacks & Street Bites",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Pot",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "pot"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "pot",
+      "wok"
+    ],
+    "ingredients": [
+      "**Potato filling:** 4-5 potatoes, peeled and diced",
+      "A little large onion, diced",
+      "Coriander leaves, finely chopped",
+      "A little black pepper powder",
+      "Salt, to taste",
+      "Nylon sev",
+      "**Pani puri sauce:** 1 tbsp mint paste",
+      "1 tbsp coriander paste",
+      "1 tbsp pani puri masala",
+      "1 tbsp jal jeera",
+      "3 tbsp tamarind sauce",
+      "500 ml boiled, filtered or mineral water at room temperature",
+      "Bird's eye chillies, sliced, to taste",
+      "Juice of 1/2 lemon",
+      "A little sugar",
+      "Boondi",
+      "Instant/ready-to-fry pani puri papad"
+    ],
+    "instructions": "1. Mash the cooked potatoes and mix with the diced onion. 2. Add the chopped coriander leaves. 3. Season with black pepper and salt, then mix well. 4. Add the nylon sev and combine. 5. In a separate bowl, combine the mint paste, coriander paste, pani puri masala, jal jeera and tamarind sauce. 6. Add the water and sliced bird's eye chillies according to your preferred heat level. 7. Add the lemon juice and a little sugar. Stir well. 8. Chill the sauce in the refrigerator, then sprinkle boondi over it. 9. Prepare the pani puri papad according to its package instructions. Make a small hole in the centre of each puri. 10. Fill each puri with the potato mixture and sauce. 11. Serve immediately.",
+    "prepTime": "25 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 27,
+    "uid": "saji_12",
+    "name": "Gula-Gula Kelapa",
+    "cuisine": "indian",
+    "cuisineLabel": "Indian",
+    "collection": "Saji (Indian)",
+    "category": "Desserts & Sweets",
+    "diet": [
+      "Indian Classic"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok"
+    ],
+    "ingredients": [
+      "2 white grated coconuts",
+      "500 g granulated sugar (250 g per coconut)",
+      "2 tins condensed milk",
+      "Cocoa powder or brown food colouring",
+      "Butter or margarine",
+      "A pinch of salt"
+    ],
+    "instructions": "1. Dry-roast the grated coconut over low heat for 10 minutes. 2. Over medium heat, add the condensed milk and cocoa powder to the pan with the grated coconut. Stir until combined. 3. Continue stirring until the sugar dissolves, approximately 30 minutes. 4. Add butter or margarine and continue stirring. 5. The candy is ready when the mixture reaches a consistency that can hold together like a ball. 6. Grease a tray with butter or margarine. 7. Transfer the mixture to the tray while it is still hot. 8. Using the back of a greased spoon, press and spread the mixture evenly in the tray. 9. Cut into pieces while it is still hot. 10. Allow to cool and serve.",
+    "prepTime": "45 mins",
+    "sourceUrl": "https://saji.my/resepi-masakan-india/"
+  },
+  {
+    "id": 28,
+    "uid": "zw_chinese_1",
+    "name": "Char Kway Teow Special",
+    "cuisine": "chinese",
+    "cuisineLabel": "Chinese",
+    "collection": "ZeroWaste Curated",
+    "category": "Noodles",
+    "diet": [
+      "No Pork"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Frying Pan"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "wok"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "wok"
+    ],
+    "ingredients": [
+      "400g flat rice noodles (kuey teow)",
+      "8-10 prawns, peeled",
+      "2 eggs",
+      "3 cloves garlic, minced",
+      "1 handful bean sprouts",
+      "1 bunch Chinese chives",
+      "2 tbsp light soy sauce",
+      "1 tbsp dark soy sauce",
+      "1 tbsp chilli paste",
+      "2 tbsp cooking oil"
+    ],
+    "instructions": "1. Heat cooking oil in a very hot wok over high heat. 2. Sauté minced garlic and chilli paste for 10 seconds until aromatic. 3. Toss in prawns and stir-fry until they turn pink. 4. Add the kuey teow, light soy sauce and dark soy sauce, tossing briskly to get smoky wok hei. 5. Push noodles aside, crack in the eggs and scramble lightly before folding through. 6. Add bean sprouts and Chinese chives, toss for 15 seconds and serve immediately.",
+    "prepTime": "15 mins",
+    "sourceUrl": ""
+  },
+  {
+    "id": 29,
+    "uid": "zw_chinese_2",
+    "name": "Cantonese Steamed Fish",
+    "cuisine": "chinese",
+    "cuisineLabel": "Chinese",
+    "collection": "ZeroWaste Curated",
+    "category": "Seafood",
+    "diet": [
+      "Halal-Friendly",
+      "High Protein"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Pot"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "pot"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "pot"
+    ],
+    "ingredients": [
+      "1 whole sea bass or snapper, cleaned",
+      "2 inches ginger, julienned",
+      "2 stalks spring onion, shredded",
+      "2 tbsp light soy sauce",
+      "1 tsp sesame oil",
+      "1 tsp sugar",
+      "2 tbsp hot water",
+      "1 tbsp cooking oil",
+      "Fresh coriander leaves for garnish"
+    ],
+    "instructions": "1. Score both sides of the fish and place it on a heatproof plate with half the julienned ginger. 2. Bring water to a rolling boil in a pot fitted with a steaming rack. 3. Steam the fish covered for 8-10 minutes until the flesh flakes easily. 4. Mix light soy sauce, sesame oil, sugar and hot water in a small bowl. 5. Discard the fishy steaming liquid, pour the soy sauce mixture over the fish and top with remaining ginger, spring onion and coriander. 6. Heat cooking oil until smoking and drizzle over the aromatics before serving.",
+    "prepTime": "20 mins",
+    "sourceUrl": ""
+  },
+  {
+    "id": 30,
+    "uid": "zw_borneo_1",
+    "name": "Sarawak Laksa Authentic",
+    "cuisine": "sabah-sarawak",
+    "cuisineLabel": "Borneo",
+    "collection": "ZeroWaste Curated",
+    "category": "Noodles",
+    "diet": [
+      "Halal-Friendly"
+    ],
+    "equipmentNeeded": [
+      "Stove",
+      "Pot",
+      "Blender"
+    ],
+    "applianceGroups": [
+      [
+        "stove"
+      ],
+      [
+        "pot"
+      ],
+      [
+        "blender"
+      ]
+    ],
+    "appliances": [
+      "stove",
+      "pot",
+      "blender"
+    ],
+    "ingredients": [
+      "300g rice vermicelli (bihun), blanched",
+      "200g chicken breast, poached and shredded",
+      "8-10 prawns, boiled",
+      "2 eggs, made into thin omelette strips",
+      "3 tbsp Sarawak laksa paste",
+      "200ml coconut milk",
+      "4 shallots, blended",
+      "3 cloves garlic, blended",
+      "2 stalks lemongrass, bruised",
+      "1 handful bean sprouts",
+      "Fresh coriander leaves",
+      "2 calamansi limes"
+    ],
+    "instructions": "1. Blend shallots and garlic with a splash of water. 2. Simmer prawn shells and chicken bones in a pot with bruised lemongrass for 20 minutes to build stock, then strain. 3. Stir-fry the Sarawak laksa paste with the blended aromatics in a pot until fragrant. 4. Pour in the strained stock and bring to a gentle simmer. 5. Stir in coconut milk and season with salt to taste. 6. Place blanched bihun and bean sprouts in bowls, top with shredded chicken, prawns and omelette strips, ladle over hot broth, and serve with coriander and calamansi.",
+    "prepTime": "30 mins",
+    "sourceUrl": ""
+  },
+  {
+    "id": 31,
+    "uid": "zw_malay_af",
+    "name": "Crispy Air-Fried Ayam Goreng Kunyit",
+    "cuisine": "malay",
+    "cuisineLabel": "Malay",
+    "collection": "ZeroWaste Curated",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Halal",
+      "Low Oil"
+    ],
+    "equipmentNeeded": [
+      "Air Fryer"
+    ],
+    "applianceGroups": [
+      [
+        "air_fryer"
+      ]
+    ],
+    "appliances": [
+      "air_fryer"
+    ],
+    "ingredients": [
+      "400g chicken thigh or breast, bite-sized",
+      "1 tsp turmeric powder",
+      "1/2 tsp curry powder",
+      "2 cloves garlic, minced",
+      "1/2 onion, sliced into rings",
+      "4 long beans, cut into 2-inch lengths",
+      "1 carrot, sliced",
+      "1 red chilli, sliced",
+      "1 tbsp cooking oil",
+      "Salt to taste"
+    ],
+    "instructions": "1. Toss chicken pieces with turmeric powder, curry powder, minced garlic, salt and 1 tbsp cooking oil. Marinate for 15 minutes. 2. Preheat air fryer to 180°C. Place marinated chicken in the basket in a single layer. 3. Air fry at 180°C for 10 minutes, shaking halfway through. 4. Add sliced onion, long beans, carrot and red chilli into the basket and air fry another 5 minutes at 190°C until golden and crisp. 5. Serve hot with steamed rice and sambal belacan.",
+    "prepTime": "25 mins",
+    "sourceUrl": ""
+  },
+  {
+    "id": 32,
+    "uid": "zw_others_1",
+    "name": "Oven-Roasted Herb Chicken & Potato Wedges",
+    "cuisine": "others",
+    "cuisineLabel": "Others",
+    "collection": "ZeroWaste Curated",
+    "category": "Poultry & Meat",
+    "diet": [
+      "Halal-Friendly",
+      "One-Tray"
+    ],
+    "equipmentNeeded": [
+      "Oven",
+      "Microwave"
+    ],
+    "applianceGroups": [
+      [
+        "oven"
+      ]
+    ],
+    "appliances": [
+      "oven",
+      "microwave"
+    ],
+    "ingredients": [
+      "400g chicken pieces or thighs",
+      "3 potatoes, cut into wedges",
+      "1 onion, quartered",
+      "3 cloves garlic, crushed",
+      "1 carrot, chunked",
+      "2 tbsp cooking oil or butter",
+      "1 tsp black pepper",
+      "1 tsp paprika or chilli powder",
+      "Salt to taste"
+    ],
+    "instructions": "1. Preheat oven to 200°C. 2. Optionally par-cook potato wedges in the microwave for 3 minutes to cut roasting time in half. 3. Toss chicken, potato wedges, onion, carrot and garlic with oil, paprika, black pepper and salt on a baking tray. 4. Roast for 25-30 minutes until the chicken is golden and potatoes are crispy outside and fluffy inside. 5. Serve warm.",
+    "prepTime": "35 mins",
+    "sourceUrl": ""
+  }
+]
