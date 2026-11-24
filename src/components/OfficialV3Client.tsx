@@ -7,8 +7,11 @@ import KitchenSetupView from "@/components/KitchenSetupView";
 import RecipeMatchesView from "@/components/RecipeMatchesView";
 import RecipeDetailModal from "@/components/RecipeDetailModal";
 import GroceryRestockView from "@/components/GroceryRestockView";
+import ThemeSettingsModal from "@/components/ThemeSettingsModal";
 import { calculateMatchedRecipes, MatchedRecipeResult } from "@/utils/recipesDb";
 import { getGroceryList, GroceryItem } from "@/utils/groceryStorage";
+import { launchToNavTab, NavDockEventDetail, NavDockTarget } from "@/utils/flyToNavAnimation";
+import { getSavedTheme, saveTheme, ThemeId } from "@/utils/themeStorage";
 import {
   runMobileNetV4Classification,
   runPredefinedCnnClassification,
@@ -16,6 +19,7 @@ import {
 } from "@/utils/cnnProduceScanner";
 import type * as tfType from "@tensorflow/tfjs";
 import { findMatchingMalaysianIngredient } from "@/utils/malaysianIngredients";
+import { getPantryCategoryVisual } from "@/utils/foodSemantics";
 import {
   getPantryItems,
   savePantryItem,
@@ -43,12 +47,18 @@ const QUANTIFIER_LIST = [
   { unit: "paket", en: "packs" },
 ];
 
+const TAB_ORDER = ["scanner", "pantry", "cook-now", "grocery"] as const;
+
 export default function OfficialV3Client() {
   const [activeTab, setActiveTab] = useState<"scanner" | "pantry" | "cook-now" | "grocery">("pantry");
+  const activeTabIndex = TAB_ORDER.indexOf(activeTab);
 
-  // Real Meal Flow & Preferences State (Step 1 Cuisines, Step 2 Appliances, Step 3 Recipes)
+  // Theme Settings & Real Meal Flow Preferences State
+  const [theme, setTheme] = useState<ThemeId>("pandan-hero");
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
   const [transitionVariant, setTransitionVariant] = useState<MealTransitionVariant | null>(null);
-  const [mealFlowStep, setMealFlowStep] = useState<"cuisines" | "appliances" | "recipes" | "prompt">("cuisines");
+  const [mealFlowStep, setMealFlowStep] = useState<"cuisines" | "appliances" | "recipes" | "prompt">("prompt");
+  const [mealStepDir, setMealStepDir] = useState<"forward" | "back" | null>(null);
   const [hasGeneratedMeals, setHasGeneratedMeals] = useState<boolean>(false);
   const [cuisinesState, setCuisinesState] = useState<Record<string, boolean>>({
     any: false,
@@ -128,6 +138,51 @@ export default function OfficialV3Client() {
     return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
+  useEffect(() => {
+    setTheme(getSavedTheme());
+  }, []);
+
+  const handleSelectTheme = (nextTheme: ThemeId) => {
+    setTheme(nextTheme);
+    saveTheme(nextTheme);
+  };
+
+  const isPandanHero = theme === "pandan-hero";
+  const showFoodAccents = theme !== "classic-clay";
+
+  const [navDockPulse, setNavDockPulse] = useState<{
+    tab: NavDockTarget;
+    badgeText: string;
+    tone: "emerald" | "orange";
+    id: number;
+  } | null>(null);
+  const [isAddingPopOut, setIsAddingPopOut] = useState<boolean>(false);
+  const scannerPreviewRef = useRef<HTMLDivElement | null>(null);
+  const scannerInfoCardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let clearTimer: ReturnType<typeof setTimeout> | null = null;
+    const onNavDock = (e: Event) => {
+      const detail = (e as CustomEvent<NavDockEventDetail>).detail;
+      if (!detail) return;
+      setNavDockPulse({
+        tab: detail.targetTab,
+        badgeText: detail.badgeText,
+        tone: detail.tone,
+        id: Date.now(),
+      });
+      if (clearTimer) clearTimeout(clearTimer);
+      clearTimer = setTimeout(() => {
+        setNavDockPulse(null);
+      }, 1200);
+    };
+    window.addEventListener("zw-nav-dock", onNavDock);
+    return () => {
+      window.removeEventListener("zw-nav-dock", onNavDock);
+      if (clearTimer) clearTimeout(clearTimer);
+    };
+  }, []);
+
   // -------------------------------------------------------------
   // PANTRY STATE & DYNAMIC RELATIVE TIME ("Updated ... ago")
   // -------------------------------------------------------------
@@ -170,6 +225,7 @@ export default function OfficialV3Client() {
         const parsed = JSON.parse(savedPlan);
         if (parsed?.hasGenerated) {
           setHasGeneratedMeals(true);
+          setMealFlowStep("recipes");
           if (parsed.cuisinesState) setCuisinesState(parsed.cuisinesState);
           if (parsed.appliancesState) setAppliancesState(parsed.appliancesState);
         }
@@ -244,13 +300,25 @@ export default function OfficialV3Client() {
   const [showNonFoodModal, setShowNonFoodModal] = useState<boolean>(false);
   const [nonFoodReason, setNonFoodReason] = useState<string>("");
 
-  // Toast
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  // Toast (Pop-up from bottom with animated SVG tick + smooth exit)
+  const [toastState, setToastState] = useState<{ msg: string; exiting: boolean; id: number } | null>(
+    null
+  );
+  const toastHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => {
-      setToastMsg(null);
+    if (toastHideTimerRef.current) clearTimeout(toastHideTimerRef.current);
+    if (toastClearTimerRef.current) clearTimeout(toastClearTimerRef.current);
+
+    const id = Date.now();
+    setToastState({ msg, exiting: false, id });
+
+    toastHideTimerRef.current = setTimeout(() => {
+      setToastState((prev) => (prev && prev.id === id ? { ...prev, exiting: true } : prev));
+      toastClearTimerRef.current = setTimeout(() => {
+        setToastState((prev) => (prev && prev.id === id ? null : prev));
+      }, 320);
     }, 2400);
   };
 
@@ -712,29 +780,63 @@ export default function OfficialV3Client() {
     }
   };
 
-  // Confirm Add to Pantry (Saves real photo & updates LAST_UPDATED_KEY)
+  // Confirm Add to Pantry (Lifts detected card into Pantry nav tab before switching)
   const handleConfirmAddPopOut = () => {
+    if (isAddingPopOut) return;
+    setIsAddingPopOut(true);
+
+    const itemLabel = detectedItemName;
+    const portionLabel = `${popPortion} ${popUnit}`;
+    const previewRect = scannerPreviewRef.current?.getBoundingClientRect() ?? null;
+    const infoRect = scannerInfoCardRef.current?.getBoundingClientRect() ?? null;
+    const sourceRect =
+      previewRect && previewRect.top >= 110 ? previewRect : infoRect ?? previewRect;
+
     savePantryItem({
-      name: detectedItemName,
-      nameMalay: detectedMalayName || detectedItemName,
+      name: itemLabel,
+      nameMalay: detectedMalayName || itemLabel,
       category: detectedCategory,
       quantity: popPortion,
       unit: popUnit,
       emoji: detectedEmoji,
       culinaryNote: popNote.trim()
         ? popNote.trim()
-        : (detectedCulinaryNote || `Fresh ${detectedItemName}. Logged via ZeroWaste AI Scanner.`),
+        : (detectedCulinaryNote || `Fresh ${itemLabel}. Logged via ZeroWaste AI Scanner.`),
       imageUrl: capturedPhotoUrl || undefined,
       confidence: detectedConfidence,
       engineUsed: detectedEngineUsed,
     });
 
     loadPantry();
-    setShowPopOutCard(false);
-    setPopNote("");
-    setDetectedCulinaryNote("");
-    showToast(`${detectedItemName} (${popPortion} ${popUnit}) added to Digital Pantry!`);
-    setActiveTab("pantry");
+
+    launchToNavTab({
+      targetTab: "pantry",
+      badgeText: "+1",
+      badgeTone: "emerald",
+      durationMs: 1400,
+      items: [
+        {
+          label: itemLabel,
+          subtitle: `${portionLabel} • To Pantry`,
+          emoji: detectedEmoji || "🥬",
+          imageUrl: capturedPhotoUrl || undefined,
+          tone: "emerald",
+          sourceRect,
+        },
+      ],
+      onDockImpact: () => {
+        showToast(`${itemLabel} (${portionLabel}) added to Digital Pantry!`);
+      },
+      onAllComplete: () => {
+        setTimeout(() => {
+          setIsAddingPopOut(false);
+          setShowPopOutCard(false);
+          setPopNote("");
+          setDetectedCulinaryNote("");
+          setActiveTab("pantry");
+        }, 420);
+      },
+    });
   };
 
   // Stepper handlers
@@ -799,7 +901,10 @@ export default function OfficialV3Client() {
   const displayedCards = getFilteredCards();
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-[#E0E5EC] font-['Plus_Jakarta_Sans',sans-serif] text-[#3D4852] select-none">
+    <div
+      data-zw-theme={theme}
+      className="h-screen overflow-hidden flex items-center justify-center p-0 sm:p-2 bg-[var(--zw-bg)] font-['Plus_Jakarta_Sans',sans-serif] text-[var(--zw-fg)] select-none transition-colors duration-300"
+    >
       
       {/* Hidden file input for uploading images from gallery/desktop */}
       <input
@@ -810,57 +915,81 @@ export default function OfficialV3Client() {
         onChange={handleFileUpload}
       />
 
-      {/* Mobile Container: Pure Soft Neumorphic Shell */}
-      <div className="w-full sm:w-[390px] h-screen sm:h-[844px] sm:rounded-[44px] p-3 neo-raised flex flex-col relative overflow-hidden bg-[#E0E5EC] text-foreground justify-between mx-auto shadow-2xl">
+      {/* Mobile Container: Warm Pandan Neumorphic Shell (Fits cleanly without outer page scroll) */}
+      <div className="w-full sm:w-[390px] h-full sm:max-h-[844px] sm:h-[calc(100vh-16px)] sm:rounded-[44px] p-3 neo-raised flex flex-col relative overflow-hidden bg-[var(--zw-bg)] text-foreground justify-between mx-auto shadow-2xl transition-colors duration-300">
         
-        {/* ========================================================= */}
-        {/* VIEW 4: DIGITAL PANTRY TAB                                */}
-        {/* ========================================================= */}
-        {activeTab === "pantry" && (
-          <>
-            {/* Top Bar with Fullscreen Toggle Button + Real Functional Search */}
-            <header className="h-16 px-3 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
-                  <span className="material-symbols-outlined text-xl">kitchen</span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-bold text-foreground tracking-tight">ZeroWaste Chef</span>
-                    <span className="text-[10px] text-muted font-normal">&bull; Pantry (View 4)</span>
+        {/* 4-Screen Horizontal Carousel Viewport (Matches Bottom Nav Order: Scanner | Pantry | Cook | Grocery) */}
+        <div className="flex-1 overflow-hidden relative">
+          <div
+            className="flex w-[400%] h-full will-change-transform"
+            style={{
+              transform: `translateX(-${activeTabIndex * 25}%)`,
+              transition: "transform 360ms cubic-bezier(0.22, 1, 0.36, 1)",
+            }}
+          >
+            {/* ========================================================= */}
+            {/* VIEW 4: DIGITAL PANTRY TAB (Index 1 -> order-2)           */}
+            {/* ========================================================= */}
+            <section
+              aria-hidden={activeTab !== "pantry"}
+              className={`w-1/4 h-full shrink-0 flex flex-col overflow-hidden relative order-2 ${
+                activeTab !== "pantry" ? "pointer-events-none" : ""
+              }`}
+            >
+              {/* Top Bar with Settings Theme Selector + Fullscreen + Functional Search */}
+              <header className="h-16 px-3 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
+                    <span className="material-symbols-outlined text-lg">kitchen</span>
                   </div>
-                  <span className="text-[9px] text-[#004730] uppercase font-extrabold tracking-wider">Smart Stock AI</span>
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-bold text-foreground tracking-tight truncate">ZeroWaste Chef</span>
+                    </div>
+                    <span className="text-[9px] text-[#004730] uppercase font-extrabold tracking-wider">Smart Stock AI</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Header Right Actions: Fullscreen Toggle & Functional Search Toggle */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={toggleFullscreen}
-                  className="w-10 h-10 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer"
-                  title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-base">
-                    {isFullscreen ? "fullscreen_exit" : "fullscreen"}
-                  </span>
-                </button>
+                {/* Header Right Actions: Theme Settings, Fullscreen Toggle & Search Toggle */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => setIsThemeModalOpen(true)}
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                      isThemeModalOpen ? "neo-sunken text-[#004730]" : "neo-raised-sm text-foreground hover:text-[#004730] active:scale-95"
+                    }`}
+                    title="Theme & Style Settings"
+                    aria-label="Theme & Style Settings"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-base">settings</span>
+                  </button>
 
-                <button
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                    isSearchOpen ? "neo-sunken text-[#004730]" : "neo-raised-sm text-foreground hover:text-[#004730] active:scale-95"
-                  }`}
-                  title="Search Ingredients"
-                  type="button"
-                  onClick={() => {
-                    setIsSearchOpen(!isSearchOpen);
-                    if (isSearchOpen) setSearchQuery("");
-                  }}
-                >
-                  <span className="material-symbols-outlined text-base">search</span>
-                </button>
-              </div>
-            </header>
+                  <button
+                    onClick={toggleFullscreen}
+                    className="w-9 h-9 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer"
+                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-base">
+                      {isFullscreen ? "fullscreen_exit" : "fullscreen"}
+                    </span>
+                  </button>
+
+                  <button
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                      isSearchOpen ? "neo-sunken text-[#004730]" : "neo-raised-sm text-foreground hover:text-[#004730] active:scale-95"
+                    }`}
+                    title="Search Ingredients"
+                    type="button"
+                    onClick={() => {
+                      setIsSearchOpen(!isSearchOpen);
+                      if (isSearchOpen) setSearchQuery("");
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-base">search</span>
+                  </button>
+                </div>
+              </header>
 
             {/* Main Scrollable Content */}
             <div className="flex-1 p-3 flex flex-col gap-3.5 overflow-y-auto no-scrollbar relative">
@@ -889,58 +1018,111 @@ export default function OfficialV3Client() {
                 </div>
               )}
 
-              {/* 1. Digital Pantry Card: Real Dynamic Relative Time */}
-              <section className="w-full neo-raised rounded-2xl p-3.5 flex flex-col gap-2.5 shrink-0">
+              {/* 1. Digital Pantry Summary Card: Adaptive per Theme */}
+              <section
+                className={`w-full rounded-2xl p-3.5 flex flex-col gap-2.5 shrink-0 transition-all duration-300 ${
+                  isPandanHero ? "neo-pandan-hero" : "neo-raised"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full neo-sunken flex items-center justify-center text-[#004730]">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                        isPandanHero
+                          ? "neo-pandan-sunken text-amber-300"
+                          : "neo-sunken text-[#004730]"
+                      }`}
+                    >
                       <span className="material-symbols-outlined text-base">kitchen</span>
                     </div>
-                    <span className="text-xs font-bold text-foreground">Digital Pantry</span>
+                    <span
+                      className={`text-xs tracking-tight ${
+                        isPandanHero ? "font-extrabold text-white" : "font-bold text-foreground"
+                      }`}
+                    >
+                      Digital Pantry
+                    </span>
                   </div>
                   {/* Dynamic Relative Time Pill */}
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full neo-sunken text-[#004730] text-[10px] font-bold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#004730] animate-pulse"></span>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      isPandanHero
+                        ? "neo-pandan-sunken text-amber-200"
+                        : "neo-sunken text-[#004730]"
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                        isPandanHero ? "bg-amber-300" : "bg-[#004730]"
+                      }`}
+                    ></span>
                     <span>Updated {lastUpdatedText}</span>
                   </span>
                 </div>
 
-                {/* Full-Width Stored Items Sunken Well: STORED ITEMS on left, count on right */}
-                <div className="w-full neo-sunken rounded-xl py-2.5 px-4 flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-muted">STORED ITEMS</span>
-                  <span className="text-base font-extrabold text-foreground tracking-tight" id="pantryTotalItemsCount">
+                {/* Stored Items Sunken Well */}
+                <div
+                  className={`w-full rounded-xl py-2.5 px-4 flex items-center justify-between ${
+                    isPandanHero ? "neo-pandan-sunken" : "neo-sunken"
+                  }`}
+                >
+                  <span
+                    className={`text-xs font-black uppercase tracking-wider ${
+                      isPandanHero ? "text-emerald-100/85" : "text-muted"
+                    }`}
+                  >
+                    STORED ITEMS
+                  </span>
+                  <span
+                    className={`font-extrabold tracking-tight ${
+                      isPandanHero ? "text-lg text-white" : "text-base text-foreground"
+                    }`}
+                    id="pantryTotalItemsCount"
+                  >
                     {cards.length}
                   </span>
                 </div>
 
-                {/* Action Buttons Row: Dark Green with White Icon & Text + Tactile Shadow */}
+                {/* Action Buttons Row */}
                 <div className="grid grid-cols-2 gap-2.5">
-                  {/* Left: Generate Meals -> Launches Neumorphic Meal Flow */}
                   <button
                     onClick={startMealFlow}
-                    className="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
-                    style={{
-                      boxShadow: "4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9)",
-                    }}
+                    className={`rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group transition-all ${
+                      isPandanHero
+                        ? "neo-amber-cta"
+                        : "bg-[#004730] text-white active:scale-95 shadow-md"
+                    }`}
                     title="Generate Meals"
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-base font-bold text-white group-hover:rotate-12 transition-transform">
+                    <span
+                      className={`material-symbols-outlined text-base font-bold group-hover:rotate-12 transition-transform ${
+                        isPandanHero ? "text-[#142419]" : "text-white"
+                      }`}
+                    >
                       auto_awesome
                     </span>
-                    <span className="text-xs font-black tracking-tight text-white">Generate Meals</span>
+                    <span
+                      className={`text-xs font-black tracking-tight ${
+                        isPandanHero ? "text-[#142419]" : "text-white"
+                      }`}
+                    >
+                      Generate Meals
+                    </span>
                   </button>
 
-                  {/* Right: Add Item (Switches to Scan HUD) */}
                   <button
                     onClick={() => {
                       setActiveTab("scanner");
                       setShowPopOutCard(false);
                     }}
-                    className="rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95 transition-all bg-[#004730] text-white"
-                    style={{
-                      boxShadow: "4px 4px 10px rgba(0, 71, 48, 0.4), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9)",
-                    }}
+                    className={`rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group transition-all ${
+                      isPandanHero
+                        ? "neo-emerald-glass-btn"
+                        : showFoodAccents
+                        ? "bg-amber-600 text-white active:scale-95 shadow-md"
+                        : "bg-[#004730] text-white active:scale-95 shadow-md"
+                    }`}
                     title="Add Item (Quick Log)"
                     type="button"
                   >
@@ -980,7 +1162,7 @@ export default function OfficialV3Client() {
 
                   {/* Filter Menu */}
                   {isFilterMenuOpen && (
-                    <div className="absolute left-0 top-10 w-48 py-1.5 rounded-2xl neo-raised bg-[#E0E5EC] shadow-2xl flex flex-col gap-0.5 z-50">
+                    <div className="absolute left-0 top-10 w-48 py-1.5 rounded-2xl neo-raised bg-[var(--zw-bg)] shadow-2xl flex flex-col gap-0.5 z-50">
                       <div className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-muted">
                         Category Filter
                       </div>
@@ -1127,7 +1309,7 @@ export default function OfficialV3Client() {
                     </button>
 
                     {isSortMenuOpen && (
-                      <div className="absolute right-0 top-10 w-44 py-1.5 rounded-2xl neo-raised bg-[#E0E5EC] shadow-2xl flex flex-col gap-0.5 z-50">
+                      <div className="absolute right-0 top-10 w-44 py-1.5 rounded-2xl neo-raised bg-[var(--zw-bg)] shadow-2xl flex flex-col gap-0.5 z-50">
                         <div className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-muted">Sort By</div>
                         
                         {/* Recently Added */}
@@ -1265,7 +1447,9 @@ export default function OfficialV3Client() {
                 </div>
               ) : (
                 <div className={viewMode === "grid" ? "pantry-grid-mode gap-2.5 pb-20" : "flex flex-col gap-3 pb-20"}>
-                  {displayedCards.map((card) => (
+                  {displayedCards.map((card) => {
+                    const catVisual = getPantryCategoryVisual(card.category);
+                    return (
                     <article
                       key={card.id}
                       className="neo-pantry-card w-full rounded-2xl p-3 flex flex-col gap-2"
@@ -1274,7 +1458,7 @@ export default function OfficialV3Client() {
                         {/* Clickable Card Photo Box: Displays Real Photo Captured by User */}
                         <div
                           onClick={() => setSelectedItemForDetail(card)}
-                          className="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative cursor-pointer group active:scale-95 transition-all bg-[#dbe1e8]"
+                          className="card-photo-box w-14 h-14 rounded-xl neo-sunken p-0.5 shrink-0 overflow-hidden relative cursor-pointer group active:scale-95 transition-all bg-[var(--zw-sunken)]"
                           title="Click to view full picture & details"
                         >
                           {card.imageUrl ? (
@@ -1289,7 +1473,7 @@ export default function OfficialV3Client() {
                               {card.emoji}
                             </div>
                           )}
-                          <div className="absolute top-1 left-1 bg-white/90 rounded-full w-4 h-4 flex items-center justify-center text-[9px] shadow-sm">
+                          <div className="absolute top-1 left-1 bg-white/95 rounded-full w-4 h-4 flex items-center justify-center text-[9px] shadow-sm">
                             {card.emoji}
                           </div>
                           <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -1298,25 +1482,49 @@ export default function OfficialV3Client() {
                         </div>
 
                         <div className="card-info-box flex flex-col min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <h4
-                              onClick={() => setSelectedItemForDetail(card)}
-                              className="text-xs font-extrabold text-foreground truncate cursor-pointer hover:text-[#004730]"
-                            >
-                              {card.name}
-                            </h4>
+                          <div className="flex items-center justify-between gap-1">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              {showFoodAccents && (
+                                <span
+                                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: catVisual.dotColor }}
+                                />
+                              )}
+                              <h4
+                                onClick={() => setSelectedItemForDetail(card)}
+                                className="text-xs font-extrabold text-foreground truncate cursor-pointer hover:text-[#004730]"
+                              >
+                                {card.name}
+                              </h4>
+                            </div>
                             <button
                               onClick={() => setCardToDelete(card)}
-                              className="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer"
+                              className="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer"
                               title="Delete"
                               type="button"
                             >
                               <span className="material-symbols-outlined text-sm">delete_outline</span>
                             </button>
                           </div>
-                          <span className="text-[10px] text-muted font-medium truncate">
-                            {card.nameMalay || card.category}
-                          </span>
+                          <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
+                            {showFoodAccents ? (
+                              <span
+                                className="px-1.5 py-[1px] rounded text-[8px] font-extrabold uppercase tracking-wide shrink-0"
+                                style={{ backgroundColor: catVisual.pillBg, color: catVisual.pillText }}
+                              >
+                                {catVisual.label}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-muted font-medium truncate">
+                                {card.category}
+                              </span>
+                            )}
+                            {card.nameMalay && card.nameMalay.toLowerCase() !== card.name.toLowerCase() && (
+                              <span className="text-[10px] text-muted font-medium truncate">
+                                {card.nameMalay}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -1358,19 +1566,23 @@ export default function OfficialV3Client() {
                         </div>
                       </div>
                     </article>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
             </div>
-          </>
-        )}
+            </section>
 
-        {/* ========================================================= */}
-        {/* VIEW 1: LIVE SCANNER HUD TAB (Real Camera Stream)         */}
-        {/* ========================================================= */}
-        {activeTab === "scanner" && (
-          <>
+            {/* ========================================================= */}
+            {/* VIEW 1: LIVE SCANNER HUD TAB (Index 0 -> order-1)         */}
+            {/* ========================================================= */}
+            <section
+              aria-hidden={activeTab !== "scanner"}
+              className={`w-1/4 h-full shrink-0 flex flex-col overflow-hidden relative order-1 ${
+                activeTab !== "scanner" ? "pointer-events-none" : ""
+              }`}
+            >
             {/* Header with Stack Back Button, Context Title & Fullscreen Button */}
             <header className="w-full z-20 neo-bar-top backdrop-blur-md rounded-t-[32px] shrink-0">
               <div className="h-16 px-3 flex items-center justify-between gap-2">
@@ -1701,7 +1913,7 @@ export default function OfficialV3Client() {
                 <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
 
                 {/* POP-OUT CARD */}
-                <div className="relative z-10 w-full bg-[#E0E5EC] rounded-t-[36px] neo-raised p-4 flex flex-col gap-3.5 overflow-y-auto max-h-[88%] no-scrollbar pb-24 shadow-2xl">
+                <div className="relative z-10 w-full bg-[var(--zw-bg)] rounded-t-[36px] neo-raised p-4 flex flex-col gap-3.5 overflow-y-auto max-h-[88%] no-scrollbar pb-24 shadow-2xl">
                   {/* Sheet Handle & Close */}
                   <div className="flex items-center justify-between w-full pt-0.5">
                     <div className="w-7 h-7"></div>
@@ -1717,7 +1929,12 @@ export default function OfficialV3Client() {
                   </div>
 
                   {/* 1. COMPLETELY DETACHED BIG SQUARE IMAGE */}
-                  <div className="w-48 h-48 aspect-square mx-auto rounded-3xl neo-raised p-2 overflow-hidden relative shrink-0 my-0.5 bg-[#dbe1e8]">
+                  <div
+                    ref={scannerPreviewRef}
+                    className={`w-48 h-48 aspect-square mx-auto rounded-3xl neo-raised p-2 overflow-hidden relative shrink-0 my-0.5 bg-[var(--zw-sunken)] transition-all duration-500 ${
+                      isAddingPopOut ? "scale-75 opacity-35" : ""
+                    }`}
+                  >
                     {capturedPhotoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -1737,7 +1954,12 @@ export default function OfficialV3Client() {
                   </div>
 
                   {/* 2. REDESIGNED PRODUCT INFO CARD */}
-                  <div className="p-4 rounded-3xl neo-raised flex flex-col items-center text-center gap-2 shrink-0">
+                  <div
+                    ref={scannerInfoCardRef}
+                    className={`p-4 rounded-3xl neo-raised flex flex-col items-center text-center gap-2 shrink-0 transition-all duration-500 ${
+                      isAddingPopOut ? "scale-95 opacity-60" : ""
+                    }`}
+                  >
                     {/* Badges Row */}
                     <div className="flex items-center justify-center gap-2.5">
                       <span className="px-3 py-1 rounded-full neo-sunken text-[#006948] text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
@@ -1800,7 +2022,7 @@ export default function OfficialV3Client() {
 
                           {/* Quantifier Dropdown Menu */}
                           {isPopUnitOpen && (
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-36 py-1 bg-[#E0E5EC] neo-raised rounded-2xl text-left shadow-2xl max-h-48 overflow-y-auto no-scrollbar">
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-36 py-1 bg-[var(--zw-bg)] neo-raised rounded-2xl text-left shadow-2xl max-h-48 overflow-y-auto no-scrollbar">
                               <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-muted">Select Unit</div>
                               {QUANTIFIER_LIST.map((q) => (
                                 <button
@@ -1862,14 +2084,17 @@ export default function OfficialV3Client() {
                   {/* 5. Add to Pantry Button (Rich Dark Green) */}
                   <button
                     onClick={handleConfirmAddPopOut}
-                    className="w-full shrink-0 h-14 rounded-2xl text-white font-black text-base tracking-wide flex items-center justify-center gap-2.5 cursor-pointer select-none bg-[#004730] hover:bg-[#003824] active:scale-98 transition-all"
+                    disabled={isAddingPopOut}
+                    className="w-full shrink-0 h-14 rounded-2xl text-white font-black text-base tracking-wide flex items-center justify-center gap-2.5 cursor-pointer select-none bg-[#004730] hover:bg-[#003824] active:scale-98 transition-all disabled:bg-[#006948]"
                     style={{
                       boxShadow: "5px 5px 14px rgba(0, 71, 48, 0.45), 3px 3px 8px rgba(163, 177, 198, 0.6), -3px -3px 8px rgba(255, 255, 255, 0.9)",
                     }}
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-2xl text-white font-bold">inventory_2</span>
-                    <span>Add to Pantry</span>
+                    <span className="material-symbols-outlined text-2xl text-white font-bold">
+                      {isAddingPopOut ? "check_circle" : "inventory_2"}
+                    </span>
+                    <span>{isAddingPopOut ? "Docking to Pantry..." : "Add to Pantry"}</span>
                   </button>
 
                   {/* 6. Bulging Out Gemini Vision Block: Galaxy Coloured Button */}
@@ -1928,34 +2153,60 @@ export default function OfficialV3Client() {
                 </div>
               </div>
             )}
-          </>
-        )}
+            </section>
 
-        {/* ========================================================= */}
-        {/* VIEW 5: COOK NOW (CUISINES & APPLIANCES & RECIPES ENGINE) */}
-        {/* ========================================================= */}
-        {activeTab === "cook-now" && (
-          <>
+            {/* ========================================================= */}
+            {/* VIEW 5: COOK NOW (Index 2 -> order-3)                     */}
+            {/* ========================================================= */}
+            <section
+              aria-hidden={activeTab !== "cook-now"}
+              className={`w-1/4 h-full shrink-0 flex flex-col overflow-hidden relative order-3 ${
+                activeTab !== "cook-now" ? "pointer-events-none" : ""
+              }`}
+            >
             {mealFlowStep === "cuisines" && (
-              <CuisinePreferenceView
-                cuisinesState={cuisinesState}
-                setCuisinesState={setCuisinesState}
-                appliancesState={appliancesState}
-                onNext={() => setMealFlowStep("appliances")}
-                onBack={() => setActiveTab("pantry")}
-                matchCount={matchCount}
-              />
+              <div
+                key="step-cuisines"
+                className={`flex-1 flex flex-col overflow-hidden ${
+                  mealStepDir === "back" ? "animate-slide-in-left" : ""
+                }`}
+              >
+                <CuisinePreferenceView
+                  cuisinesState={cuisinesState}
+                  setCuisinesState={setCuisinesState}
+                  appliancesState={appliancesState}
+                  onNext={() => {
+                    setMealStepDir("forward");
+                    setMealFlowStep("appliances");
+                  }}
+                  onBack={() => {
+                    setMealStepDir(null);
+                    setActiveTab("pantry");
+                  }}
+                  matchCount={matchCount}
+                />
+              </div>
             )}
 
             {mealFlowStep === "appliances" && (
-              <KitchenSetupView
-                cuisinesState={cuisinesState}
-                appliancesState={appliancesState}
-                setAppliancesState={setAppliancesState}
-                onBack={() => setMealFlowStep("cuisines")}
-                onViewRecipes={goToRecipesWithTransition}
-                matchCount={matchCount}
-              />
+              <div
+                key="step-appliances"
+                className={`flex-1 flex flex-col overflow-hidden ${
+                  mealStepDir === "forward" ? "animate-slide-in-right" : ""
+                }`}
+              >
+                <KitchenSetupView
+                  cuisinesState={cuisinesState}
+                  appliancesState={appliancesState}
+                  setAppliancesState={setAppliancesState}
+                  onBack={() => {
+                    setMealStepDir("back");
+                    setMealFlowStep("cuisines");
+                  }}
+                  onViewRecipes={goToRecipesWithTransition}
+                  matchCount={matchCount}
+                />
+              </div>
             )}
 
             {mealFlowStep === "prompt" && (
@@ -1985,103 +2236,181 @@ export default function OfficialV3Client() {
                 cuisinesState={cuisinesState}
                 appliancesState={appliancesState}
                 pantryItems={cards}
-                onGoToCuisines={() => setMealFlowStep("cuisines")}
+                onGoToCuisines={() => {
+                  setMealStepDir("back");
+                  setMealFlowStep("cuisines");
+                }}
                 onRegenerate={startMealFlow}
                 onSelectRecipe={(recipe) => setSelectedRecipeForDetail(recipe)}
+                themeId={theme}
               />
             )}
-          </>
-        )}
+            </section>
+
+            {/* ========================================================= */}
+            {/* VIEW 6: SMART GROCERY RESTOCK (Index 3 -> order-4)        */}
+            {/* ========================================================= */}
+            <section
+              aria-hidden={activeTab !== "grocery"}
+              className={`w-1/4 h-full shrink-0 flex flex-col overflow-hidden relative order-4 ${
+                activeTab !== "grocery" ? "pointer-events-none" : ""
+              }`}
+            >
+              <GroceryRestockView
+                groceryItems={groceryItems}
+                setGroceryItems={setGroceryItems}
+                onPantryRefresh={loadPantry}
+                onGoToPantry={() => setActiveTab("pantry")}
+                onStartMealLookup={() => {
+                  setMealFlowStep(hasGeneratedMeals ? "recipes" : "prompt");
+                  setActiveTab("cook-now");
+                }}
+                showToast={showToast}
+                themeId={theme}
+              />
+            </section>
+          </div>
+        </div>
 
         {/* ========================================================= */}
-        {/* VIEW 6: SMART GROCERY RESTOCK (MODULE 2 MISSING SYNC)     */}
-        {/* ========================================================= */}
-        {activeTab === "grocery" && (
-          <GroceryRestockView
-            groceryItems={groceryItems}
-            setGroceryItems={setGroceryItems}
-            onPantryRefresh={loadPantry}
-            onGoToPantry={() => setActiveTab("pantry")}
-            onStartMealLookup={() => {
-              setMealFlowStep(hasGeneratedMeals ? "recipes" : "prompt");
-              setActiveTab("cook-now");
-            }}
-            showToast={showToast}
-          />
-        )}
-
-        {/* ========================================================= */}
-        {/* BOTTOM NAV (HIDDEN ONLY ON STEP 1 & 2 WIZARD, BACK ON RECIPES) */}
+        {/* BOTTOM NAV: OPTION 1 SUNKEN CRATER GLIDE + 3002 DOCK FX   */}
         {/* ========================================================= */}
         {(activeTab !== "cook-now" || mealFlowStep === "recipes" || mealFlowStep === "prompt") && (
-          <nav className="mt-2 mb-1 mx-1 h-16 px-1.5 rounded-3xl bg-[#E0E5EC] neo-raised grid grid-cols-4 items-center gap-1 shrink-0 z-40 border-0">
-          {/* 1. Scanner Tab */}
-          <button
-            onClick={() => {
-              setActiveTab("scanner");
-              setShowPopOutCard(false);
-            }}
-            className={`h-12 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer ${
-              activeTab === "scanner"
-                ? "neo-crater font-bold text-[#004730]"
-                : "text-muted hover:text-foreground active:scale-95"
-            }`}
-            type="button"
-          >
-            <span className="material-symbols-outlined text-2xl leading-none">photo_camera</span>
-            <span className="text-[10px] font-bold mt-0.5 leading-none">Scanner</span>
-          </button>
+          <nav className="relative mt-2 mb-1 mx-1 h-16 px-1.5 rounded-3xl bg-[var(--zw-bg)] neo-raised grid grid-cols-4 items-center gap-0 shrink-0 z-40 border-0">
+            {/* Sliding Sunken Crater Indicator */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute top-2 bottom-2 left-1.5 rounded-2xl neo-crater"
+              style={{
+                width: "calc((100% - 12px) / 4)",
+                transform: `translateX(${activeTabIndex * 100}%)`,
+                transition: "transform 360ms cubic-bezier(0.34, 1.38, 0.64, 1)",
+              }}
+            />
 
-          {/* 2. Pantry Tab */}
-          <button
-            onClick={() => setActiveTab("pantry")}
-            className={`h-12 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer ${
-              activeTab === "pantry"
-                ? "neo-crater font-bold text-[#004730]"
-                : "text-muted hover:text-foreground active:scale-95"
-            }`}
-            type="button"
-          >
-            <span className="material-symbols-outlined text-2xl leading-none">kitchen</span>
-            <span className="text-[10px] font-bold mt-0.5 leading-none">Pantry</span>
-          </button>
-
-          {/* 3. Cook Now Tab (Direct to Recipes if Generated, else Prompts to Generate) */}
-          <button
-            onClick={() => {
-              setActiveTab("cook-now");
-              setMealFlowStep(hasGeneratedMeals ? "recipes" : "prompt");
-            }}
-            className={`h-12 rounded-2xl flex flex-col items-center justify-center relative transition-all cursor-pointer ${
-              activeTab === "cook-now"
-                ? "neo-crater font-bold text-[#004730]"
-                : "text-muted hover:text-foreground active:scale-95"
-            }`}
-            type="button"
-          >
-            <span className="material-symbols-outlined text-2xl leading-none">skillet</span>
-            <span className="text-[10px] font-bold mt-0.5 leading-none">Cook</span>
-          </button>
-
-          {/* 4. Grocery Restock Tab */}
-          <button
-            onClick={() => setActiveTab("grocery")}
-            className={`h-12 rounded-2xl flex flex-col items-center justify-center relative transition-all cursor-pointer ${
-              activeTab === "grocery"
-                ? "neo-crater font-bold text-[#004730]"
-                : "text-muted hover:text-foreground active:scale-95"
-            }`}
-            type="button"
-          >
-            <span className="material-symbols-outlined text-2xl leading-none">shopping_cart</span>
-            <span className="text-[10px] font-semibold mt-0.5 leading-none">Grocery</span>
-            {pendingGroceryCount > 0 && (
-              <span className="text-[8px] font-extrabold px-1.5 rounded-full bg-[#004730] text-white absolute top-1 right-1.5 shadow-xs">
-                {pendingGroceryCount}
+            {/* 1. Scanner Tab */}
+            <button
+              onClick={() => {
+                setSelectedRecipeForDetail(null);
+                setActiveTab("scanner");
+                setShowPopOutCard(false);
+              }}
+              className={`relative z-10 h-12 rounded-2xl flex flex-col items-center justify-center transition-colors duration-200 cursor-pointer ${
+                activeTab === "scanner"
+                  ? "font-bold text-[#004730]"
+                  : "text-muted hover:text-foreground active:scale-95"
+              }`}
+              type="button"
+            >
+              <span
+                className={`material-symbols-outlined text-2xl leading-none transition-transform duration-300 ${
+                  activeTab === "scanner" ? "scale-110 -translate-y-0.5" : "scale-100"
+                }`}
+              >
+                photo_camera
               </span>
-            )}
-          </button>
-        </nav>
+              <span className="text-[10px] font-bold mt-0.5 leading-none">Scanner</span>
+            </button>
+
+            {/* 2. Pantry Tab */}
+            <button
+              data-nav-tab="pantry"
+              onClick={() => {
+                setSelectedRecipeForDetail(null);
+                loadPantry();
+                setActiveTab("pantry");
+              }}
+              className={`relative z-10 h-12 rounded-2xl flex flex-col items-center justify-center transition-colors duration-200 cursor-pointer ${
+                activeTab === "pantry"
+                  ? "font-bold text-[#004730]"
+                  : "text-muted hover:text-foreground active:scale-95"
+              } ${navDockPulse?.tab === "pantry" ? "animate-nav-dock-bounce text-[#006948]" : ""}`}
+              type="button"
+            >
+              {navDockPulse?.tab === "pantry" && (
+                <React.Fragment key={navDockPulse.id}>
+                  <span className="absolute inset-1 rounded-2xl border-2 border-[#006948] pointer-events-none animate-nav-ring-pulse" />
+                  <span className="absolute -top-2.5 left-1/2 px-2 py-0.5 rounded-full bg-[#006948] text-white text-[10px] font-extrabold shadow-sm pointer-events-none whitespace-nowrap animate-nav-badge-float z-50">
+                    {navDockPulse.badgeText}
+                  </span>
+                </React.Fragment>
+              )}
+              <span
+                className={`material-symbols-outlined text-2xl leading-none transition-transform duration-300 ${
+                  activeTab === "pantry" ? "scale-110 -translate-y-0.5" : "scale-100"
+                }`}
+              >
+                kitchen
+              </span>
+              <span className="text-[10px] font-bold mt-0.5 leading-none">Pantry</span>
+            </button>
+
+            {/* 3. Cook Now Tab (Direct to Recipes if Generated, else Prompts to Generate) */}
+            <button
+              onClick={() => {
+                setSelectedRecipeForDetail(null);
+                setActiveTab("cook-now");
+                setMealFlowStep(hasGeneratedMeals ? "recipes" : "prompt");
+              }}
+              className={`relative z-10 h-12 rounded-2xl flex flex-col items-center justify-center transition-colors duration-200 cursor-pointer ${
+                activeTab === "cook-now"
+                  ? "font-bold text-[#004730]"
+                  : "text-muted hover:text-foreground active:scale-95"
+              }`}
+              type="button"
+            >
+              <span
+                className={`material-symbols-outlined text-2xl leading-none transition-transform duration-300 ${
+                  activeTab === "cook-now" ? "scale-110 -translate-y-0.5" : "scale-100"
+                }`}
+              >
+                skillet
+              </span>
+              <span className="text-[10px] font-bold mt-0.5 leading-none">Cook</span>
+            </button>
+
+            {/* 4. Grocery Restock Tab */}
+            <button
+              data-nav-tab="grocery"
+              onClick={() => {
+                setSelectedRecipeForDetail(null);
+                setGroceryItems(getGroceryList());
+                setActiveTab("grocery");
+              }}
+              className={`relative z-10 h-12 rounded-2xl flex flex-col items-center justify-center transition-colors duration-200 cursor-pointer ${
+                activeTab === "grocery"
+                  ? "font-bold text-[#004730]"
+                  : "text-muted hover:text-foreground active:scale-95"
+              } ${navDockPulse?.tab === "grocery" ? "animate-nav-dock-bounce text-[#006948]" : ""}`}
+              type="button"
+            >
+              {navDockPulse?.tab === "grocery" && (
+                <React.Fragment key={navDockPulse.id}>
+                  <span className="absolute inset-1 rounded-2xl border-2 border-[#006948] pointer-events-none animate-nav-ring-pulse" />
+                  <span
+                    className={`absolute -top-2.5 left-1/2 px-2 py-0.5 rounded-full text-white text-[10px] font-extrabold shadow-sm pointer-events-none whitespace-nowrap animate-nav-badge-float z-50 ${
+                      navDockPulse.tone === "orange" ? "bg-[#EA580C]" : "bg-[#006948]"
+                    }`}
+                  >
+                    {navDockPulse.badgeText}
+                  </span>
+                </React.Fragment>
+              )}
+              <span
+                className={`material-symbols-outlined text-2xl leading-none transition-transform duration-300 ${
+                  activeTab === "grocery" ? "scale-110 -translate-y-0.5" : "scale-100"
+                }`}
+              >
+                shopping_cart
+              </span>
+              <span className="text-[10px] font-semibold mt-0.5 leading-none">Grocery</span>
+              {pendingGroceryCount > 0 && (
+                <span className="text-[8px] font-extrabold px-1.5 rounded-full bg-[#004730] text-white absolute top-1 right-1.5 shadow-xs">
+                  {pendingGroceryCount}
+                </span>
+              )}
+            </button>
+          </nav>
         )}
 
         {/* Unique Contextual Transition Screens Between Meal Flow Steps */}
@@ -2148,7 +2477,7 @@ export default function OfficialV3Client() {
             onClick={() => setSelectedItemForDetail(null)}
           >
             <div
-              className="w-full max-w-[340px] rounded-[32px] neo-raised bg-[#E0E5EC] p-5 flex flex-col gap-4 shadow-2xl relative max-h-[85vh] overflow-y-auto no-scrollbar"
+              className="w-full max-w-[340px] rounded-[32px] neo-raised bg-[var(--zw-bg)] p-5 flex flex-col gap-4 shadow-2xl relative max-h-[85vh] overflow-y-auto no-scrollbar"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
@@ -2161,7 +2490,7 @@ export default function OfficialV3Client() {
               </button>
 
               {/* Large Image View */}
-              <div className="w-full h-48 rounded-2xl neo-sunken p-1 overflow-hidden relative shrink-0 bg-[#dbe1e8]">
+              <div className="w-full h-48 rounded-2xl neo-sunken p-1 overflow-hidden relative shrink-0 bg-[var(--zw-sunken)]">
                 {selectedItemForDetail.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -2229,7 +2558,7 @@ export default function OfficialV3Client() {
             onClick={() => setActiveUnitCardId(null)}
           >
             <div
-              className="w-full max-w-[280px] py-2 bg-[#E0E5EC] neo-raised rounded-3xl text-left shadow-2xl flex flex-col gap-0.5 max-h-[70vh] overflow-y-auto p-2"
+              className="w-full max-w-[280px] py-2 bg-[var(--zw-bg)] neo-raised rounded-3xl text-left shadow-2xl flex flex-col gap-0.5 max-h-[70vh] overflow-y-auto p-2"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-3 py-1.5 border-b border-black/5 flex items-center justify-between mb-1">
@@ -2266,7 +2595,7 @@ export default function OfficialV3Client() {
             onClick={() => setIsPopUnitOpen(false)}
           >
             <div
-              className="w-full max-w-[280px] py-2 bg-[#E0E5EC] neo-raised rounded-3xl text-left shadow-2xl flex flex-col gap-0.5 max-h-[70vh] overflow-y-auto p-2"
+              className="w-full max-w-[280px] py-2 bg-[var(--zw-bg)] neo-raised rounded-3xl text-left shadow-2xl flex flex-col gap-0.5 max-h-[70vh] overflow-y-auto p-2"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-3 py-1.5 border-b border-black/5 flex items-center justify-between mb-1">
@@ -2303,7 +2632,7 @@ export default function OfficialV3Client() {
         {/* 4. Neumorphic Delete Confirmation Modal */}
         {cardToDelete && (
           <div className="absolute inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-xs transition-opacity">
-            <div className="w-full max-w-[300px] rounded-3xl neo-raised bg-[#E0E5EC] p-5 flex flex-col items-center text-center gap-3.5 shadow-2xl">
+            <div className="w-full max-w-[300px] rounded-3xl neo-raised bg-[var(--zw-bg)] p-5 flex flex-col items-center text-center gap-3.5 shadow-2xl">
               <div className="w-12 h-12 rounded-2xl neo-sunken flex items-center justify-center text-rose-600">
                 <span className="material-symbols-outlined text-2xl font-bold">delete_forever</span>
               </div>
@@ -2337,7 +2666,7 @@ export default function OfficialV3Client() {
         {/* 5. Neumorphic Non-Food Rejection Modal (Active when isFood === false) */}
         {showNonFoodModal && (
           <div className="absolute inset-0 z-50 flex items-center justify-center p-5 bg-black/50 backdrop-blur-xs transition-opacity animate-pop-up">
-            <div className="w-full max-w-[320px] rounded-3xl neo-raised bg-[#E0E5EC] p-5 flex flex-col items-center text-center gap-3.5 shadow-2xl">
+            <div className="w-full max-w-[320px] rounded-3xl neo-raised bg-[var(--zw-bg)] p-5 flex flex-col items-center text-center gap-3.5 shadow-2xl">
               <div className="w-14 h-14 rounded-2xl neo-sunken flex items-center justify-center text-amber-600 bg-amber-500/10">
                 <span className="material-symbols-outlined text-3xl font-bold">no_meals</span>
               </div>
@@ -2368,11 +2697,49 @@ export default function OfficialV3Client() {
           </div>
         )}
 
-        {/* Toast Notification Pill */}
-        {toastMsg && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-full bg-slate-900/95 text-white text-xs font-bold shadow-2xl flex items-center gap-2 z-50 animate-pop-up border border-white/10">
-            <span className="material-symbols-outlined text-emerald-400 text-base">check_circle</span>
-            <span>{toastMsg}</span>
+        {/* Theme Settings Modal */}
+        {isThemeModalOpen && (
+          <ThemeSettingsModal
+            currentTheme={theme}
+            onSelectTheme={(next) => {
+              handleSelectTheme(next);
+              const label =
+                next === "pandan-hero"
+                  ? "Pandan Hero"
+                  : next === "warm-clay"
+                  ? "Warm Kitchen Clay"
+                  : next === "fresh-accents"
+                  ? "Vibrant Accents"
+                  : "Classic Clay";
+              showToast(`Theme switched to ${label}`);
+            }}
+            onClose={() => setIsThemeModalOpen(false)}
+          />
+        )}
+
+        {/* Toast Notification Pill (Centered container; slides up from bottom with live tick draw & exits smoothly) */}
+        {toastState && (
+          <div className="absolute bottom-[84px] inset-x-0 flex justify-center px-4 pointer-events-none z-50">
+            <div
+              key={toastState.id}
+              className={`px-4 py-2.5 rounded-full bg-slate-900/95 text-white text-xs font-bold shadow-2xl flex items-center gap-2.5 border border-white/15 backdrop-blur-md max-w-full ${
+                toastState.exiting ? "animate-toast-out" : "animate-toast-in"
+              }`}
+            >
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
+                <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M5 13l4 4L19 7"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="animate-tick-draw"
+                  />
+                </svg>
+              </span>
+              <span className="leading-snug">{toastState.msg}</span>
+            </div>
           </div>
         )}
 

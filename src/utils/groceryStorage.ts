@@ -350,7 +350,7 @@ export function clearAllGroceryItems(): GroceryItem[] {
   return persistGroceryList([]);
 }
 
-export function restockGroceryItemToPantry(item: GroceryItem): GroceryItem[] {
+function saveRestockToPantry(item: GroceryItem): void {
   savePantryItem({
     name: item.name,
     nameMalay: item.name,
@@ -361,5 +361,26 @@ export function restockGroceryItemToPantry(item: GroceryItem): GroceryItem[] {
     engineUsed: "Smart Restock",
     culinaryNote: `Restocked from Grocery List (${formatGroceryQty(item.quantity)} ${item.unit} for ${item.recipeName}).`,
   });
+}
+
+export function restockGroceryItemToPantry(item: GroceryItem): GroceryItem[] {
+  saveRestockToPantry(item);
   return removeGroceryItem(item.id);
+}
+
+export function restockCheckedGroceryItemsToPantry(): {
+  restockedCount: number;
+  remainingItems: GroceryItem[];
+} {
+  const current = getGroceryList();
+  const checkedItems = current.filter((item) => item.checked);
+  if (checkedItems.length === 0) {
+    return { restockedCount: 0, remainingItems: current };
+  }
+
+  for (const item of checkedItems) {
+    saveRestockToPantry(item);
+  }
+  const remainingItems = persistGroceryList(current.filter((item) => !item.checked));
+  return { restockedCount: checkedItems.length, remainingItems };
 }

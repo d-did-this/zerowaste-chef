@@ -9,6 +9,8 @@ import {
 } from "@/utils/recipesDb";
 import { PantryItem } from "@/utils/pantryStorage";
 import HalalIcon from "@/components/HalalIcon";
+import { getCuisinePillColors, getReadinessBadgeColors } from "@/utils/foodSemantics";
+import { ThemeId } from "@/utils/themeStorage";
 
 interface RecipeMatchesViewProps {
   cuisinesState: Record<string, boolean>;
@@ -17,6 +19,7 @@ interface RecipeMatchesViewProps {
   onGoToCuisines: () => void;
   onRegenerate?: () => void;
   onSelectRecipe: (recipe: MatchedRecipeResult) => void;
+  themeId?: ThemeId;
 }
 
 type SortOption = "pantry" | "time" | "ingredients" | "appliances";
@@ -41,7 +44,10 @@ export default function RecipeMatchesView({
   onGoToCuisines,
   onRegenerate,
   onSelectRecipe,
+  themeId = "pandan-hero",
 }: RecipeMatchesViewProps) {
+  const isPandanHero = themeId === "pandan-hero";
+  const showFoodAccents = themeId !== "classic-clay";
   const [engineMode, setEngineMode] = useState<"ingredients-to-meals" | "meals-to-ingredients">(
     "ingredients-to-meals"
   );
@@ -205,7 +211,7 @@ export default function RecipeMatchesView({
 
         <button
           onClick={onRegenerate || onGoToCuisines}
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#006948] text-white text-[10.5px] font-extrabold shadow-xs shrink-0 cursor-pointer active:scale-95 transition-all"
+          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#006948] text-white text-[10.5px] font-extrabold shadow-xs shrink-0 cursor-pointer active:scale-95 transition-all animate-nav-dock-bounce"
           aria-label="Regenerate Recipes"
           type="button"
         >
@@ -214,14 +220,23 @@ export default function RecipeMatchesView({
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto no-scrollbar py-1.5 px-3 flex flex-col gap-2.5">
-        {/* Bidirectional Engine Switcher */}
-        <div className="p-1 rounded-2xl neo-sunken grid grid-cols-2 gap-1 shrink-0">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar py-1.5 px-3 flex flex-col gap-2.5">
+        {/* Bidirectional Engine Switcher with Sliding Dark-Green Pill */}
+        <div className="p-1 rounded-2xl neo-sunken relative grid grid-cols-2 gap-1 shrink-0">
+          <div
+            className="absolute top-1 bottom-1 left-1 w-[calc(50%-6px)] rounded-xl bg-[#004730] shadow-sm pointer-events-none transition-transform duration-300 ease-[cubic-bezier(0.34,1.25,0.64,1)]"
+            style={{
+              transform:
+                engineMode === "meals-to-ingredients"
+                  ? "translateX(calc(100% + 4px))"
+                  : "translateX(0)",
+            }}
+          />
           <button
             onClick={() => setEngineMode("ingredients-to-meals")}
-            className={`py-1.5 px-2 rounded-xl text-[10.5px] font-extrabold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+            className={`relative z-10 py-1.5 px-2 rounded-xl text-[10.5px] font-extrabold flex items-center justify-center gap-1 transition-colors duration-200 cursor-pointer ${
               engineMode === "ingredients-to-meals"
-                ? "bg-[#004730] text-white shadow-sm"
+                ? "text-white"
                 : "text-[#475569] hover:text-[#004730]"
             }`}
             type="button"
@@ -231,9 +246,9 @@ export default function RecipeMatchesView({
           </button>
           <button
             onClick={() => setEngineMode("meals-to-ingredients")}
-            className={`py-1.5 px-2 rounded-xl text-[10.5px] font-extrabold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+            className={`relative z-10 py-1.5 px-2 rounded-xl text-[10.5px] font-extrabold flex items-center justify-center gap-1 transition-colors duration-200 cursor-pointer ${
               engineMode === "meals-to-ingredients"
-                ? "bg-[#004730] text-white shadow-sm"
+                ? "text-white"
                 : "text-[#475569] hover:text-[#004730]"
             }`}
             type="button"
@@ -243,15 +258,48 @@ export default function RecipeMatchesView({
           </button>
         </div>
 
-        {/* Header Title */}
-        <div className="pt-0.5 px-1 shrink-0">
-          <h1 className="text-[15.5px] font-extrabold text-[#0F172A] tracking-tight leading-[1.25]">
-            {displayedRecipes.length} Recipes Matched!
-          </h1>
-          <p className="text-[10.5px] text-[#64748B] mt-[2px] leading-[1.35]">
-            {sortSubtitle}
-          </p>
-        </div>
+        {/* Summary Header: Pandan Hero Card or Clean Animated Title */}
+        {isPandanHero ? (
+          <section
+            key={`hdr-hero-${engineMode}`}
+            className={`neo-pandan-hero rounded-2xl p-3 flex items-center justify-between gap-2.5 shrink-0 ${
+              engineMode === "meals-to-ingredients" ? "animate-slide-in-right" : "animate-slide-in-left"
+            }`}
+          >
+            <div className="min-w-0">
+              <h1 className="text-[15.5px] font-extrabold text-white tracking-tight leading-[1.2]">
+                {displayedRecipes.length} Recipes Matched!
+              </h1>
+              <p className="text-[10.5px] text-emerald-100/85 mt-[2px] leading-[1.35] truncate">
+                {sortSubtitle}
+              </p>
+            </div>
+            <div className="neo-pandan-sunken rounded-xl px-2.5 py-1.5 text-center shrink-0">
+              <span className="text-xs font-extrabold text-amber-300 leading-none block">
+                {pantryItems.length > 0 && displayedRecipes.length > 0
+                  ? `${Math.max(...displayedRecipes.map((d) => d.analysis.matchPercentage))}%`
+                  : displayedRecipes.length}
+              </span>
+              <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-100/80 block mt-0.5">
+                {pantryItems.length > 0 && displayedRecipes.length > 0 ? "Top Match" : "Ready"}
+              </span>
+            </div>
+          </section>
+        ) : (
+          <div
+            key={`hdr-${engineMode}`}
+            className={`pt-0.5 px-1 shrink-0 ${
+              engineMode === "meals-to-ingredients" ? "animate-slide-in-right" : "animate-slide-in-left"
+            }`}
+          >
+            <h1 className="text-[15.5px] font-extrabold text-[#0F172A] tracking-tight leading-[1.25]">
+              {displayedRecipes.length} Recipes Matched!
+            </h1>
+            <p className="text-[10.5px] text-[#64748B] mt-[2px] leading-[1.35]">
+              {sortSubtitle}
+            </p>
+          </div>
+        )}
 
         {/* Search Input */}
         <div className="w-full neo-sunken rounded-2xl px-3 py-1.5 flex items-center gap-2 shrink-0">
@@ -274,14 +322,26 @@ export default function RecipeMatchesView({
           )}
         </div>
 
-        {/* Unified Single Control Row: 3-Way Sort Toggle (Default = Pantry Match) + Filter Dropdown Button */}
+        {/* Unified Single Control Row: 3-Way Sort Toggle with Sliding Pill + Filter Dropdown Button */}
         <div className="flex items-center gap-2 shrink-0 relative z-30" ref={filterMenuRef}>
           {/* 3-Way Sort Toggle Pill */}
           <div
-            className="flex-1 h-9 p-1 rounded-2xl neo-sunken grid grid-cols-3 gap-1"
+            className="flex-1 h-9 p-1 rounded-2xl neo-sunken relative grid grid-cols-3 gap-1"
             role="group"
             aria-label="Sort recipes"
           >
+            <div
+              className="absolute top-1 bottom-1 left-1 w-[calc(33.333%-5px)] rounded-xl bg-[#004730] shadow-xs pointer-events-none transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.34,1.3,0.64,1)]"
+              style={{
+                opacity: sortBy === "pantry" ? 0 : 1,
+                transform:
+                  sortBy === "ingredients"
+                    ? "translateX(calc(100% + 4px))"
+                    : sortBy === "appliances"
+                    ? "translateX(calc(200% + 8px))"
+                    : "translateX(0)",
+              }}
+            />
             {(
               [
                 { key: "time", label: "Time", icon: "schedule", title: "Least Time" },
@@ -295,9 +355,9 @@ export default function RecipeMatchesView({
                   key={s.key}
                   onClick={() => toggleSort(s.key)}
                   title={`${s.title} (tap again for Pantry Match)`}
-                  className={`h-full rounded-xl text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                  className={`relative z-10 h-full rounded-xl text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition-colors duration-200 cursor-pointer ${
                     isActive
-                      ? "bg-[#004730] text-white shadow-xs"
+                      ? "text-white"
                       : "text-[#475569] hover:text-[#004730]"
                   }`}
                   type="button"
@@ -336,7 +396,7 @@ export default function RecipeMatchesView({
 
           {/* Filter Dropdown Popover */}
           {isFilterOpen && (
-            <div className="absolute right-0 top-11 w-60 max-h-[320px] overflow-y-auto no-scrollbar p-2.5 rounded-2xl bg-[#E0E5EC] neo-raised shadow-2xl border border-white/60 flex flex-col gap-2.5 z-50">
+            <div className="absolute right-0 top-11 w-60 max-h-[320px] overflow-y-auto no-scrollbar p-2.5 rounded-2xl bg-[var(--zw-bg)] neo-raised shadow-2xl flex flex-col gap-2.5 z-50">
               <div className="px-1 flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#0F172A]">
                   Filter Recipes
@@ -490,32 +550,48 @@ export default function RecipeMatchesView({
               </p>
             </div>
           ) : (
-            displayedRecipes.map((r) => {
+            displayedRecipes.map((r, idx) => {
               const hasPantry = pantryItems.length > 0;
               const pct = r.analysis.matchPercentage;
               const [timeNum, timeUnit] = r.prepTime.split(" ");
+              const cuisineColors = showFoodAccents
+                ? getCuisinePillColors(r.cuisine)
+                : { bg: "#004730", text: "#FFFFFF" };
+              const readinessColors = getReadinessBadgeColors(pct);
               return (
                 <div
-                  key={r.uid}
+                  key={`${engineMode}-${sortBy}-${r.uid}`}
                   onClick={() => onSelectRecipe(r)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") onSelectRecipe(r);
                   }}
-                  className="rounded-2xl p-3.5 bg-[#E0E5EC] neo-raised flex flex-col gap-2.5 border border-white/60 cursor-pointer hover:translate-y-[-1px] transition-all text-left"
+                  style={{ animationDelay: `${100 + Math.min(idx, 6) * 165}ms` }}
+                  className="rounded-2xl p-3.5 bg-[var(--zw-bg)] neo-raised flex flex-col gap-2.5 cursor-pointer hover:shadow-lg transition-shadow text-left animate-recipe-unfold"
                 >
-                  {/* Card Top Row: Cuisine + Rounded Halal Logo + Title | Stat Squares */}
+                  {/* Card Top Row: Cuisine + Readiness Pill + Halal Logo + Title | Stat Squares */}
                   <div className="flex items-start justify-between gap-2.5">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-[#004730] text-white">
+                        <span
+                          className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold"
+                          style={{ backgroundColor: cuisineColors.bg, color: cuisineColors.text }}
+                        >
                           {r.cuisineLabel}
                         </span>
+                        {showFoodAccents && hasPantry && (
+                          <span
+                            className="px-2 py-0.5 rounded-full text-[9px] font-extrabold"
+                            style={{ backgroundColor: readinessColors.bg, color: readinessColors.text }}
+                          >
+                            {pct}% Ready
+                          </span>
+                        )}
                         {r.diet.includes("Halal") && <HalalIcon size={20} />}
                       </div>
 
-                      <h3 className="text-[13.5px] font-extrabold text-[#1E293B] leading-snug">
+                      <h3 className="text-[13.5px] font-extrabold text-foreground leading-snug">
                         {r.name}
                       </h3>
                     </div>

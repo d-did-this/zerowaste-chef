@@ -145,7 +145,7 @@ export default function CuisinePreferenceView({
                   <span className="pref-chip-empty">None Selected</span>
                 ) : (
                   selectedCuisineNames.map((name) => (
-                    <span key={name} className="pref-chip">{name}</span>
+                    <span key={name} className="pref-chip animate-chip-pop">{name}</span>
                   ))
                 )}
               </div>
@@ -175,7 +175,7 @@ export default function CuisinePreferenceView({
 
           {/* Embedded Real-time Estimated Match Square */}
           <div className="recipe-match-square">
-            <span className="match-num" id="recipe-count-num">{matchCount}</span>
+            <span key={matchCount} className="match-num animate-chip-pop" id="recipe-count-num">{matchCount}</span>
             <span className="match-lbl">Recipes</span>
             <span className="match-sub">Est. Match</span>
           </div>

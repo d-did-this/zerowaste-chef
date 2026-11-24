@@ -202,7 +202,7 @@ export default function KitchenSetupView({
                   <span className="pref-chip-empty">None Selected</span>
                 ) : (
                   selectedAppKeys.map((k) => (
-                    <span key={k} className="pref-chip pref-chip-secondary">{APP_NAME_MAP[k] || k}</span>
+                    <span key={k} className="pref-chip pref-chip-secondary animate-chip-pop">{APP_NAME_MAP[k] || k}</span>
                   ))
                 )}
               </div>
@@ -211,7 +211,7 @@ export default function KitchenSetupView({
 
           {/* Embedded Real-time Estimated Match Square */}
           <div className="recipe-match-square">
-            <span className="match-num" id="step2-recipe-count">{matchCount}</span>
+            <span key={matchCount} className="match-num animate-chip-pop" id="step2-recipe-count">{matchCount}</span>
             <span className="match-lbl">Recipes</span>
             <span className="match-sub">Est. Match</span>
           </div>

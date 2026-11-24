@@ -151,7 +151,7 @@ export default function MealTransitionModal({
     <div
       id="meal-transition-modal"
       data-transition-variant={variant}
-      className="absolute inset-0 z-50 flex items-center justify-center p-5 bg-[#E0E5EC]/95 backdrop-blur-sm animate-pop-up"
+      className="absolute inset-0 z-50 flex items-center justify-center p-5 bg-[var(--zw-bg)]/95 backdrop-blur-sm animate-pop-up"
     >
       <div className="w-full max-w-[320px] rounded-[32px] neo-raised p-6 flex flex-col items-center justify-center text-center">
         {/* Unique Hero Icon Stage per Transition */}

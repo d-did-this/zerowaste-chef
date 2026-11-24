@@ -11,6 +11,7 @@ import {
 import { addMissingToGrocery } from "@/utils/groceryStorage";
 import HalalIcon from "@/components/HalalIcon";
 import { IngredientAnalysis } from "@/utils/ingredientMatcher";
+import { launchToNavTab } from "@/utils/flyToNavAnimation";
 
 function detectStepAction(stepText: string): { label: string; icon: string } {
   const s = stepText.toLowerCase();
@@ -114,7 +115,16 @@ export default function RecipeDetailModal({
   onGroceryUpdated,
 }: RecipeDetailModalProps) {
   const [activeSubTab, setActiveSubTab] = useState<"ingredients" | "steps">("ingredients");
+  const [hasSwitchedSubTab, setHasSwitchedSubTab] = useState<boolean>(false);
   const [currentStepIdx, setCurrentStepIdx] = useState<number>(0);
+
+  const switchSubTab = (tab: "ingredients" | "steps") => {
+    if (tab === activeSubTab) return;
+    setHasSwitchedSubTab(true);
+    setActiveSubTab(tab);
+  };
+  const [stepDirection, setStepDirection] = useState<"next" | "prev">("next");
+  const [isClosing, setIsClosing] = useState<boolean>(false);
   const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
   const [addedToGrocery, setAddedToGrocery] = useState<boolean>(false);
 
@@ -125,6 +135,9 @@ export default function RecipeDetailModal({
   const [timerStepOwner, setTimerStepOwner] = useState<number | null>(null);
   const [timerFinished, setTimerFinished] = useState<boolean>(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+  const shopMissingBtnRef = useRef<HTMLButtonElement | null>(null);
+  const missingRowRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   const steps = useMemo(() => parseInstructionSteps(recipe.instructions), [recipe.instructions]);
   const currentStepText = steps[currentStepIdx] || "";
@@ -203,25 +216,78 @@ export default function RecipeDetailModal({
 
   const handleAddMissing = () => {
     if (recipe.analysis.missingItems.length === 0) return;
+
+    const bodyRect = bodyRef.current?.getBoundingClientRect();
+    const btnRect = shopMissingBtnRef.current?.getBoundingClientRect() ?? null;
+
+    const flyItems = recipe.analysis.missingItems.map((m, idx) => {
+      const rowRect = missingRowRefs.current[idx]?.getBoundingClientRect();
+      const rowVisible =
+        rowRect &&
+        bodyRect &&
+        rowRect.top >= bodyRect.top - 16 &&
+        rowRect.bottom <= bodyRect.bottom + 16;
+
+      return {
+        label: `+ ${m.cleanName}`,
+        sourceRect: rowVisible ? rowRect : btnRect,
+        tone: "orange" as const,
+      };
+    });
+
     const result = addMissingToGrocery(
       recipe.name,
       recipe.analysis.missingItems.map((m) => ({ cleanName: m.cleanName, raw: m.raw }))
     );
     setAddedToGrocery(true);
-    onGroceryUpdated(result.addedCount, recipe.name);
+
+    const badgeCount = Math.max(1, result.addedCount || recipe.analysis.missingItems.length);
+    launchToNavTab({
+      targetTab: "grocery",
+      items: flyItems,
+      badgeText: `+${badgeCount}`,
+      badgeTone: "orange",
+      staggerMs: 175,
+      durationMs: 1350,
+      onDockImpact: () => {
+        onGroceryUpdated(result.addedCount, recipe.name);
+      },
+    });
+  };
+
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
+
+  const requestClose = (afterClose?: () => void) => {
+    if (isClosing) return;
+    setIsClosing(true);
+    closeTimerRef.current = setTimeout(() => {
+      if (afterClose) {
+        afterClose();
+      } else {
+        onClose();
+      }
+    }, 310);
   };
 
   const goToStep = (idx: number) => {
     const clamped = Math.max(0, Math.min(steps.length - 1, idx));
+    if (clamped === currentStepIdx) return;
+    setStepDirection(clamped > currentStepIdx ? "next" : "prev");
     setCurrentStepIdx(clamped);
   };
 
   const handleNextStep = () => {
     setCompletedSteps((prev) => ({ ...prev, [currentStepIdx]: true }));
     if (currentStepIdx < steps.length - 1) {
+      setStepDirection("next");
       setCurrentStepIdx((prev) => prev + 1);
     } else {
-      onFinishCooking(recipe);
+      requestClose(() => onFinishCooking(recipe));
     }
   };
 
@@ -246,11 +312,15 @@ export default function RecipeDetailModal({
 
   return (
     <div
-      className="absolute inset-0 z-50 bg-black/40 backdrop-blur-xs flex flex-col justify-end animate-pop-up overflow-hidden"
-      onClick={onClose}
+      className={`absolute inset-0 z-[35] bg-black/40 backdrop-blur-xs flex flex-col justify-end pb-[74px] overflow-hidden ${
+        isClosing ? "animate-modal-backdrop-out" : "animate-modal-backdrop-in"
+      }`}
+      onClick={() => requestClose()}
     >
       <div
-        className="w-full h-[93%] bg-[#E0E5EC] rounded-t-[36px] neo-raised flex flex-col overflow-hidden shadow-2xl"
+        className={`w-full h-[94%] bg-[var(--zw-bg)] rounded-t-[36px] neo-raised flex flex-col overflow-hidden shadow-2xl ${
+          isClosing ? "animate-modal-sheet-slide-out" : "animate-modal-sheet-bounce-in"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Minimalist Top Bar */}
@@ -272,7 +342,7 @@ export default function RecipeDetailModal({
                 <span>{recipe.prepTime}</span>
               </span>
               <button
-                onClick={onClose}
+                onClick={() => requestClose()}
                 className="w-7 h-7 rounded-full neo-raised-sm flex items-center justify-center text-[#64748B] hover:text-[#0F172A] active:scale-90 transition-all shrink-0 cursor-pointer"
                 type="button"
                 aria-label="Close Recipe"
@@ -286,13 +356,19 @@ export default function RecipeDetailModal({
             {recipe.name}
           </h2>
 
-          {/* Minimal Segmented Tabs */}
-          <div className="mt-3 p-1 rounded-2xl neo-sunken grid grid-cols-2 gap-1">
+          {/* Minimal Segmented Tabs with Sliding Dark-Green Pill Thumb */}
+          <div className="mt-3 p-1 rounded-2xl neo-sunken relative grid grid-cols-2 gap-1">
+            <div
+              className="absolute top-1 bottom-1 left-1 w-[calc(50%-6px)] rounded-xl bg-[#004730] shadow-sm pointer-events-none transition-transform duration-300 ease-[cubic-bezier(0.34,1.25,0.64,1)]"
+              style={{
+                transform: activeSubTab === "steps" ? "translateX(calc(100% + 4px))" : "translateX(0)",
+              }}
+            />
             <button
-              onClick={() => setActiveSubTab("ingredients")}
-              className={`py-2 rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 cursor-pointer ${
+              onClick={() => switchSubTab("ingredients")}
+              className={`relative z-10 py-2 rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-colors duration-200 ${
                 activeSubTab === "ingredients"
-                  ? "bg-[#004730] text-white shadow-sm"
+                  ? "text-white"
                   : "text-[#64748B] hover:text-[#004730]"
               }`}
               type="button"
@@ -301,10 +377,10 @@ export default function RecipeDetailModal({
               <span>Ingredients ({recipe.ingredients.length})</span>
             </button>
             <button
-              onClick={() => setActiveSubTab("steps")}
-              className={`py-2 rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 cursor-pointer ${
+              onClick={() => switchSubTab("steps")}
+              className={`relative z-10 py-2 rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-colors duration-200 ${
                 activeSubTab === "steps"
-                  ? "bg-[#004730] text-white shadow-sm"
+                  ? "text-white"
                   : "text-[#64748B] hover:text-[#004730]"
               }`}
               type="button"
@@ -316,9 +392,15 @@ export default function RecipeDetailModal({
         </header>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto no-scrollbar px-5 py-2 flex flex-col gap-3.5">
+        <div
+          ref={bodyRef}
+          className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-5 py-2 flex flex-col gap-3.5"
+        >
           {activeSubTab === "ingredients" ? (
-            <>
+            <div
+              key="tab-ingredients"
+              className={`flex flex-col gap-3.5 ${hasSwitchedSubTab ? "animate-slide-in-left" : ""}`}
+            >
               {/* Clean Pantry Readiness & Appliances Summary */}
               <div className="rounded-2xl p-3.5 neo-sunken flex flex-col gap-2.5">
                 <div className="flex items-center justify-between text-[11px] font-bold">
@@ -370,7 +452,7 @@ export default function RecipeDetailModal({
                       In Your Pantry ({haveIngredients.length})
                     </span>
                   </div>
-                  <div className="rounded-2xl bg-[#E0E5EC] neo-raised divide-y divide-black/5 overflow-hidden">
+                  <div className="rounded-2xl bg-[var(--zw-bg)] neo-raised divide-y divide-black/5 overflow-hidden">
                     {haveIngredients.map((item, idx) => (
                       <div key={`have-${idx}`} className="px-3.5 py-2.5 flex items-center justify-between gap-2.5">
                         <div className="flex items-start gap-2.5 min-w-0">
@@ -405,9 +487,15 @@ export default function RecipeDetailModal({
                       Need to Buy ({missingIngredients.length})
                     </span>
                   </div>
-                  <div className="rounded-2xl bg-[#E0E5EC] neo-raised divide-y divide-black/5 overflow-hidden">
+                  <div className="rounded-2xl bg-[var(--zw-bg)] neo-raised divide-y divide-black/5 overflow-hidden">
                     {missingIngredients.map((item, idx) => (
-                      <div key={`miss-${idx}`} className="px-3.5 py-2.5 flex flex-col gap-1">
+                      <div
+                        key={`miss-${idx}`}
+                        ref={(el) => {
+                          missingRowRefs.current[idx] = el;
+                        }}
+                        className="px-3.5 py-2.5 flex flex-col gap-1"
+                      >
                         <div className="flex items-start gap-2.5 min-w-0">
                           <span className="material-symbols-outlined text-[16px] text-amber-600 shrink-0 mt-0.5">
                             radio_button_unchecked
@@ -478,10 +566,10 @@ export default function RecipeDetailModal({
                   </span>
                 )}
               </div>
-            </>
+            </div>
           ) : (
             /* FOCUSED ONE-STEP-AT-A-TIME COOKING READER */
-            <div className="flex-1 flex flex-col justify-between gap-3 py-1">
+            <div key="tab-steps" className="flex-1 flex flex-col justify-between gap-3 py-1 animate-slide-in-right">
               {/* Top Step Selector & Clear Step Counter */}
               <div className="flex flex-col gap-2.5 shrink-0">
                 <div className="flex items-center justify-between">
@@ -541,9 +629,14 @@ export default function RecipeDetailModal({
                 </div>
               </div>
 
-              {/* Focused Single-Step Card with Contextual Phase, Highlighted Quantities & Justified Text */}
+              {/* Focused Single-Step Card with Directional Next/Prev Slide */}
               <div className="flex-1 flex flex-col justify-center gap-3 my-auto">
-                <article className="rounded-3xl p-5 bg-[#E0E5EC] neo-raised relative overflow-hidden flex flex-col gap-3.5">
+                <article
+                  key={`step-card-${currentStepIdx}`}
+                  className={`rounded-3xl p-5 bg-[var(--zw-bg)] neo-raised relative overflow-hidden flex flex-col gap-3.5 ${
+                    stepDirection === "next" ? "animate-step-next" : "animate-step-prev"
+                  }`}
+                >
                   {/* Subtle Top Header: Contextual Action Badge + Translucent Watermark Numeral */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full neo-sunken">
@@ -678,10 +771,11 @@ export default function RecipeDetailModal({
         </div>
 
         {/* Sticky Minimal Footer */}
-        <footer className="px-5 py-3.5 border-t border-black/5 bg-[#E0E5EC] shrink-0">
+        <footer className="px-5 py-3.5 border-t border-black/5 bg-[var(--zw-bg)] shrink-0">
           {activeSubTab === "ingredients" ? (
             <div className="grid grid-cols-2 gap-2.5">
               <button
+                ref={shopMissingBtnRef}
                 onClick={handleAddMissing}
                 disabled={recipe.analysis.missingCoreCount === 0 || addedToGrocery}
                 className={`h-11 rounded-2xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
@@ -704,7 +798,7 @@ export default function RecipeDetailModal({
               </button>
 
               <button
-                onClick={() => setActiveSubTab("steps")}
+                onClick={() => switchSubTab("steps")}
                 className="h-11 rounded-2xl bg-[#006948] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer border-none"
                 type="button"
               >

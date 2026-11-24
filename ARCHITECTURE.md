@@ -28,6 +28,9 @@ ZeroWaste Chef is a pure soft neumorphic smart AI pantry, kitchen scanner, and m
 - `src/utils/ingredientMatcher.ts`: Bilingual English/Malay synonym cluster matcher, staple detector, and local substitution recommender.
 - `src/utils/groceryStorage.ts`: `localStorage` persistence (`zerowaste_chef_grocery_v1`) bridging missing recipe ingredients with Digital Pantry restock.
 - `src/utils/pantryStorage.ts`: Local storage persistence (`zerowaste_chef_pantry_items_v1`) and state management.
+- `src/utils/themeStorage.ts` & `src/components/ThemeSettingsModal.tsx`: Live theme selector (`pandan-hero`, `warm-clay`, `fresh-accents`, `classic-clay`) persisted in `localStorage` (`zerowaste_chef_theme_v1`) via `[data-zw-theme]` CSS tokens in `globals.css`.
+- `src/utils/foodSemantics.ts`: Food-category, cuisine, and grocery aisle badge helpers.
+- `src/utils/flyToNavAnimation.ts`: Bezier fly-to-nav animations (`launchToNavTab`) and `zw-nav-dock` pulse events linking Scanner, Recipe Detail, and Smart Grocery batch restocks to the bottom navigation tabs.
 
 ## Meal Generation Interactive Engine (v3.0 Official — Module 2)
 - **Routes & Views**: Integrated directly into `OfficialV3Client.tsx` under `activeTab === "cook-now"`.

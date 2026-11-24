@@ -4,6 +4,36 @@
 :root {
   --background: #E0E5EC;
   --foreground: #3D4852;
+  --zw-bg: #E0E5EC;
+  --zw-bg-bar: rgba(224, 229, 236, 0.95);
+  --zw-sunken: #DCE2EA;
+  --zw-fg: #3D4852;
+  --zw-shadow-dark: rgba(163, 177, 198, 0.6);
+  --zw-shadow-light: rgba(255, 255, 255, 0.6);
+}
+
+[data-zw-theme="pandan-hero"],
+[data-zw-theme="warm-clay"] {
+  --zw-bg: #ECEAE2;
+  --zw-bg-bar: rgba(236, 234, 226, 0.95);
+  --zw-sunken: #E5E2D8;
+  --zw-fg: #1F2924;
+  --zw-shadow-dark: rgba(168, 161, 145, 0.56);
+  --zw-shadow-light: rgba(255, 253, 248, 0.9);
+  --background: var(--zw-bg);
+  --foreground: var(--zw-fg);
+}
+
+[data-zw-theme="classic-clay"],
+[data-zw-theme="fresh-accents"] {
+  --zw-bg: #E0E5EC;
+  --zw-bg-bar: rgba(224, 229, 236, 0.95);
+  --zw-sunken: #DCE2EA;
+  --zw-fg: #3D4852;
+  --zw-shadow-dark: rgba(163, 177, 198, 0.6);
+  --zw-shadow-light: rgba(255, 255, 255, 0.72);
+  --background: var(--zw-bg);
+  --foreground: var(--zw-fg);
 }
 
 @theme inline {
@@ -149,6 +179,122 @@ body {
   box-shadow: 10px 10px 18px rgba(163, 177, 198, 0.7), -10px -10px 18px rgba(255, 255, 255, 0.75);
 }
 
+/* Theme-Scoped Neumorphic Overrides (Preserves original GitHub styles outside [data-zw-theme]) */
+[data-zw-theme] .neo-raised {
+  background: var(--zw-bg);
+  box-shadow: 8px 8px 16px var(--zw-shadow-dark), -8px -8px 16px var(--zw-shadow-light);
+}
+[data-zw-theme] .neo-raised-sm {
+  background: var(--zw-bg);
+  box-shadow: 5px 5px 10px var(--zw-shadow-dark), -5px -5px 10px var(--zw-shadow-light);
+}
+[data-zw-theme] .neo-raised-button {
+  background: var(--zw-bg);
+  box-shadow: 5px 5px 10px var(--zw-shadow-dark), -5px -5px 10px var(--zw-shadow-light);
+}
+[data-zw-theme] .neo-raised-button:active {
+  box-shadow: inset 4px 4px 8px var(--zw-shadow-dark), inset -4px -4px 8px var(--zw-shadow-light);
+}
+[data-zw-theme] .neo-recessed,
+[data-zw-theme] .neo-sunken {
+  background: var(--zw-sunken);
+  box-shadow: inset 5px 5px 10px var(--zw-shadow-dark), inset -5px -5px 10px var(--zw-shadow-light);
+}
+[data-zw-theme] .neo-recessed-pill {
+  background: var(--zw-sunken);
+  box-shadow: inset 4px 4px 7px var(--zw-shadow-dark), inset -3px -3px 6px var(--zw-shadow-light);
+}
+[data-zw-theme] .neo-recessed-active,
+[data-zw-theme] .neo-crater,
+[data-zw-theme] .neo-crater-darkgreen {
+  background: var(--zw-sunken) !important;
+  box-shadow: inset 8px 8px 16px var(--zw-shadow-dark), inset -8px -8px 16px var(--zw-shadow-light) !important;
+}
+[data-zw-theme] .neo-bulge,
+[data-zw-theme] .neo-bulge-primary {
+  background: var(--zw-bg);
+  box-shadow: 12px 12px 20px var(--zw-shadow-dark), -12px -12px 20px var(--zw-shadow-light);
+}
+[data-zw-theme] .neo-bar-top {
+  background: var(--zw-bg-bar);
+  box-shadow: 0 6px 16px var(--zw-shadow-dark);
+}
+[data-zw-theme] .skeuo-bevel-well {
+  background: var(--zw-sunken);
+  box-shadow: inset 6px 6px 12px var(--zw-shadow-dark), inset -6px -6px 12px var(--zw-shadow-light);
+}
+[data-zw-theme] .skeuo-shutter-ring {
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, var(--zw-bg) 55%, var(--zw-sunken) 100%);
+  box-shadow: 8px 8px 16px var(--zw-shadow-dark), -8px -8px 16px var(--zw-shadow-light);
+}
+[data-zw-theme] .neo-pantry-card {
+  background: var(--zw-bg);
+  box-shadow: 7px 7px 14px var(--zw-shadow-dark), -7px -7px 14px var(--zw-shadow-light);
+}
+[data-zw-theme] .neo-pantry-card:hover {
+  box-shadow: 10px 10px 18px var(--zw-shadow-dark), -10px -10px 18px var(--zw-shadow-light);
+}
+
+/* Pandan Hero Anchor & Amber Accent Surface Tokens (Declared after .neo-raised to take priority) */
+.neo-pandan-hero,
+[data-zw-theme] .neo-pandan-hero {
+  background: linear-gradient(145deg, #004730 0%, #006948 100%);
+  color: #ffffff;
+  box-shadow:
+    7px 7px 16px rgba(0, 52, 35, 0.28),
+    -6px -6px 14px var(--zw-shadow-light),
+    inset 1px 1px 1px rgba(255, 255, 255, 0.16);
+  border: none !important;
+}
+.neo-pandan-sunken {
+  background: rgba(0, 22, 15, 0.32);
+  box-shadow:
+    inset 3px 3px 7px rgba(0, 14, 9, 0.52),
+    inset -2px -2px 5px rgba(110, 231, 183, 0.12);
+  border: none !important;
+}
+.neo-amber-cta {
+  background: linear-gradient(145deg, #FCD34D 0%, #F59E0B 100%);
+  color: #142419;
+  box-shadow:
+    3px 4px 10px rgba(0, 22, 15, 0.38),
+    inset 1px 1px 1px rgba(255, 255, 255, 0.45);
+  border: none !important;
+  transition: all 0.2s ease-out;
+}
+.neo-amber-cta:hover {
+  filter: brightness(1.03);
+}
+.neo-amber-cta:active {
+  box-shadow: inset 3px 3px 6px rgba(146, 64, 14, 0.45);
+  transform: scale(0.97);
+}
+.neo-emerald-glass-btn {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  box-shadow:
+    3px 4px 10px rgba(0, 22, 15, 0.32),
+    inset 1px 1px 1px rgba(255, 255, 255, 0.22);
+  border: none !important;
+  transition: all 0.2s ease-out;
+}
+.neo-emerald-glass-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.neo-emerald-glass-btn:active {
+  background: rgba(0, 20, 13, 0.35);
+  box-shadow: inset 3px 3px 6px rgba(0, 14, 9, 0.45);
+  transform: scale(0.97);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Grid View Layout Adaptations for Pantry Cards */
 .pantry-grid-mode {
   display: grid !important;
@@ -246,4 +392,301 @@ body {
 
 .animate-spin-reverse {
   animation: spinSlow 3.2s linear infinite reverse;
+}
+
+@keyframes strikeSweep {
+  0% {
+    transform: translateY(-50%) scaleX(0);
+  }
+  100% {
+    transform: translateY(-50%) scaleX(1);
+  }
+}
+
+.animate-strike-sweep {
+  transform-origin: left center;
+  animation: strikeSweep 620ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes checkPop {
+  0% {
+    transform: scale(0.4);
+  }
+  55% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-check-pop {
+  animation: checkPop 380ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes navDockBounce {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.26);
+  }
+  68% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-nav-dock-bounce {
+  animation: navDockBounce 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes navRingPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+}
+
+.animate-nav-ring-pulse {
+  animation: navRingPulse 760ms ease-out forwards;
+}
+
+@keyframes navBadgeFloat {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.6);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -10px) scale(1.08);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -18px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -26px) scale(0.9);
+  }
+}
+
+.animate-nav-badge-float {
+  animation: navBadgeFloat 1150ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes recipeUnfoldIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.78);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(3px) scale(1.025);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-recipe-unfold {
+  animation: recipeUnfoldIn 640ms cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+
+@keyframes toastBottomEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(44px) scale(0.84);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastBottomExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(34px) scale(0.9);
+  }
+}
+
+@keyframes tickDrawIn {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-toast-in {
+  animation: toastBottomEnter 420ms cubic-bezier(0.34, 1.48, 0.64, 1) forwards;
+}
+
+.animate-toast-out {
+  animation: toastBottomExit 300ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.animate-tick-draw {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: tickDrawIn 420ms cubic-bezier(0.22, 1, 0.36, 1) 140ms forwards;
+}
+
+@keyframes modalBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalBackdropFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalSheetBounceUp {
+  0% {
+    opacity: 0.7;
+    transform: translateY(100%);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-10px);
+  }
+  84% {
+    transform: translateY(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalSheetSlideDown {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translateY(105%);
+  }
+}
+
+.animate-modal-backdrop-in {
+  animation: modalBackdropFadeIn 260ms ease-out forwards;
+}
+
+.animate-modal-backdrop-out {
+  animation: modalBackdropFadeOut 320ms ease-in forwards;
+}
+
+.animate-modal-sheet-bounce-in {
+  animation: modalSheetBounceUp 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-modal-sheet-slide-out {
+  animation: modalSheetSlideDown 320ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes slideInRightSmooth {
+  0% {
+    opacity: 0;
+    transform: translateX(46px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeftSmooth {
+  0% {
+    opacity: 0;
+    transform: translateX(-46px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRightSmooth 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeftSmooth 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes stepSlideNext {
+  0% {
+    opacity: 0;
+    transform: translateX(52px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes stepSlidePrev {
+  0% {
+    opacity: 0;
+    transform: translateX(-52px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.animate-step-next {
+  animation: stepSlideNext 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-step-prev {
+  animation: stepSlidePrev 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes chipSelectPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-chip-pop {
+  animation: chipSelectPop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   addCustomGroceryItem,
   clearAllGroceryItems,
@@ -10,10 +10,29 @@ import {
   GROCERY_UNITS,
   GroceryItem,
   removeGroceryItem,
-  restockGroceryItemToPantry,
+  restockCheckedGroceryItemsToPantry,
   toggleGroceryItem,
   updateGroceryItem,
 } from "@/utils/groceryStorage";
+import { launchToNavTab } from "@/utils/flyToNavAnimation";
+import { inferGroceryCategoryVisual } from "@/utils/foodSemantics";
+import { ThemeId } from "@/utils/themeStorage";
+
+function splitNeedSquare(item: GroceryItem): { num: string; unit: string } {
+  const raw = (item.recipeAmountLabel || "").replace(/\([^)]*\)/g, "").trim();
+  if (!raw) {
+    return { num: formatGroceryQty(item.quantity), unit: item.unit || "pcs" };
+  }
+  const m = raw.match(/^([\d./~-]+)\s+(.+)$/);
+  if (m) {
+    return { num: m[1], unit: m[2].slice(0, 7) };
+  }
+  const parts = raw.split(/\s+/);
+  if (parts.length >= 2) {
+    return { num: parts[0], unit: parts.slice(1).join(" ").slice(0, 7) };
+  }
+  return { num: formatGroceryQty(item.quantity), unit: item.unit || "pcs" };
+}
 
 interface GroceryRestockViewProps {
   groceryItems: GroceryItem[];
@@ -22,6 +41,7 @@ interface GroceryRestockViewProps {
   onGoToPantry: () => void;
   onStartMealLookup: () => void;
   showToast: (msg: string) => void;
+  themeId?: ThemeId;
 }
 
 export default function GroceryRestockView({
@@ -31,8 +51,17 @@ export default function GroceryRestockView({
   onGoToPantry,
   onStartMealLookup,
   showToast,
+  themeId = "pandan-hero",
 }: GroceryRestockViewProps) {
+  const isPandanHero = themeId === "pandan-hero";
+  const showFoodAccents = themeId !== "classic-clay";
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const prevRectsRef = useRef<Record<string, DOMRect>>({});
+  const timeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const flipCleanupRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [crossingIds, setCrossingIds] = useState<Record<string, boolean>>({});
+  const [isDockingToPantry, setIsDockingToPantry] = useState<boolean>(false);
   const [headerMode, setHeaderMode] = useState<"none" | "edit" | "delete">("none");
 
   // Custom Add Item form state
@@ -49,13 +78,122 @@ export default function GroceryRestockView({
   const [editUnit, setEditUnit] = useState<string>("pcs");
   const [editNote, setEditNote] = useState<string>("");
 
-  const orderedItems = [
-    ...groceryItems.filter((i) => !i.checked),
-    ...groceryItems.filter((i) => i.checked),
-  ];
+  const orderedItems = useMemo(
+    () => [
+      ...groceryItems.filter((i) => !i.checked),
+      ...groceryItems.filter((i) => i.checked),
+    ],
+    [groceryItems]
+  );
 
   const pendingCount = groceryItems.filter((i) => !i.checked).length;
   const checkedCount = groceryItems.filter((i) => i.checked).length;
+
+  useEffect(() => {
+    const timers = timeoutsRef.current;
+    return () => {
+      Object.values(timers).forEach((t) => clearTimeout(t));
+      if (flipCleanupRef.current) clearTimeout(flipCleanupRef.current);
+    };
+  }, []);
+
+  // FLIP (First-Last-Invert-Play) animation so items glide visibly & slowly to/from bottom on reorder
+  useLayoutEffect(() => {
+    const prevRects = prevRectsRef.current;
+    const keys = Object.keys(prevRects);
+    if (keys.length === 0) return;
+
+    const movingEls: HTMLDivElement[] = [];
+
+    for (const item of orderedItems) {
+      const el = cardRefs.current[item.id];
+      const prev = prevRects[item.id];
+      if (!el || !prev) continue;
+
+      const next = el.getBoundingClientRect();
+      const deltaY = prev.top - next.top;
+      if (Math.abs(deltaY) < 1) continue;
+
+      el.style.transition = "none";
+      el.style.transform = `translateY(${deltaY}px)`;
+      // Keep downward-sliding crossed items visually above upward-shifting items
+      if (deltaY < 0) {
+        el.style.zIndex = "20";
+        el.style.position = "relative";
+        el.style.boxShadow = "0 12px 26px -6px rgba(0, 71, 48, 0.18)";
+      }
+      movingEls.push(el);
+    }
+
+    prevRectsRef.current = {};
+    if (movingEls.length === 0) return;
+
+    if (flipCleanupRef.current) {
+      clearTimeout(flipCleanupRef.current);
+      flipCleanupRef.current = null;
+    }
+
+    // Force layout flush so the inverted transform applies before transition starts
+    void movingEls[0].getBoundingClientRect();
+
+    requestAnimationFrame(() => {
+      for (const el of movingEls) {
+        el.style.transition =
+          "transform 1050ms cubic-bezier(0.42, 0, 0.2, 1), opacity 550ms ease 250ms, box-shadow 500ms ease";
+        el.style.transform = "translateY(0)";
+      }
+      flipCleanupRef.current = setTimeout(() => {
+        for (const el of movingEls) {
+          el.style.transition = "";
+          el.style.transform = "";
+          el.style.zIndex = "";
+          el.style.position = "";
+          el.style.boxShadow = "";
+        }
+        flipCleanupRef.current = null;
+      }, 1100);
+    });
+  }, [orderedItems]);
+
+  const snapshotCardPositions = () => {
+    const rects: Record<string, DOMRect> = {};
+    for (const [id, el] of Object.entries(cardRefs.current)) {
+      if (el) rects[id] = el.getBoundingClientRect();
+    }
+    prevRectsRef.current = rects;
+  };
+
+  const handleToggleItemAnimated = (item: GroceryItem) => {
+    if (headerMode === "edit") {
+      handleStartEdit(item);
+      return;
+    }
+
+    // If unchecking a crossed item, glide it smoothly back up
+    if (item.checked) {
+      snapshotCardPositions();
+      setGroceryItems(toggleGroceryItem(item.id));
+      return;
+    }
+
+    // Prevent double-trigger while already playing cross-out sweep
+    if (crossingIds[item.id]) return;
+
+    // Stage 1 (0-720ms): Stay bright in place while checkbox pops & emerald cross line sweeps across title
+    setCrossingIds((prev) => ({ ...prev, [item.id]: true }));
+
+    // Stage 2 (720ms+): Snapshot positions and slowly glide item down to bottom via FLIP
+    timeoutsRef.current[item.id] = setTimeout(() => {
+      snapshotCardPositions();
+      setGroceryItems(toggleGroceryItem(item.id));
+      setCrossingIds((prev) => {
+        const next = { ...prev };
+        delete next[item.id];
+        return next;
+      });
+      delete timeoutsRef.current[item.id];
+    }, 720);
+  };
 
   const handleAdjustQuantity = (item: GroceryItem, deltaSign: 1 | -1) => {
     const step = getGroceryStepSize(item.unit, item.quantity);
@@ -112,6 +250,42 @@ export default function GroceryRestockView({
     showToast("Added to your grocery list!");
   };
 
+  const handleBatchRestockChecked = () => {
+    if (isDockingToPantry) return;
+    const checkedItems = orderedItems.filter((i) => i.checked);
+    if (checkedItems.length === 0) return;
+
+    setIsDockingToPantry(true);
+
+    const flySpecs = checkedItems.map((item) => ({
+      label: item.name,
+      subtitle: `${formatGroceryQty(item.quantity)} ${item.unit} • To Pantry`,
+      sourceRect: cardRefs.current[item.id]?.getBoundingClientRect() ?? null,
+      tone: "emerald" as const,
+    }));
+
+    launchToNavTab({
+      targetTab: "pantry",
+      items: flySpecs,
+      badgeText: `+${checkedItems.length}`,
+      badgeTone: "emerald",
+      staggerMs: 185,
+      durationMs: 1380,
+      onDockImpact: () => {
+        snapshotCardPositions();
+        const { restockedCount, remainingItems } = restockCheckedGroceryItemsToPantry();
+        if (restockedCount > 0) {
+          setGroceryItems(remainingItems);
+          onPantryRefresh();
+          showToast(`Added ${restockedCount} item${restockedCount > 1 ? "s" : ""} to Digital Pantry!`);
+        }
+      },
+      onAllComplete: () => {
+        setIsDockingToPantry(false);
+      },
+    });
+  };
+
   const toggleHeaderMode = (target: "edit" | "delete") => {
     setIsAddingCustom(false);
     setEditingId(null);
@@ -148,7 +322,7 @@ export default function GroceryRestockView({
               </span>
             </div>
             <span className="text-[9.5px] text-muted font-semibold truncate">
-              Recipe Quantities &bull; Custom Restock
+              Cross off items, then add to Pantry
             </span>
           </div>
         </div>
@@ -195,12 +369,43 @@ export default function GroceryRestockView({
         ref={scrollContainerRef}
         className="flex-1 p-3.5 flex flex-col gap-3 overflow-y-auto no-scrollbar"
       >
-        {/* Clean Quick Navigation Card: Just Recipes and Pantry */}
-        <section className="w-full neo-raised rounded-2xl p-2.5 flex flex-col gap-2 shrink-0">
+        {/* Top Quick Navigation Card: Pandan Hero Anchor or Raised Clay */}
+        <section
+          className={`w-full rounded-2xl neo-raised flex flex-col gap-2.5 shrink-0 ${
+            isPandanHero ? "neo-pandan-hero p-3" : "p-2.5 gap-2"
+          }`}
+        >
+          {isPandanHero && (
+            <div className="w-full neo-pandan-sunken rounded-xl px-3 py-2 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-[10px] font-extrabold">
+                <span className="text-emerald-100/90 uppercase tracking-wider">Restock Progress</span>
+                <span className="text-amber-200">
+                  {pendingCount} To Buy &bull; {checkedCount} Done
+                </span>
+              </div>
+              <div className="w-full h-1.5 rounded-full bg-black/25 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-amber-400 transition-all duration-300"
+                  style={{
+                    width: `${
+                      groceryItems.length > 0
+                        ? Math.max(4, Math.round((checkedCount / groceryItems.length) * 100))
+                        : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-2.5">
             <button
               onClick={onStartMealLookup}
-              className="py-2 px-3 rounded-xl neo-button text-[#004730] text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+              className={`py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                isPandanHero
+                  ? "neo-amber-cta text-[#142419] font-black"
+                  : "neo-button text-[#004730] font-extrabold active:scale-95"
+              }`}
               title="Browse recipes for ingredients"
               type="button"
             >
@@ -210,7 +415,11 @@ export default function GroceryRestockView({
 
             <button
               onClick={onGoToPantry}
-              className="py-2 px-3 rounded-xl neo-button text-[#004730] text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+              className={`py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                isPandanHero
+                  ? "neo-emerald-glass-btn text-white font-black"
+                  : "neo-button text-[#004730] font-extrabold active:scale-95"
+              }`}
               title="Go to Digital Pantry"
               type="button"
             >
@@ -221,13 +430,19 @@ export default function GroceryRestockView({
 
           {/* Contextual Edit Mode Bar */}
           {headerMode === "edit" && groceryItems.length > 0 && (
-            <div className="pt-2 border-t border-black/5 flex items-center justify-between gap-2 animate-pop-up px-1">
-              <span className="text-[10px] font-bold text-[#004730]">
+            <div
+              className={`pt-2 border-t flex items-center justify-between gap-2 animate-pop-up px-1 ${
+                isPandanHero ? "border-white/15" : "border-black/5"
+              }`}
+            >
+              <span className={`text-[10px] font-bold ${isPandanHero ? "text-amber-200" : "text-[#004730]"}`}>
                 Tap Edit on any item to customize name or amount
               </span>
               <button
                 onClick={() => toggleHeaderMode("edit")}
-                className="text-[10px] font-extrabold text-[#004730] underline cursor-pointer shrink-0"
+                className={`text-[10px] font-extrabold underline cursor-pointer shrink-0 ${
+                  isPandanHero ? "text-white" : "text-[#004730]"
+                }`}
                 type="button"
               >
                 Done
@@ -237,8 +452,12 @@ export default function GroceryRestockView({
 
           {/* Contextual Delete Mode Bar */}
           {headerMode === "delete" && groceryItems.length > 0 && (
-            <div className="pt-2 border-t border-black/5 flex items-center justify-between gap-2 animate-pop-up px-1">
-              <span className="text-[10px] font-bold text-rose-700">
+            <div
+              className={`pt-2 border-t flex items-center justify-between gap-2 animate-pop-up px-1 ${
+                isPandanHero ? "border-white/15" : "border-black/5"
+              }`}
+            >
+              <span className={`text-[10px] font-bold ${isPandanHero ? "text-rose-200" : "text-rose-700"}`}>
                 Tap &times; on items to remove
               </span>
               <div className="flex items-center gap-1.5">
@@ -248,7 +467,11 @@ export default function GroceryRestockView({
                       setGroceryItems(clearCheckedGroceryItems());
                       showToast("Removed checked items.");
                     }}
-                    className="px-2.5 py-1 rounded-lg neo-raised-sm text-[9.5px] font-extrabold text-foreground cursor-pointer"
+                    className={`px-2.5 py-1 rounded-lg text-[9.5px] font-extrabold cursor-pointer ${
+                      isPandanHero
+                        ? "neo-emerald-glass-btn text-white"
+                        : "neo-raised-sm text-foreground"
+                    }`}
                     type="button"
                   >
                     Clear Done ({checkedCount})
@@ -269,6 +492,36 @@ export default function GroceryRestockView({
             </div>
           )}
         </section>
+
+        {/* Option 4 Batch Top Action Card: Appears Only When Items Are Crossed Off */}
+        {checkedCount > 0 && headerMode === "none" && (
+          <button
+            onClick={handleBatchRestockChecked}
+            disabled={isDockingToPantry}
+            className="w-full rounded-2xl px-3.5 py-2.5 bg-[#004730] text-white flex items-center justify-between gap-2.5 shadow-md active:scale-[0.99] transition-all cursor-pointer animate-pop-up shrink-0 disabled:opacity-90"
+            aria-label="Add Crossed to Pantry"
+            type="button"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-xs font-black shrink-0">
+                {checkedCount}
+              </span>
+              <div className="text-left min-w-0">
+                <div className="text-xs font-extrabold leading-tight">
+                  {isDockingToPantry ? "Moving to Pantry..." : "Add Crossed to Pantry"}
+                </div>
+                <div className="text-[9.5px] text-white/80 leading-tight">
+                  {isDockingToPantry
+                    ? "Docking ticked items into stock"
+                    : `Moves ticked item${checkedCount > 1 ? "s" : ""} to stock`}
+                </div>
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-lg shrink-0">
+              {isDockingToPantry ? "south" : "arrow_forward"}
+            </span>
+          </button>
+        )}
 
         {/* Custom Item Creation Card */}
         {isAddingCustom && (
@@ -365,7 +618,7 @@ export default function GroceryRestockView({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-2.5 pb-16">
+          <div className="flex flex-col gap-2.5 pb-20">
             {orderedItems.map((item) => {
               const isEditing = editingId === item.id;
 
@@ -450,127 +703,163 @@ export default function GroceryRestockView({
                 );
               }
 
+              const needDisplay = splitNeedSquare(item);
+              const isCrossing = Boolean(crossingIds[item.id]);
+              const showCrossedVisual = item.checked || isCrossing;
+              const aisle = inferGroceryCategoryVisual(item.name);
               return (
                 <div
                   key={item.id}
-                  className={`rounded-2xl p-3 flex flex-col gap-2 transition-all ${
-                    item.checked ? "neo-sunken opacity-75" : "neo-raised"
+                  ref={(el) => {
+                    cardRefs.current[item.id] = el;
+                  }}
+                  className={`rounded-2xl bg-[var(--zw-bg)] px-3.5 py-3 flex items-center justify-between gap-3 transition-[box-shadow,transform,opacity] duration-500 ${
+                    item.checked && isDockingToPantry
+                      ? "neo-sunken scale-95 opacity-35"
+                      : item.checked
+                      ? "neo-sunken"
+                      : isCrossing
+                      ? "neo-raised ring-2 ring-[#006948]/30"
+                      : "neo-raised"
                   }`}
                 >
-                  {/* Top Row: Clean Checkbox, Name + Source, and Action Pill */}
-                  <div className="flex items-start justify-between gap-2">
+                  {/* Left: Circular Check + Title/Recipe + Clean Pill Stepper */}
+                  <div
+                    className={`flex items-start gap-2.5 flex-1 min-w-0 transition-opacity duration-500 ${
+                      item.checked ? "opacity-65" : "opacity-100"
+                    }`}
+                  >
                     <button
-                      onClick={() => {
-                        if (headerMode === "edit") {
-                          handleStartEdit(item);
-                        } else {
-                          setGroceryItems(toggleGroceryItem(item.id));
-                        }
-                      }}
-                      className="flex items-start gap-2.5 flex-1 min-w-0 text-left cursor-pointer"
+                      onClick={() => handleToggleItemAnimated(item)}
+                      className={`w-[22px] h-[22px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                        showCrossedVisual
+                          ? "bg-[#006948] text-white shadow-xs"
+                          : "neo-sunken text-transparent hover:ring-1 hover:ring-[#004730]/30"
+                      }`}
+                      aria-label={item.checked ? `Uncheck ${item.name}` : `Check ${item.name}`}
                       type="button"
                     >
                       <span
-                        className={`material-symbols-outlined text-lg shrink-0 mt-0.5 ${
-                          item.checked ? "text-[#006948]" : "text-slate-400"
+                        className={`material-symbols-outlined text-[13px] font-black ${
+                          isCrossing ? "animate-check-pop" : ""
                         }`}
                       >
-                        {item.checked ? "check_box" : "check_box_outline_blank"}
+                        check
                       </span>
-                      <div className="flex flex-col min-w-0">
-                        <span
-                          className={`text-[12.5px] font-extrabold leading-snug ${
-                            item.checked ? "line-through text-muted" : "text-foreground"
-                          }`}
-                        >
-                          {item.name}
-                        </span>
-                        <span className="text-[10px] text-muted truncate mt-0.5">
-                          {item.recipeName}
-                        </span>
-                      </div>
                     </button>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {headerMode === "delete" ? (
+                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                      <button
+                        onClick={() => handleToggleItemAnimated(item)}
+                        className="text-left cursor-pointer min-w-0"
+                        type="button"
+                      >
+                        <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                          {showFoodAccents && (
+                            <span
+                              className="px-1.5 py-[1px] rounded text-[8.5px] font-extrabold uppercase tracking-wide shrink-0"
+                              style={{ backgroundColor: aisle.bg, color: aisle.text }}
+                            >
+                              {aisle.label}
+                            </span>
+                          )}
+                          <span
+                            className={`relative inline-block max-w-full text-[13.5px] font-extrabold leading-tight truncate transition-colors duration-300 ${
+                              item.checked ? "text-muted" : "text-foreground"
+                            }`}
+                          >
+                            {item.name}
+                            {showCrossedVisual && (
+                              <span
+                                className={`absolute left-0 top-1/2 w-full rounded-full pointer-events-none origin-left ${
+                                  isCrossing
+                                    ? "h-[2.5px] bg-[#006948] animate-strike-sweep"
+                                    : "h-[2px] -translate-y-1/2 bg-[#475569]"
+                                }`}
+                              />
+                            )}
+                          </span>
+                        </div>
+                        <div className="text-[10px] font-semibold text-[#64748B] truncate mt-0.5">
+                          {item.recipeName}
+                        </div>
+                      </button>
+
+                      {/* Clean White-Pill Stepper */}
+                      <div className="inline-flex items-center w-fit rounded-xl bg-white/60 p-0.5 gap-0.5 shadow-inner">
                         <button
-                          onClick={() => {
-                            setGroceryItems(removeGroceryItem(item.id));
-                            showToast(`Removed '${item.name}'.`);
-                          }}
-                          className="w-7 h-7 rounded-lg bg-rose-600 text-white flex items-center justify-center active:scale-95 cursor-pointer shadow-xs"
-                          title={`Remove ${item.name}`}
-                          aria-label={`Remove ${item.name}`}
+                          onClick={() => handleAdjustQuantity(item, -1)}
+                          className="w-6 h-6 rounded-lg bg-white text-[#004730] flex items-center justify-center font-extrabold shadow-xs active:scale-90 cursor-pointer"
+                          aria-label={`Decrease quantity for ${item.name}`}
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-[15px]">close</span>
+                          <span className="material-symbols-outlined text-[14px]">remove</span>
                         </button>
-                      ) : headerMode === "edit" ? (
+
                         <button
                           onClick={() => handleStartEdit(item)}
-                          className="px-2.5 py-1 rounded-xl neo-button text-[#004730] text-[9.5px] font-extrabold inline-flex items-center gap-1 active:scale-95 cursor-pointer"
-                          title={`Edit ${item.name}`}
-                          aria-label={`Edit ${item.name}`}
+                          className="px-2 min-w-[54px] text-center text-[11px] font-extrabold text-[#004730] cursor-pointer hover:underline"
+                          title="Tap to edit item & amount"
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-[12px]">edit</span>
-                          <span>Edit</span>
+                          {formatGroceryQty(item.quantity)} {item.unit}
                         </button>
-                      ) : (
+
                         <button
-                          onClick={() => {
-                            const updated = restockGroceryItemToPantry(item);
-                            setGroceryItems(updated);
-                            onPantryRefresh();
-                            showToast(
-                              `Restocked ${formatGroceryQty(item.quantity)} ${item.unit} ${item.name} to Pantry!`
-                            );
-                          }}
-                          className="px-2.5 py-1 rounded-xl bg-[#004730] text-white text-[9.5px] font-extrabold active:scale-95 transition-all cursor-pointer"
-                          title="Move to Digital Pantry"
+                          onClick={() => handleAdjustQuantity(item, 1)}
+                          className="w-6 h-6 rounded-lg bg-white text-[#004730] flex items-center justify-center font-extrabold shadow-xs active:scale-90 cursor-pointer"
+                          aria-label={`Increase quantity for ${item.name}`}
                           type="button"
                         >
-                          + Pantry
+                          <span className="material-symbols-outlined text-[14px]">add</span>
                         </button>
-                      )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Bottom Row: Interactive Quantity -/+ Stepper & Specific Recipe Amount */}
-                  <div className="flex items-center justify-between gap-2 pl-7">
-                    <div className="inline-flex items-center gap-1 p-0.5 rounded-xl neo-sunken">
+                  {/* Right: Orange Need Square (or Edit/Delete button in header modes) */}
+                  <div className="shrink-0 flex items-center">
+                    {headerMode === "delete" ? (
                       <button
-                        onClick={() => handleAdjustQuantity(item, -1)}
-                        className="w-6 h-6 rounded-lg neo-raised-sm flex items-center justify-center text-[#004730] font-extrabold active:scale-90 cursor-pointer"
-                        aria-label={`Decrease quantity for ${item.name}`}
+                        onClick={() => {
+                          setGroceryItems(removeGroceryItem(item.id));
+                          showToast(`Removed '${item.name}'.`);
+                        }}
+                        className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center active:scale-95 cursor-pointer shadow-sm"
+                        title={`Remove ${item.name}`}
+                        aria-label={`Remove ${item.name}`}
                         type="button"
                       >
-                        <span className="material-symbols-outlined text-[14px]">remove</span>
+                        <span className="material-symbols-outlined text-[17px]">close</span>
                       </button>
-
+                    ) : headerMode === "edit" ? (
                       <button
                         onClick={() => handleStartEdit(item)}
-                        className="px-2 min-w-[56px] text-center text-[10.5px] font-extrabold text-[#004730] cursor-pointer"
-                        title="Tap to edit item & amount"
+                        className="px-2.5 py-1.5 rounded-xl neo-button text-[#004730] text-[10px] font-extrabold inline-flex items-center gap-1 active:scale-95 cursor-pointer"
+                        title={`Edit ${item.name}`}
+                        aria-label={`Edit ${item.name}`}
                         type="button"
                       >
-                        {formatGroceryQty(item.quantity)} {item.unit}
+                        <span className="material-symbols-outlined text-[13px]">edit</span>
+                        <span>Edit</span>
                       </button>
-
-                      <button
-                        onClick={() => handleAdjustQuantity(item, 1)}
-                        className="w-6 h-6 rounded-lg neo-raised-sm flex items-center justify-center text-[#004730] font-extrabold active:scale-90 cursor-pointer"
-                        aria-label={`Increase quantity for ${item.name}`}
-                        type="button"
+                    ) : (
+                      <div
+                        className={`w-[48px] h-[48px] rounded-[13px] text-white flex flex-col items-center justify-center shadow-sm transition-colors duration-500 ${
+                          item.checked ? "bg-slate-400" : "bg-[#EA580C]"
+                        }`}
+                        title={`Recipe requires ${item.recipeAmountLabel || `${item.quantity} ${item.unit}`}`}
                       >
-                        <span className="material-symbols-outlined text-[14px]">add</span>
-                      </button>
-                    </div>
-
-                    {item.recipeAmountLabel && (
-                      <span className="text-[9.5px] font-bold text-[#64748B] truncate">
-                        Recipe: {item.recipeAmountLabel}
-                      </span>
+                        <span className="text-[13.5px] font-extrabold leading-none">
+                          {needDisplay.num}
+                        </span>
+                        <span className="text-[7px] font-extrabold uppercase tracking-[0.04em] mt-[2px] leading-none">
+                          {needDisplay.unit}
+                        </span>
+                        <span className="text-[6px] font-bold uppercase tracking-[0.02em] text-white/85 mt-[1.5px] leading-none">
+                          Need
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
