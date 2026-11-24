@@ -23,7 +23,7 @@ ZeroWaste Chef is a pure soft neumorphic smart AI pantry, kitchen scanner, and m
 - `src/components/RecipeMatchesView.tsx`: Step 3 Module 2 Bidirectional Recipe Engine (`Pantry to Meals` & `Craving Lookup` modes) with live pantry match scoring, collection/quick filters, and search.
 - `src/components/RecipeDetailModal.tsx`: Interactive recipe sheet with bilingual pantry cross-reference, zero-waste substitution hints, missing-item grocery sync, and step-by-step interactive cooking mode with automatic pantry stock deduction.
 - `src/components/GroceryRestockView.tsx`: View 6 Smart Grocery Restock queue synced with Module 2 missing ingredients and one-tap restock to Digital Pantry.
-- `src/data/recipesCatalog.json`: 32 curated recipes (15 Che Nom Malay + 12 Saji Indian + 5 Chinese/Borneo/Others/Air-Fryer curated dishes).
+- `src/data/recipesCatalog.json`: 250 curated recipes across 5 categories (50 Malay + 50 Chinese + 50 Indian + 50 Borneo + 50 Others), filtered strictly to the 8 canonical ZeroWaste Chef appliances plus basic manual utensils.
 - `src/utils/recipesDb.ts`: Rule-based appliance group constraint filter (`applianceGroups`) and bidirectional pantry-to-recipe matching engine.
 - `src/utils/ingredientMatcher.ts`: Bilingual English/Malay synonym cluster matcher, staple detector, and local substitution recommender.
 - `src/utils/groceryStorage.ts`: `localStorage` persistence (`zerowaste_chef_grocery_v1`) bridging missing recipe ingredients with Digital Pantry restock.

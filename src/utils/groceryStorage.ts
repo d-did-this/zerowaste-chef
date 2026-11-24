@@ -293,13 +293,16 @@ export function addCustomGroceryItem(input: {
 }): GroceryItem[] {
   const current = getGroceryList();
   const titleName = toTitleCase(input.name);
+  const safeQty = Math.max(0.25, Math.round(input.quantity * 100) / 100);
+  const safeUnit = input.unit || "pcs";
   const newItem: GroceryItem = {
     id: `groc_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     name: titleName,
-    rawLine: `${formatGroceryQty(input.quantity)} ${input.unit} ${titleName}`.trim(),
+    rawLine: `${formatGroceryQty(safeQty)} ${safeUnit} ${titleName}`.trim(),
     recipeName: input.recipeName?.trim() || "Personal List",
-    quantity: Math.max(0.25, Math.round(input.quantity * 100) / 100),
-    unit: input.unit || "pcs",
+    quantity: safeQty,
+    unit: safeUnit,
+    recipeAmountLabel: `${formatGroceryQty(safeQty)} ${safeUnit}`.trim(),
     checked: false,
     addedAt: new Date().toISOString(),
   };
@@ -314,8 +317,11 @@ export function updateGroceryItem(
   const current = getGroceryList();
   const updated = current.map((item) => {
     if (item.id !== id) return item;
+    const frozenNeed =
+      item.recipeAmountLabel || `${formatGroceryQty(item.quantity)} ${item.unit || "pcs"}`.trim();
     return {
       ...item,
+      recipeAmountLabel: frozenNeed,
       name: updates.name !== undefined ? toTitleCase(updates.name) || item.name : item.name,
       quantity:
         updates.quantity !== undefined
@@ -348,6 +354,10 @@ export function clearCheckedGroceryItems(): GroceryItem[] {
 
 export function clearAllGroceryItems(): GroceryItem[] {
   return persistGroceryList([]);
+}
+
+export function restoreGroceryListSnapshot(snapshot: GroceryItem[]): GroceryItem[] {
+  return persistGroceryList(snapshot);
 }
 
 function saveRestockToPantry(item: GroceryItem): void {

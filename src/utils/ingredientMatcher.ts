@@ -125,7 +125,41 @@ const SUBSTITUTION_MAP: Array<{ pattern: RegExp; hint: string }> = [
   { pattern: /butter|margarine/i, hint: "Swap with neutral cooking oil" },
 ];
 
+// Pre-compile synonym regexes ONCE at module load (instead of inside hot matching loops)
+const COMPILED_SYNONYM_CLUSTERS: RegExp[][] = SYNONYM_CLUSTERS.map((cluster) =>
+  cluster.map((term) => {
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`\\b${escaped}\\b`, "i");
+  })
+);
+
+// Pre-index MALAYSIAN_INGREDIENTS_DB by lowercase name, Malay name, and exact keywords ONCE
+const MALAYSIAN_DB_INDEX = (() => {
+  const map = new Map<string, string[]>();
+  for (const entry of MALAYSIAN_INGREDIENTS_DB) {
+    const kws = entry.keywords
+      .map((k) => k.toLowerCase().trim())
+      .filter((k) => k.length >= 3);
+    if (kws.length === 0) continue;
+    map.set(entry.name.toLowerCase().trim(), kws);
+    if (entry.nameMalay) {
+      map.set(entry.nameMalay.toLowerCase().trim(), kws);
+    }
+    for (const k of kws) {
+      if (!map.has(k)) map.set(k, kws);
+    }
+  }
+  return map;
+})();
+
+const STRIP_FORMATTING_CACHE = new Map<string, { sectionTag?: string; cleaned: string }>();
+const STAPLE_CACHE = new Map<string, boolean>();
+const TEXT_CLUSTERS_CACHE = new Map<string, number[]>();
+
 function stripFormatting(raw: string): { sectionTag?: string; cleaned: string } {
+  const cached = STRIP_FORMATTING_CACHE.get(raw);
+  if (cached) return cached;
+
   let text = raw.trim();
   let sectionTag: string | undefined;
 
@@ -148,64 +182,69 @@ function stripFormatting(raw: string): { sectionTag?: string; cleaned: string } 
     .replace(/\b(used to|enough to|for frying|for cleaning|for blending|for sautéing|for sauteing|for garnish|for soup|for the gravy|to mix|to coat|to taste).*$/i, "")
     .trim();
 
-  return { sectionTag, cleaned: stripped || noParens || text };
+  const res = { sectionTag, cleaned: stripped || noParens || text };
+  if (STRIP_FORMATTING_CACHE.size < 4000) {
+    STRIP_FORMATTING_CACHE.set(raw, res);
+  }
+  return res;
 }
 
 function getClusterIndices(text: string): number[] {
   const lower = text.toLowerCase();
+  const cached = TEXT_CLUSTERS_CACHE.get(lower);
+  if (cached) return cached;
+
   const indices: number[] = [];
-
-  SYNONYM_CLUSTERS.forEach((cluster, idx) => {
-    if (
-      cluster.some((term) => {
-        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const regex = new RegExp(`\\b${escaped}\\b`, "i");
-        return regex.test(lower);
-      })
-    ) {
-      indices.push(idx);
-    }
-  });
-
-  // Also check MALAYSIAN_INGREDIENTS_DB keywords
-  return indices;
-}
-
-function doesPantryItemMatchIngredient(pantryItem: PantryItem, ingredientText: string): boolean {
-  const ingLower = ingredientText.toLowerCase();
-  const pName = pantryItem.name.toLowerCase().trim();
-  const pMalay = (pantryItem.nameMalay || "").toLowerCase().trim();
-
-  // Direct substring match (word-boundary safe for short names)
-  if (pName.length >= 3 && ingLower.includes(pName)) return true;
-  if (pMalay.length >= 3 && ingLower.includes(pMalay)) return true;
-
-  // Check MALAYSIAN_INGREDIENTS_DB entry for this pantry item
-  const dbEntry = MALAYSIAN_INGREDIENTS_DB.find(
-    (entry) =>
-      entry.name.toLowerCase() === pName ||
-      entry.nameMalay.toLowerCase() === pMalay ||
-      entry.keywords.some((k) => k.toLowerCase() === pName)
-  );
-
-  if (dbEntry) {
-    if (
-      dbEntry.keywords.some((kw) => {
-        if (kw.length < 3) return false;
-        return ingLower.includes(kw.toLowerCase());
-      })
-    ) {
-      return true;
+  for (let idx = 0; idx < COMPILED_SYNONYM_CLUSTERS.length; idx++) {
+    const regexes = COMPILED_SYNONYM_CLUSTERS[idx];
+    for (let j = 0; j < regexes.length; j++) {
+      if (regexes[j].test(lower)) {
+        indices.push(idx);
+        break;
+      }
     }
   }
 
-  // Check shared synonym clusters
-  const ingClusters = getClusterIndices(ingLower);
-  if (ingClusters.length > 0) {
-    const pantryCombined = `${pName} ${pMalay}`;
-    const pantryClusters = getClusterIndices(pantryCombined);
-    if (pantryClusters.some((c) => ingClusters.includes(c))) {
-      return true;
+  if (TEXT_CLUSTERS_CACHE.size < 4000) {
+    TEXT_CLUSTERS_CACHE.set(lower, indices);
+  }
+  return indices;
+}
+
+interface PreparedPantryEntry {
+  item: PantryItem;
+  pName: string;
+  pMalay: string;
+  dbKeywords: string[] | undefined;
+  clusterSet: Set<number>;
+}
+
+function preparePantryEntries(pantryItems: PantryItem[]): PreparedPantryEntry[] {
+  return pantryItems.map((item) => {
+    const pName = item.name.toLowerCase().trim();
+    const pMalay = (item.nameMalay || "").toLowerCase().trim();
+    const dbKeywords =
+      MALAYSIAN_DB_INDEX.get(pName) ||
+      (pMalay ? MALAYSIAN_DB_INDEX.get(pMalay) : undefined);
+    const combined = pMalay ? `${pName} ${pMalay}` : pName;
+    const clusterSet = new Set<number>(getClusterIndices(combined));
+    return { item, pName, pMalay, dbKeywords, clusterSet };
+  });
+}
+
+function doesPreparedPantryMatch(entry: PreparedPantryEntry, ingLower: string, ingClusters: number[]): boolean {
+  if (entry.pName.length >= 3 && ingLower.includes(entry.pName)) return true;
+  if (entry.pMalay.length >= 3 && ingLower.includes(entry.pMalay)) return true;
+
+  if (entry.dbKeywords) {
+    for (let i = 0; i < entry.dbKeywords.length; i++) {
+      if (ingLower.includes(entry.dbKeywords[i])) return true;
+    }
+  }
+
+  if (entry.clusterSet.size > 0 && ingClusters.length > 0) {
+    for (let i = 0; i < ingClusters.length; i++) {
+      if (entry.clusterSet.has(ingClusters[i])) return true;
     }
   }
 
@@ -213,12 +252,23 @@ function doesPantryItemMatchIngredient(pantryItem: PantryItem, ingredientText: s
 }
 
 function isStapleIngredient(raw: string, cleanName: string): boolean {
+  const cached = STAPLE_CACHE.get(raw);
+  if (cached !== undefined) return cached;
+
   const target = raw.replace(/^\*\*[^*]+\*\*\s*/, "").trim();
-  if (STAPLE_PATTERNS.some((p) => p.test(target) || p.test(cleanName))) {
-    return true;
-  }
   const lc = cleanName.toLowerCase();
-  return lc === "water" || lc === "salt" || lc === "sugar" || lc === "cooking oil" || lc === "oil";
+  const isStaple =
+    lc === "water" ||
+    lc === "salt" ||
+    lc === "sugar" ||
+    lc === "cooking oil" ||
+    lc === "oil" ||
+    STAPLE_PATTERNS.some((p) => p.test(target) || p.test(cleanName));
+
+  if (STAPLE_CACHE.size < 4000) {
+    STAPLE_CACHE.set(raw, isStaple);
+  }
+  return isStaple;
 }
 
 export function getSubstitutionHint(ingredientText: string): string | undefined {
@@ -228,20 +278,29 @@ export function getSubstitutionHint(ingredientText: string): string | undefined 
 
 export function analyzeRecipeIngredients(
   ingredients: string[],
-  pantryItems: PantryItem[]
+  pantryItems: PantryItem[],
+  preparedEntries?: PreparedPantryEntry[]
 ): RecipeMatchAnalysis {
+  const entries = preparedEntries ?? preparePantryEntries(pantryItems);
+  const hasPantry = entries.length > 0;
+
   const analyzed: IngredientAnalysis[] = ingredients.map((raw) => {
     const { sectionTag, cleaned } = stripFormatting(raw);
-    const matchedPantryItem = pantryItems.find((p) => doesPantryItemMatchIngredient(p, cleaned));
 
-    if (matchedPantryItem) {
-      return {
-        raw,
-        sectionTag,
-        cleanName: cleaned,
-        status: "have",
-        matchedPantryItem,
-      };
+    if (hasPantry) {
+      const ingLower = cleaned.toLowerCase();
+      const ingClusters = getClusterIndices(ingLower);
+      for (let i = 0; i < entries.length; i++) {
+        if (doesPreparedPantryMatch(entries[i], ingLower, ingClusters)) {
+          return {
+            raw,
+            sectionTag,
+            cleanName: cleaned,
+            status: "have",
+            matchedPantryItem: entries[i].item,
+          };
+        }
+      }
     }
 
     if (isStapleIngredient(raw, cleaned)) {
@@ -281,3 +340,5 @@ export function analyzeRecipeIngredients(
     haveItems,
   };
 }
+
+export { preparePantryEntries };

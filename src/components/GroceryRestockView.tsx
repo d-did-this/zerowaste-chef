@@ -11,16 +11,20 @@ import {
   GroceryItem,
   removeGroceryItem,
   restockCheckedGroceryItemsToPantry,
+  restoreGroceryListSnapshot,
   toggleGroceryItem,
   updateGroceryItem,
 } from "@/utils/groceryStorage";
 import { launchToNavTab } from "@/utils/flyToNavAnimation";
 import { inferGroceryCategoryVisual } from "@/utils/foodSemantics";
-import { ThemeId } from "@/utils/themeStorage";
+import { getThemePalette, ThemeId } from "@/utils/themeStorage";
 
 function splitNeedSquare(item: GroceryItem): { num: string; unit: string } {
   const raw = (item.recipeAmountLabel || "").replace(/\([^)]*\)/g, "").trim();
   if (!raw) {
+    if (item.recipeAmountLabel && /need|taste|little/i.test(item.recipeAmountLabel)) {
+      return { num: "As", unit: "Needed" };
+    }
     return { num: formatGroceryQty(item.quantity), unit: item.unit || "pcs" };
   }
   const m = raw.match(/^([\d./~-]+)\s+(.+)$/);
@@ -31,7 +35,7 @@ function splitNeedSquare(item: GroceryItem): { num: string; unit: string } {
   if (parts.length >= 2) {
     return { num: parts[0], unit: parts.slice(1).join(" ").slice(0, 7) };
   }
-  return { num: formatGroceryQty(item.quantity), unit: item.unit || "pcs" };
+  return { num: raw.slice(0, 5), unit: "item" };
 }
 
 interface GroceryRestockViewProps {
@@ -40,7 +44,7 @@ interface GroceryRestockViewProps {
   onPantryRefresh: () => void;
   onGoToPantry: () => void;
   onStartMealLookup: () => void;
-  showToast: (msg: string) => void;
+  showToast: (msg: string, action?: { label: string; onClick: () => void }) => void;
   themeId?: ThemeId;
 }
 
@@ -53,8 +57,9 @@ export default function GroceryRestockView({
   showToast,
   themeId = "pandan-hero",
 }: GroceryRestockViewProps) {
-  const isPandanHero = themeId === "pandan-hero";
-  const showFoodAccents = themeId !== "classic-clay";
+  const palette = getThemePalette(themeId);
+  const isPandanHero = palette.isHeroDark;
+  const showFoodAccents = palette.showCategoryLabels;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const prevRectsRef = useRef<Record<string, DOMRect>>({});
@@ -286,6 +291,18 @@ export default function GroceryRestockView({
     });
   };
 
+  const deleteWithUndo = (toastMsg: string, performDelete: () => GroceryItem[]) => {
+    const prevSnapshot = [...groceryItems];
+    setGroceryItems(performDelete());
+    showToast(toastMsg, {
+      label: "Undo",
+      onClick: () => {
+        setGroceryItems(restoreGroceryListSnapshot(prevSnapshot));
+        showToast("Restored item(s) to Grocery List!");
+      },
+    });
+  };
+
   const toggleHeaderMode = (target: "edit" | "delete") => {
     setIsAddingCustom(false);
     setEditingId(null);
@@ -308,20 +325,17 @@ export default function GroceryRestockView({
 
   return (
     <div className="meal-flow-scope flex-1 flex flex-col overflow-hidden relative">
-      {/* Header with Top Edit & Delete Controls Side-by-Side */}
-      <header className="h-16 px-3 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
+      {/* Uniform Header Bar */}
+      <header className="h-16 px-3.5 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
             <span className="material-symbols-outlined text-xl">shopping_cart</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-bold text-foreground tracking-tight">Smart Grocery</span>
-              <span className="px-1.5 py-0.5 rounded-full neo-sunken text-[9px] font-extrabold text-[#004730]">
-                {pendingCount} To Buy
-              </span>
-            </div>
-            <span className="text-[9.5px] text-muted font-semibold truncate">
+            <span className="text-sm font-bold text-foreground tracking-tight truncate">
+              Smart Grocery
+            </span>
+            <span className="text-[9.5px] text-[#006948] font-semibold truncate">
               Cross off items, then add to Pantry
             </span>
           </div>
@@ -329,10 +343,10 @@ export default function GroceryRestockView({
 
         {/* Top Header Edit + Delete Mode Toggles */}
         {groceryItems.length > 0 && (
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => toggleHeaderMode("edit")}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                 headerMode === "edit"
                   ? "bg-[#004730] text-white shadow-sm"
                   : "neo-raised-sm text-[#004730] hover:scale-105 active:scale-95"
@@ -341,14 +355,14 @@ export default function GroceryRestockView({
               aria-label={headerMode === "edit" ? "Done Editing" : "Edit Items"}
               type="button"
             >
-              <span className="material-symbols-outlined text-lg">
+              <span className="material-symbols-outlined text-base">
                 {headerMode === "edit" ? "check" : "edit"}
               </span>
             </button>
 
             <button
               onClick={() => toggleHeaderMode("delete")}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                 headerMode === "delete"
                   ? "bg-rose-600 text-white shadow-sm"
                   : "neo-raised-sm text-muted hover:text-rose-600 active:scale-95"
@@ -357,7 +371,7 @@ export default function GroceryRestockView({
               aria-label={headerMode === "delete" ? "Done Deleting" : "Manage / Delete Items"}
               type="button"
             >
-              <span className="material-symbols-outlined text-lg">
+              <span className="material-symbols-outlined text-base">
                 {headerMode === "delete" ? "check" : "delete_sweep"}
               </span>
             </button>
@@ -369,34 +383,120 @@ export default function GroceryRestockView({
         ref={scrollContainerRef}
         className="flex-1 p-3.5 flex flex-col gap-3 overflow-y-auto no-scrollbar"
       >
-        {/* Top Quick Navigation Card: Pandan Hero Anchor or Raised Clay */}
+        {/* Top Grocery Hero Card: Digital Pantry-Matched Design with Circular Progress Ring & Bar (Pandan Hero & Minimalist Clay) */}
         <section
-          className={`w-full rounded-2xl neo-raised flex flex-col gap-2.5 shrink-0 ${
-            isPandanHero ? "neo-pandan-hero p-3" : "p-2.5 gap-2"
+          className={`w-full rounded-2xl p-3.5 flex flex-col gap-2.5 shrink-0 transition-all duration-300 ${
+            isPandanHero ? "neo-pandan-hero" : "neo-raised"
           }`}
         >
-          {isPandanHero && (
-            <div className="w-full neo-pandan-sunken rounded-xl px-3 py-2 flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-[10px] font-extrabold">
-                <span className="text-emerald-100/90 uppercase tracking-wider">Restock Progress</span>
-                <span className="text-amber-200">
-                  {pendingCount} To Buy &bull; {checkedCount} Done
-                </span>
-              </div>
-              <div className="w-full h-1.5 rounded-full bg-black/25 overflow-hidden">
+          {(() => {
+            const totalCount = groceryItems.length;
+            const donePct = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+            const radius = 20;
+            const viewBoxSize = 52;
+            const center = viewBoxSize / 2;
+            const circumference = 2 * Math.PI * radius;
+            const dashOffset = circumference * (1 - donePct / 100);
+            const ringLabel = `${String(checkedCount).padStart(2, "0")}/${String(totalCount).padStart(2, "0")}`;
+
+            return (
+              <>
+                {/* Top Card Header Row matching Digital Pantry */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                        isPandanHero
+                          ? "neo-pandan-sunken text-amber-300"
+                          : "neo-sunken text-[#004730]"
+                      }`}
+                      style={isPandanHero ? undefined : { color: palette.primaryBg }}
+                    >
+                      <span className="material-symbols-outlined text-base">shopping_bag</span>
+                    </div>
+                    <span
+                      className={`text-xs tracking-tight ${
+                        isPandanHero ? "font-extrabold text-white" : "font-bold text-foreground"
+                      }`}
+                    >
+                      Restock Tracker
+                    </span>
+                  </div>
+                </div>
+
+                {/* Digital Pantry-Style Sunken Block with Circular Progress Ring */}
                 <div
-                  className="h-full rounded-full bg-amber-400 transition-all duration-300"
-                  style={{
-                    width: `${
-                      groceryItems.length > 0
-                        ? Math.max(4, Math.round((checkedCount / groceryItems.length) * 100))
-                        : 0
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
-          )}
+                  className={`w-full rounded-xl py-2.5 px-3.5 flex items-center justify-between gap-3 ${
+                    isPandanHero ? "neo-pandan-sunken" : "neo-sunken"
+                  }`}
+                >
+                  <div className="flex flex-col min-w-0">
+                    <span
+                      className={`text-[10px] font-black uppercase tracking-wider ${
+                        isPandanHero ? "text-emerald-100/85" : "text-muted"
+                      }`}
+                    >
+                      TO BUY ITEMS
+                    </span>
+                    <div className="flex items-baseline gap-1.5 mt-0.5">
+                      <span
+                        className={`text-xl font-extrabold tracking-tight leading-none ${
+                          isPandanHero ? "text-white" : "text-foreground"
+                        }`}
+                      >
+                        {pendingCount}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold ${
+                          isPandanHero ? "text-emerald-100/75" : "text-muted"
+                        }`}
+                      >
+                        remaining
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Unified Circular Progress Ring (01/20 format across all themes) */}
+                  <div className="relative flex items-center justify-center shrink-0 w-[52px] h-[52px]">
+                    <svg
+                      className="w-[52px] h-[52px] -rotate-90"
+                      viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
+                      aria-hidden="true"
+                    >
+                      <circle
+                        cx={center}
+                        cy={center}
+                        r={radius}
+                        fill="none"
+                        stroke={isPandanHero ? "rgba(255,255,255,0.16)" : "rgba(0,71,48,0.12)"}
+                        strokeWidth="4"
+                      />
+                      <circle
+                        cx={center}
+                        cy={center}
+                        r={radius}
+                        fill="none"
+                        stroke={palette.primaryRingStroke}
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={dashOffset}
+                        className="transition-[stroke-dashoffset] duration-500 ease-out"
+                      />
+                    </svg>
+                    <span
+                      className={`absolute font-extrabold leading-none tabular-nums text-[9.5px] ${
+                        isPandanHero ? "text-amber-300" : ""
+                      }`}
+                      style={isPandanHero ? undefined : { color: palette.primaryBg }}
+                    >
+                      {ringLabel}
+                    </span>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
 
           <div className="grid grid-cols-2 gap-2.5">
             <button
@@ -404,8 +504,9 @@ export default function GroceryRestockView({
               className={`py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
                 isPandanHero
                   ? "neo-amber-cta text-[#142419] font-black"
-                  : "neo-button text-[#004730] font-extrabold active:scale-95"
+                  : "text-white font-extrabold shadow-sm active:scale-95"
               }`}
+              style={isPandanHero ? undefined : { backgroundColor: palette.primaryBg }}
               title="Browse recipes for ingredients"
               type="button"
             >
@@ -463,10 +564,9 @@ export default function GroceryRestockView({
               <div className="flex items-center gap-1.5">
                 {checkedCount > 0 && (
                   <button
-                    onClick={() => {
-                      setGroceryItems(clearCheckedGroceryItems());
-                      showToast("Removed checked items.");
-                    }}
+                    onClick={() =>
+                      deleteWithUndo("Removed checked items", clearCheckedGroceryItems)
+                    }
                     className={`px-2.5 py-1 rounded-lg text-[9.5px] font-extrabold cursor-pointer ${
                       isPandanHero
                         ? "neo-emerald-glass-btn text-white"
@@ -479,9 +579,8 @@ export default function GroceryRestockView({
                 )}
                 <button
                   onClick={() => {
-                    setGroceryItems(clearAllGroceryItems());
                     setHeaderMode("none");
-                    showToast("Grocery list cleared.");
+                    deleteWithUndo("Grocery list cleared", clearAllGroceryItems);
                   }}
                   className="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-[9.5px] font-extrabold cursor-pointer active:scale-95"
                   type="button"
@@ -634,9 +733,8 @@ export default function GroceryRestockView({
                       </span>
                       <button
                         onClick={() => {
-                          setGroceryItems(removeGroceryItem(item.id));
                           setEditingId(null);
-                          showToast(`Removed '${item.name}'.`);
+                          deleteWithUndo(`Removed ${item.name}`, () => removeGroceryItem(item.id));
                         }}
                         className="text-[10px] font-extrabold text-rose-600 inline-flex items-center gap-0.5 cursor-pointer"
                         type="button"
@@ -754,13 +852,24 @@ export default function GroceryRestockView({
                         className="text-left cursor-pointer min-w-0"
                         type="button"
                       >
-                        <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
                           {showFoodAccents && (
                             <span
-                              className="px-1.5 py-[1px] rounded text-[8.5px] font-extrabold uppercase tracking-wide shrink-0"
-                              style={{ backgroundColor: aisle.bg, color: aisle.text }}
+                              className="w-[17px] h-[17px] rounded-full inline-flex items-center justify-center shrink-0 border"
+                              style={{
+                                backgroundColor: aisle.bg,
+                                color: aisle.text,
+                                borderColor: aisle.border,
+                              }}
+                              title={aisle.label}
+                              aria-label={aisle.label}
                             >
-                              {aisle.label}
+                              <span
+                                className="material-symbols-outlined shrink-0"
+                                style={{ fontSize: "10px", lineHeight: 1 }}
+                              >
+                                {aisle.icon}
+                              </span>
                             </span>
                           )}
                           <span
@@ -821,10 +930,9 @@ export default function GroceryRestockView({
                   <div className="shrink-0 flex items-center">
                     {headerMode === "delete" ? (
                       <button
-                        onClick={() => {
-                          setGroceryItems(removeGroceryItem(item.id));
-                          showToast(`Removed '${item.name}'.`);
-                        }}
+                        onClick={() =>
+                          deleteWithUndo(`Removed ${item.name}`, () => removeGroceryItem(item.id))
+                        }
                         className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center active:scale-95 cursor-pointer shadow-sm"
                         title={`Remove ${item.name}`}
                         aria-label={`Remove ${item.name}`}

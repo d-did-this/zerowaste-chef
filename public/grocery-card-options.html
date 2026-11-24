@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZeroWaste Chef — Smart Grocery Full Screen Prototypes (Batch Add to Pantry)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #E0E5EC;
+      --ink: #0F172A;
+      --muted: #64748B;
+      --emerald: #004730;
+      --emerald-mid: #006948;
+      --orange: #EA580C;
+      --neo-raised: 6px 6px 14px rgba(163, 177, 198, 0.55), -6px -6px 14px rgba(255, 255, 255, 0.78);
+      --neo-raised-sm: 4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.72);
+      --neo-sunken: inset 4px 4px 8px rgba(163, 177, 198, 0.55), inset -4px -4px 8px rgba(255, 255, 255, 0.72);
+      --neo-crater: inset 6px 6px 12px rgba(163, 177, 198, 0.7), inset -6px -6px 12px rgba(255, 255, 255, 0.75);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #D5DCE6;
+      color: var(--ink);
+      padding: 24px 18px 60px;
+    }
+
+    .page-header {
+      max-width: 1680px;
+      margin: 0 auto 24px;
+      background: var(--bg);
+      box-shadow: var(--neo-raised);
+      border-radius: 24px;
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .page-header h1 {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--emerald);
+      letter-spacing: -0.02em;
+    }
+
+    .page-header p {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .reset-demo-btn {
+      background: var(--emerald);
+      color: #fff;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 71, 48, 0.28);
+    }
+
+    .phones-grid {
+      max-width: 1680px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 28px;
+      justify-items: center;
+    }
+
+    .phone-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 390px;
+    }
+
+    .option-banner {
+      width: 100%;
+      background: var(--bg);
+      box-shadow: var(--neo-raised);
+      border-radius: 18px;
+      padding: 12px 16px;
+      text-align: center;
+    }
+
+    .option-banner .t {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--emerald);
+    }
+
+    .option-banner .d {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* Full 390x844 Mobile Container */
+    .phone-frame {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      border-radius: 44px;
+      padding: 12px;
+      box-shadow: 14px 14px 32px rgba(148, 163, 184, 0.7), -12px -12px 28px rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* App Header */
+    .app-header {
+      height: 60px;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .hdr-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .hdr-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      box-shadow: var(--neo-raised-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--emerald);
+      flex-shrink: 0;
+    }
+
+    .hdr-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hdr-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .hdr-count-pill {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: var(--emerald);
+      padding: 2px 8px;
+      border-radius: 999px;
+      box-shadow: var(--neo-sunken);
+    }
+
+    .hdr-sub {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .hdr-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .hdr-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      box-shadow: var(--neo-raised-sm);
+      border: none;
+      background: var(--bg);
+      color: var(--emerald);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .hdr-btn .material-symbols-outlined { font-size: 17px; }
+
+    /* Scrollable Main Area */
+    .phone-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 6px 68px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+    .phone-body::-webkit-scrollbar { display: none; }
+
+    /* Quick Nav Row */
+    .quick-nav {
+      background: var(--bg);
+      box-shadow: var(--neo-raised-sm);
+      border-radius: 18px;
+      padding: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .quick-btn {
+      background: var(--bg);
+      box-shadow: var(--neo-raised-sm);
+      border: none;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--emerald);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .quick-btn .material-symbols-outlined { font-size: 16px; }
+
+    /* Shared Checkboxes & Steppers */
+    .chk-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      box-shadow: var(--neo-sunken);
+      border: none;
+      background: var(--bg);
+      color: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .chk-circle.is-checked {
+      background: var(--emerald-mid);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(0, 105, 72, 0.35);
+    }
+
+    .chk-circle .material-symbols-outlined { font-size: 14px; font-weight: 800; }
+
+    .clean-stepper {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.58);
+      border-radius: 11px;
+      padding: 2px;
+      gap: 2px;
+      box-shadow: inset 1px 1px 3px rgba(163, 177, 198, 0.35);
+      flex-shrink: 0;
+    }
+
+    .clean-stepper button {
+      width: 23px;
+      height: 23px;
+      border-radius: 8px;
+      border: none;
+      background: #FFFFFF;
+      color: var(--emerald);
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+    }
+
+    .clean-stepper .qty {
+      min-width: 52px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--emerald);
+      padding: 0 4px;
+    }
+
+    .item-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .is-done .item-title {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .item-sub {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .need-pill {
+      display: inline-flex;
+      align-items: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--orange);
+      background: rgba(234, 88, 12, 0.1);
+      padding: 2px 7px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    /* Top Batch "Add Crossed to Pantry" Designs */
+    .batch-btn-p1 {
+      width: 100%;
+      background: var(--emerald);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(0, 71, 48, 0.28);
+      animation: popIn 0.2s ease-out;
+    }
+
+    .batch-badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 800;
+    }
+
+    .batch-deck-p2 {
+      background: var(--bg);
+      box-shadow: var(--neo-raised);
+      border-radius: 20px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .batch-strip-p2 {
+      background: linear-gradient(135deg, #004730 0%, #006948 100%);
+      color: #fff;
+      border: none;
+      border-radius: 13px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 800;
+      cursor: pointer;
+      animation: popIn 0.2s ease-out;
+    }
+
+    .batch-strip-p3 {
+      border-radius: 16px;
+      box-shadow: var(--neo-sunken);
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .batch-cta-p3 {
+      background: var(--emerald);
+      color: #fff;
+      border: none;
+      border-radius: 11px;
+      padding: 7px 12px;
+      font-size: 10.5px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0, 71, 48, 0.28);
+    }
+
+    .batch-card-p4 {
+      background: var(--emerald);
+      color: #fff;
+      border-radius: 18px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 6px 16px rgba(0, 71, 48, 0.3);
+      border: none;
+      width: 100%;
+      cursor: pointer;
+      animation: popIn 0.2s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Card Variants */
+    .card-p1 {
+      background: var(--bg);
+      box-shadow: var(--neo-raised-sm);
+      border-radius: 18px;
+      padding: 12px 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .card-p1.is-done { box-shadow: var(--neo-sunken); opacity: 0.62; }
+
+    .sheet-p2 {
+      background: var(--bg);
+      box-shadow: var(--neo-raised);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .row-p2 {
+      padding: 12px 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    }
+    .row-p2:last-child { border-bottom: none; }
+    .row-p2.is-done { background: rgba(163, 177, 198, 0.14); opacity: 0.58; }
+
+    .sec-label {
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      padding: 2px 4px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-p4 {
+      background: var(--bg);
+      box-shadow: var(--neo-raised-sm);
+      border-radius: 18px;
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .card-p4.is-done { box-shadow: var(--neo-sunken); opacity: 0.6; }
+
+    .need-square {
+      width: 48px;
+      height: 48px;
+      border-radius: 13px;
+      background: var(--orange);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 3px 8px rgba(234, 88, 12, 0.25);
+    }
+    .card-p4.is-done .need-square {
+      background: #94A3B8;
+      box-shadow: none;
+    }
+    .need-square .n { font-size: 13px; font-weight: 800; line-height: 1; }
+    .need-square .u { font-size: 7px; font-weight: 800; text-transform: uppercase; margin-top: 2px; }
+    .need-square .l { font-size: 6px; font-weight: 700; text-transform: uppercase; opacity: 0.85; margin-top: 1px; }
+
+    /* Floating + Button */
+    .fab-add {
+      position: absolute;
+      bottom: 84px;
+      right: 18px;
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      background: var(--emerald);
+      color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 4px 4px 10px rgba(0, 71, 48, 0.35), -2px -2px 6px rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 15;
+    }
+
+    /* Bottom 4-Tab Nav */
+    .bottom-nav {
+      height: 62px;
+      margin: 4px 4px 2px;
+      padding: 0 8px;
+      border-radius: 24px;
+      background: var(--bg);
+      box-shadow: var(--neo-raised);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .nav-item {
+      height: 46px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      position: relative;
+    }
+
+    .nav-item.is-active {
+      box-shadow: var(--neo-crater);
+      color: var(--emerald);
+      font-weight: 800;
+    }
+
+    .nav-item .material-symbols-outlined { font-size: 21px; line-height: 1; }
+    .nav-item .lbl { margin-top: 2px; line-height: 1; }
+    .nav-badge {
+      position: absolute;
+      top: 4px;
+      right: 10px;
+      background: var(--emerald);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 999px;
+    }
+
+    .toast-sim {
+      position: absolute;
+      bottom: 86px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.94);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      z-index: 30;
+      display: none;
+    }
+    .toast-sim.show { display: flex; align-items: center; gap: 6px; }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <div>
+      <h1>Smart Grocery — Full Screen Prototypes (Batch "Add Crossed to Pantry" at Top)</h1>
+      <p>Tick or untick any item in any phone below: the top <strong>Add to Pantry</strong> button appears automatically when items are crossed off, and hides when none are checked.</p>
+    </div>
+    <button class="reset-demo-btn" onclick="resetDemo()">Reset Sample List</button>
+  </div>
+
+  <div class="phones-grid" id="phonesRoot"></div>
+
+  <script>
+    const INITIAL_ITEMS = [
+      { id: 1, name: "Chinese Celery", recipe: "Telur Masak Kicap", qty: 1, unit: "bunch", needNum: "1", needUnit: "bunch", needText: "1 bunch", checked: true },
+      { id: 2, name: "Sweet Soy Sauce", recipe: "Telur Masak Kicap", qty: 1, unit: "bottle", needNum: "1/4", needUnit: "cup", needText: "1/4 cup", checked: true },
+      { id: 3, name: "Oyster Sauce", recipe: "Telur Masak Kicap", qty: 1, unit: "bottle", needNum: "2", needUnit: "tbsp", needText: "2 tbsp", checked: false },
+      { id: 4, name: "Blended Chilli", recipe: "Telur Masak Kicap", qty: 1, unit: "pack", needNum: "2", needUnit: "tbsp", needText: "2 tbsp", checked: false },
+      { id: 5, name: "Red Onion", recipe: "Nasi Beriani", qty: 2, unit: "pcs", needNum: "2", needUnit: "pcs", needText: "2 pcs", checked: false },
+    ];
+
+    const state = {
+      P1: JSON.parse(JSON.stringify(INITIAL_ITEMS)),
+      P2: JSON.parse(JSON.stringify(INITIAL_ITEMS)),
+      P3: JSON.parse(JSON.stringify(INITIAL_ITEMS)),
+      P4: JSON.parse(JSON.stringify(INITIAL_ITEMS)),
+    };
+    const toasts = { P1: "", P2: "", P3: "", P4: "" };
+
+    function resetDemo() {
+      ["P1", "P2", "P3", "P4"].forEach(k => {
+        state[k] = JSON.parse(JSON.stringify(INITIAL_ITEMS));
+        toasts[k] = "";
+      });
+      render();
+    }
+
+    function toggleItem(key, id) {
+      const item = state[key].find(i => i.id === id);
+      if (item) item.checked = !item.checked;
+      render();
+    }
+
+    function adjustQty(key, id, delta) {
+      const item = state[key].find(i => i.id === id);
+      if (item) item.qty = Math.max(1, item.qty + delta);
+      render();
+    }
+
+    function addCrossedToPantry(key) {
+      const checked = state[key].filter(i => i.checked);
+      if (checked.length === 0) return;
+      state[key] = state[key].filter(i => !i.checked);
+      toasts[key] = `Moved ${checked.length} item${checked.length > 1 ? "s" : ""} to Digital Pantry!`;
+      render();
+      setTimeout(() => {
+        toasts[key] = "";
+        render();
+      }, 2200);
+    }
+
+    function stepperHtml(key, item) {
+      return `
+        <div class="clean-stepper">
+          <button onclick="adjustQty('${key}', ${item.id}, -1)" type="button">−</button>
+          <span class="qty">${item.qty} ${item.unit}</span>
+          <button onclick="adjustQty('${key}', ${item.id}, 1)" type="button">+</button>
+        </div>
+      `;
+    }
+
+    function chkHtml(key, item) {
+      return `
+        <button class="chk-circle ${item.checked ? 'is-checked' : ''}" onclick="toggleItem('${key}', ${item.id})" type="button">
+          <span class="material-symbols-outlined">check</span>
+        </button>
+      `;
+    }
+
+    function shellHtml(key, title, desc, bodyHtml) {
+      const items = state[key];
+      const uncheckedCount = items.filter(i => !i.checked).length;
+      const toastMsg = toasts[key];
+      return `
+        <div class="phone-col">
+          <div class="option-banner">
+            <div class="t">${title}</div>
+            <div class="d">${desc}</div>
+          </div>
+
+          <div class="phone-frame">
+            <header class="app-header">
+              <div class="hdr-left">
+                <div class="hdr-icon">
+                  <span class="material-symbols-outlined">shopping_cart</span>
+                </div>
+                <div>
+                  <div class="hdr-title-row">
+                    <span class="hdr-title">Smart Grocery</span>
+                    <span class="hdr-count-pill">${uncheckedCount} To Buy</span>
+                  </div>
+                  <div class="hdr-sub">Tap items bought, then add to Pantry</div>
+                </div>
+              </div>
+              <div class="hdr-tools">
+                <button class="hdr-btn" title="Edit"><span class="material-symbols-outlined">edit</span></button>
+                <button class="hdr-btn" title="Delete"><span class="material-symbols-outlined">delete_sweep</span></button>
+              </div>
+            </header>
+
+            <div class="phone-body">
+              ${bodyHtml}
+            </div>
+
+            <button class="fab-add" title="Add Custom Item" type="button">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+
+            <div class="toast-sim ${toastMsg ? 'show' : ''}">
+              <span class="material-symbols-outlined" style="font-size:15px; color:#34D399;">check_circle</span>
+              <span>${toastMsg}</span>
+            </div>
+
+            <nav class="bottom-nav">
+              <div class="nav-item">
+                <span class="material-symbols-outlined">photo_camera</span>
+                <span class="lbl">Scanner</span>
+              </div>
+              <div class="nav-item">
+                <span class="material-symbols-outlined">kitchen</span>
+                <span class="lbl">Pantry</span>
+              </div>
+              <div class="nav-item">
+                <span class="material-symbols-outlined">skillet</span>
+                <span class="lbl">Cook</span>
+              </div>
+              <div class="nav-item is-active">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                <span class="lbl">Grocery</span>
+                ${uncheckedCount > 0 ? `<span class="nav-badge">${uncheckedCount}</span>` : ''}
+              </div>
+            </nav>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      // Prototype 1: Floating Emerald Top Action + Minimal Clean Cards
+      const p1Items = [...state.P1.filter(i => !i.checked), ...state.P1.filter(i => i.checked)];
+      const p1Checked = state.P1.filter(i => i.checked).length;
+      const p1Body = `
+        <div class="quick-nav">
+          <button class="quick-btn" type="button"><span class="material-symbols-outlined">manage_search</span>Recipes</button>
+          <button class="quick-btn" type="button"><span class="material-symbols-outlined">kitchen</span>Pantry</button>
+        </div>
+        ${p1Checked > 0 ? `
+          <button class="batch-btn-p1" onclick="addCrossedToPantry('P1')" type="button">
+            <span style="display:inline-flex; align-items:center; gap:7px;">
+              <span class="material-symbols-outlined" style="font-size:18px;">kitchen</span>
+              <span>Add Crossed to Pantry</span>
+            </span>
+            <span class="batch-badge">${p1Checked} Item${p1Checked > 1 ? 's' : ''} &rarr;</span>
+          </button>
+        ` : ''}
+        ${p1Items.map(item => `
+          <div class="card-p1 ${item.checked ? 'is-done' : ''}">
+            <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+              ${chkHtml('P1', item)}
+              <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+                <span class="item-title">${item.name}</span>
+                <span class="item-sub">${item.recipe}</span>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0;">
+              <span class="need-pill">Need ${item.needText}</span>
+              ${stepperHtml('P1', item)}
+            </div>
+          </div>
+        `).join('')}
+      `;
+
+      // Prototype 2: Unified List Sheet + Embedded Top Deck Banner
+      const p2Items = [...state.P2.filter(i => !i.checked), ...state.P2.filter(i => i.checked)];
+      const p2Checked = state.P2.filter(i => i.checked).length;
+      const p2Body = `
+        <div class="batch-deck-p2">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button class="quick-btn" type="button"><span class="material-symbols-outlined">manage_search</span>Recipes</button>
+            <button class="quick-btn" type="button"><span class="material-symbols-outlined">kitchen</span>Pantry</button>
+          </div>
+          ${p2Checked > 0 ? `
+            <button class="batch-strip-p2" onclick="addCrossedToPantry('P2')" type="button">
+              <span style="display:inline-flex; align-items:center; gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">task_alt</span>
+                <span>${p2Checked} bought &bull; Add All to Pantry</span>
+              </span>
+              <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
+            </button>
+          ` : ''}
+        </div>
+        <div class="sheet-p2">
+          ${p2Items.map(item => `
+            <div class="row-p2 ${item.checked ? 'is-done' : ''}">
+              <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                ${chkHtml('P2', item)}
+                <div style="display:flex; flex-direction:column; gap:1px; min-width:0;">
+                  <span class="item-title">${item.name}</span>
+                  <span class="item-sub">Need ${item.needText} &bull; ${item.recipe}</span>
+                </div>
+              </div>
+              ${stepperHtml('P2', item)}
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Prototype 3: Split Active vs Crossed Sections + Sunken Restock Bar
+      const p3Todo = state.P3.filter(i => !i.checked);
+      const p3Done = state.P3.filter(i => i.checked);
+      const p3Body = `
+        <div class="quick-nav">
+          <button class="quick-btn" type="button"><span class="material-symbols-outlined">manage_search</span>Recipes</button>
+          <button class="quick-btn" type="button"><span class="material-symbols-outlined">kitchen</span>Pantry</button>
+        </div>
+        ${p3Done.length > 0 ? `
+          <div class="batch-strip-p3">
+            <span style="font-size:11px; font-weight:800; color:#004730; padding-left:4px;">
+              ${p3Done.length} item${p3Done.length > 1 ? 's' : ''} crossed off
+            </span>
+            <button class="batch-cta-p3" onclick="addCrossedToPantry('P3')" type="button">
+              <span class="material-symbols-outlined" style="font-size:14px;">add_to_photos</span>
+              <span>Add to Pantry</span>
+            </button>
+          </div>
+        ` : ''}
+        ${p3Todo.length > 0 ? `
+          <div class="sec-label"><span>To Buy</span><span>${p3Todo.length}</span></div>
+          ${p3Todo.map(item => `
+            <div class="card-p1">
+              <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                ${chkHtml('P3', item)}
+                <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+                  <span class="item-title">${item.name}</span>
+                  <span class="item-sub">${item.recipe} &bull; Need ${item.needText}</span>
+                </div>
+              </div>
+              ${stepperHtml('P3', item)}
+            </div>
+          `).join('')}
+        ` : ''}
+        ${p3Done.length > 0 ? `
+          <div class="sec-label" style="margin-top:2px;"><span>Crossed / In Trolley</span><span>${p3Done.length}</span></div>
+          ${p3Done.map(item => `
+            <div class="card-p1 is-done">
+              <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                ${chkHtml('P3', item)}
+                <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+                  <span class="item-title">${item.name}</span>
+                  <span class="item-sub">${item.recipe}</span>
+                </div>
+              </div>
+              ${stepperHtml('P3', item)}
+            </div>
+          `).join('')}
+        ` : ''}
+      `;
+
+      // Prototype 4: Recipe-Matched Orange Need Square + Bold Top Action Card
+      const p4Items = [...state.P4.filter(i => !i.checked), ...state.P4.filter(i => i.checked)];
+      const p4Checked = state.P4.filter(i => i.checked).length;
+      const p4Body = `
+        <div class="quick-nav">
+          <button class="quick-btn" type="button"><span class="material-symbols-outlined">manage_search</span>Recipes</button>
+          <button class="quick-btn" type="button"><span class="material-symbols-outlined">kitchen</span>Pantry</button>
+        </div>
+        ${p4Checked > 0 ? `
+          <button class="batch-card-p4" onclick="addCrossedToPantry('P4')" type="button">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="width:28px; height:28px; border-radius:9px; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:13px;">
+                ${p4Checked}
+              </span>
+              <div style="text-align:left;">
+                <div style="font-size:12px; font-weight:800;">Add Crossed to Pantry</div>
+                <div style="font-size:9.5px; opacity:0.8;">Moves ticked items to stock</div>
+              </div>
+            </div>
+            <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+          </button>
+        ` : ''}
+        ${p4Items.map(item => `
+          <div class="card-p4 ${item.checked ? 'is-done' : ''}">
+            <div style="display:flex; align-items:flex-start; gap:10px; flex:1; min-width:0;">
+              <div style="padding-top:2px;">${chkHtml('P4', item)}</div>
+              <div style="display:flex; flex-direction:column; gap:6px; flex:1; min-width:0;">
+                <div>
+                  <div class="item-title">${item.name}</div>
+                  <div class="item-sub">${item.recipe}</div>
+                </div>
+                <div>${stepperHtml('P4', item)}</div>
+              </div>
+            </div>
+            <div class="need-square">
+              <span class="n">${item.needNum}</span>
+              <span class="u">${item.needUnit}</span>
+              <span class="l">Need</span>
+            </div>
+          </div>
+        `).join('')}
+      `;
+
+      document.getElementById('phonesRoot').innerHTML = [
+        shellHtml(
+          "P1",
+          "Option 1 — Floating Top Pill + Clean Cards",
+          "Bold emerald 'Add Crossed to Pantry' bar pops at top when checked; compact cards with Need badge & stepper on right.",
+          p1Body
+        ),
+        shellHtml(
+          "P2",
+          "Option 2 — Unified List Sheet + Deck Banner",
+          "Ultra-compact single raised sheet with hairline dividers; top deck expands an emerald restock bar when items are ticked.",
+          p2Body
+        ),
+        shellHtml(
+          "P3",
+          "Option 3 — Split 'To Buy' & 'In Trolley' Sections",
+          "Separates active items from crossed-off items cleanly with a sunken restock bar right above the list.",
+          p3Body
+        ),
+        shellHtml(
+          "P4",
+          "Option 4 — Orange Need Square (Matches Recipes!)",
+          "Visual sibling to your Recipe cards: orange 'Need' square on the right, clean stepper on the left, bold top batch card.",
+          p4Body
+        ),
+      ].join('');
+    }
+
+    render();
+  </script>
+</body>
+</html>

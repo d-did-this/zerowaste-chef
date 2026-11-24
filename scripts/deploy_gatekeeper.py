@@ -161,7 +161,11 @@ def assert_live_production_invariants():
                 raise AssertionError("FATAL: Transition 2 ('to-recipes') did not appear after Step 2!")
             page.locator("h1:has-text('Recipes Matched!')").wait_for(state="visible", timeout=8000)
 
-            # Assert Step 3 cards + open recipe + Shop Missing + Grocery redesign
+            # Assert Step 3 Explore All cards + open recipe + Shop Missing + Grocery redesign
+            explore_btn = page.locator("button:has-text('Explore All')").first
+            if explore_btn.is_visible():
+                explore_btn.click()
+                time.sleep(0.3)
             page.locator("div[role='button'].neo-raised").first.click()
             shop_btn = page.locator("button:has-text('Shop Missing')").first
             shop_btn.wait_for(state="visible", timeout=3000)
@@ -172,7 +176,7 @@ def assert_live_production_invariants():
             page.locator("nav button:has-text('Grocery')").click()
             page.locator("text='Smart Grocery'").wait_for(state="visible", timeout=5000)
 
-            ctrl = page.locator("section.neo-raised").first
+            ctrl = page.locator("section:has-text('Restock Tracker')").first
             if not ctrl.locator("button:has-text('Recipes')").is_visible() or not ctrl.locator("button:has-text('Pantry')").is_visible():
                 raise AssertionError("FATAL: Grocery control bar must contain Recipes & Pantry buttons!")
             if not page.locator("button[aria-label='Add Custom Item']").is_visible():

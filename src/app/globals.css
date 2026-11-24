@@ -24,14 +24,25 @@
   --foreground: var(--zw-fg);
 }
 
-[data-zw-theme="classic-clay"],
-[data-zw-theme="fresh-accents"] {
+[data-zw-theme="minimalist-clay"],
+[data-zw-theme="classic-clay"] {
   --zw-bg: #E0E5EC;
   --zw-bg-bar: rgba(224, 229, 236, 0.95);
   --zw-sunken: #DCE2EA;
   --zw-fg: #3D4852;
   --zw-shadow-dark: rgba(163, 177, 198, 0.6);
   --zw-shadow-light: rgba(255, 255, 255, 0.72);
+  --background: var(--zw-bg);
+  --foreground: var(--zw-fg);
+}
+
+[data-zw-theme="fresh-accents"] {
+  --zw-bg: #E6EFEA;
+  --zw-bg-bar: rgba(230, 239, 234, 0.95);
+  --zw-sunken: #DCE7E1;
+  --zw-fg: #1E293B;
+  --zw-shadow-dark: rgba(145, 168, 156, 0.56);
+  --zw-shadow-light: rgba(255, 255, 255, 0.78);
   --background: var(--zw-bg);
   --foreground: var(--zw-fg);
 }

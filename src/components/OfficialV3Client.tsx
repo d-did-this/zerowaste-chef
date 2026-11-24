@@ -8,10 +8,18 @@ import RecipeMatchesView from "@/components/RecipeMatchesView";
 import RecipeDetailModal from "@/components/RecipeDetailModal";
 import GroceryRestockView from "@/components/GroceryRestockView";
 import ThemeSettingsModal from "@/components/ThemeSettingsModal";
-import { calculateMatchedRecipes, MatchedRecipeResult } from "@/utils/recipesDb";
+import ManualPantryModal from "@/components/ManualPantryModal";
+import BarcodeScannerModal, { BarcodeProductResult } from "@/components/BarcodeScannerModal";
+import BatchReviewModal, { BatchScanItem } from "@/components/BatchReviewModal";
+import {
+  buildGeneratedRecipeSnapshot,
+  calculateMatchedRecipes,
+  GeneratedRecipeSnapshot,
+  MatchedRecipeResult,
+} from "@/utils/recipesDb";
 import { getGroceryList, GroceryItem } from "@/utils/groceryStorage";
 import { launchToNavTab, NavDockEventDetail, NavDockTarget } from "@/utils/flyToNavAnimation";
-import { getSavedTheme, saveTheme, ThemeId } from "@/utils/themeStorage";
+import { getSavedTheme, getThemePalette, saveTheme, THEME_OPTIONS, ThemeId } from "@/utils/themeStorage";
 import {
   runMobileNetV4Classification,
   runPredefinedCnnClassification,
@@ -24,6 +32,7 @@ import {
   getPantryItems,
   savePantryItem,
   deletePantryItem,
+  restorePantryItemsSnapshot,
   updatePantryItemQuantity,
   updatePantryItemUnit,
   PantryItem,
@@ -80,6 +89,7 @@ export default function OfficialV3Client() {
   });
 
   const [selectedRecipeForDetail, setSelectedRecipeForDetail] = useState<MatchedRecipeResult | null>(null);
+  const [generatedSnapshot, setGeneratedSnapshot] = useState<GeneratedRecipeSnapshot | null>(null);
   const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([]);
 
   const pendingGroceryCount = useMemo(
@@ -115,6 +125,20 @@ export default function OfficialV3Client() {
     setTransitionVariant("to-recipes");
   }, []);
 
+  const handleGoToCuisines = useCallback(() => {
+    setMealStepDir("back");
+    setMealFlowStep("cuisines");
+  }, []);
+
+  const handleAddPantryItemsFromCook = useCallback(() => {
+    setSelectedRecipeForDetail(null);
+    setActiveTab("scanner");
+  }, []);
+
+  const handleSelectRecipeFromCook = useCallback((recipe: MatchedRecipeResult) => {
+    setSelectedRecipeForDetail(recipe);
+  }, []);
+
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
@@ -147,8 +171,9 @@ export default function OfficialV3Client() {
     saveTheme(nextTheme);
   };
 
-  const isPandanHero = theme === "pandan-hero";
-  const showFoodAccents = theme !== "classic-clay";
+  const palette = getThemePalette(theme);
+  const isPandanHero = palette.isHeroDark;
+  const showFoodAccents = palette.showCategoryLabels;
 
   const [navDockPulse, setNavDockPulse] = useState<{
     tab: NavDockTarget;
@@ -217,17 +242,24 @@ export default function OfficialV3Client() {
   }, [refreshRelativeTime]);
 
   useEffect(() => {
-    loadPantry();
+    const storedPantry = getPantryItems();
+    setCards(storedPantry);
+    refreshRelativeTime();
     setGroceryItems(getGroceryList());
     try {
       const savedPlan = localStorage.getItem("zerowaste_chef_meal_plan_v1");
       if (savedPlan) {
         const parsed = JSON.parse(savedPlan);
         if (parsed?.hasGenerated) {
+          const nextCuisines = parsed.cuisinesState || cuisinesState;
+          const nextAppliances = parsed.appliancesState || appliancesState;
           setHasGeneratedMeals(true);
           setMealFlowStep("recipes");
           if (parsed.cuisinesState) setCuisinesState(parsed.cuisinesState);
           if (parsed.appliancesState) setAppliancesState(parsed.appliancesState);
+          setGeneratedSnapshot(
+            buildGeneratedRecipeSnapshot(nextCuisines, nextAppliances, storedPantry, 75)
+          );
         }
       }
     } catch {
@@ -235,7 +267,19 @@ export default function OfficialV3Client() {
     }
     const interval = setInterval(refreshRelativeTime, 30000);
     return () => clearInterval(interval);
-  }, [loadPantry, refreshRelativeTime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshRelativeTime]);
+
+  // Pre-compute and store recipe matches cleanly during Generate / Regenerate transition screen
+  useEffect(() => {
+    if (transitionVariant !== "to-recipes") return;
+    const t = setTimeout(() => {
+      setGeneratedSnapshot(
+        buildGeneratedRecipeSnapshot(cuisinesState, appliancesState, cards, 75)
+      );
+    }, 60);
+    return () => clearTimeout(t);
+  }, [transitionVariant, cuisinesState, appliancesState, cards]);
 
   // Search state
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
@@ -284,6 +328,15 @@ export default function OfficialV3Client() {
   const [showPopOutCard, setShowPopOutCard] = useState<boolean>(false);
   const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string>("");
 
+  // Manual Entry, Barcode Scanner & Background Batch Scan states
+  const [isManualModalOpen, setIsManualModalOpen] = useState<boolean>(false);
+  const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState<boolean>(false);
+  const [isBatchMode, setIsBatchMode] = useState<boolean>(false);
+  const [batchItems, setBatchItems] = useState<BatchScanItem[]>([]);
+  const [isBatchReviewOpen, setIsBatchReviewOpen] = useState<boolean>(false);
+  const prevBatchPendingRef = useRef<number>(0);
+  const batchSeqRef = useRef<number>(0);
+
   // Pop-Out Card (View 2) States
   const [detectedItemName, setDetectedItemName] = useState<string>("Fresh Produce");
   const [detectedMalayName, setDetectedMalayName] = useState<string>("");
@@ -300,26 +353,42 @@ export default function OfficialV3Client() {
   const [showNonFoodModal, setShowNonFoodModal] = useState<boolean>(false);
   const [nonFoodReason, setNonFoodReason] = useState<string>("");
 
-  // Toast (Pop-up from bottom with animated SVG tick + smooth exit)
-  const [toastState, setToastState] = useState<{ msg: string; exiting: boolean; id: number } | null>(
-    null
-  );
+  // Toast (Pop-up from bottom with animated SVG tick, optional Undo action & smooth exit)
+  const [toastState, setToastState] = useState<{
+    msg: string;
+    exiting: boolean;
+    id: number;
+    action?: { label: string; onClick: () => void };
+  } | null>(null);
   const toastHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showToast = (msg: string) => {
+  const dismissToast = () => {
+    if (toastHideTimerRef.current) clearTimeout(toastHideTimerRef.current);
+    if (toastClearTimerRef.current) clearTimeout(toastClearTimerRef.current);
+    setToastState((prev) => {
+      if (!prev) return null;
+      const targetId = prev.id;
+      toastClearTimerRef.current = setTimeout(() => {
+        setToastState((curr) => (curr && curr.id === targetId ? null : curr));
+      }, 320);
+      return { ...prev, exiting: true };
+    });
+  };
+
+  const showToast = (msg: string, action?: { label: string; onClick: () => void }) => {
     if (toastHideTimerRef.current) clearTimeout(toastHideTimerRef.current);
     if (toastClearTimerRef.current) clearTimeout(toastClearTimerRef.current);
 
     const id = Date.now();
-    setToastState({ msg, exiting: false, id });
+    setToastState({ msg, exiting: false, id, action });
 
     toastHideTimerRef.current = setTimeout(() => {
       setToastState((prev) => (prev && prev.id === id ? { ...prev, exiting: true } : prev));
       toastClearTimerRef.current = setTimeout(() => {
         setToastState((prev) => (prev && prev.id === id ? null : prev));
       }, 320);
-    }, 2400);
+    }, action ? 4200 : 2400);
   };
 
   const handleFinishCooking = (recipe: MatchedRecipeResult) => {
@@ -671,9 +740,261 @@ export default function OfficialV3Client() {
     showToast("Recognition unavailable: Cloud vision busy or low edge confidence. Please try again.");
   };
 
-  // AI Shutter Snap (Draws canvas, freezes frame, runs hybrid classification)
+  // Background Batch Analysis Helper (Edge CNN -> Gemini Vision fallback)
+  const classifyForBatchItem = async (
+    itemId: string,
+    sourceCanvas: HTMLCanvasElement | null,
+    previewDataUrl: string,
+    forceGemini = false
+  ) => {
+    setBatchItems((prev) =>
+      prev.map((it) => (it.id === itemId ? { ...it, status: "analyzing" } : it))
+    );
+
+    if (!forceGemini && sourceCanvas) {
+      try {
+        let cnnResult = null;
+        if (modelV4Ref.current) {
+          cnnResult = await runMobileNetV4Classification(modelV4Ref.current, sourceCanvas);
+        } else if (modelV2FallbackRef.current) {
+          cnnResult = await runPredefinedCnnClassification(modelV2FallbackRef.current, sourceCanvas);
+        }
+
+        const topConfidence = cnnResult?.confidence ?? 0;
+        const runnerUpConfidence = cnnResult?.topRankings?.[1]?.confidence ?? 0;
+        const marginGap = topConfidence - runnerUpConfidence;
+
+        if (
+          cnnResult &&
+          topConfidence >= 80 &&
+          marginGap >= 20 &&
+          cnnResult.topIngredient.id !== "potato"
+        ) {
+          const local = findMatchingMalaysianIngredient(
+            cnnResult.topIngredient.name,
+            cnnResult.topIngredient.category
+          );
+          setBatchItems((prev) =>
+            prev.map((it) =>
+              it.id === itemId
+                ? {
+                    ...it,
+                    status: "ready",
+                    name: cnnResult.topIngredient.name,
+                    nameMalay:
+                      cnnResult.topIngredient.nameMalay || (local ? local.nameMalay : ""),
+                    category: local?.category || "Produce",
+                    emoji: cnnResult.topIngredient.emoji || "🥬",
+                    confidence: cnnResult.confidence,
+                    engineUsed: "MobileNet v4 Edge AI",
+                    quantity: 1,
+                    unit:
+                      local?.defaultUnit ||
+                      (cnnResult.topIngredient.category === "Fruit" ? "biji" : "pcs"),
+                  }
+                : it
+            )
+          );
+          return;
+        }
+      } catch {
+        // Fallback smoothly to Gemini
+      }
+    }
+
+    try {
+      const res = await fetch("/api/classify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: previewDataUrl }),
+      });
+      const json = await res.json().catch(() => null);
+      if (res.ok && json?.data) {
+        const gData = json.data;
+        setBatchItems((prev) =>
+          prev.map((it) =>
+            it.id === itemId
+              ? {
+                  ...it,
+                  status: "ready",
+                  name: gData.name || it.name,
+                  nameMalay: gData.nameMalay || "",
+                  category: gData.category || "Produce",
+                  emoji: gData.emoji || "🥬",
+                  confidence: gData.confidence || 96,
+                  engineUsed: json.engine || "Gemini Vision",
+                  quantity: gData.suggestedQuantity || 1,
+                  unit: gData.suggestedUnit || "pcs",
+                  culinaryNote: gData.culinaryNote || "",
+                }
+              : it
+          )
+        );
+        return;
+      }
+    } catch {
+      // mark error below
+    }
+
+    setBatchItems((prev) =>
+      prev.map((it) =>
+        it.id === itemId
+          ? {
+              ...it,
+              status: "error",
+              engineUsed: "Needs Review",
+              name: it.name === "Scanning..." ? "Unknown Item" : it.name,
+            }
+          : it
+      )
+    );
+  };
+
+  const enqueueBatchSnap = (sourceCanvas: HTMLCanvasElement | null, dataUrl: string) => {
+    batchSeqRef.current += 1;
+    const newId = `batch_${batchSeqRef.current}`;
+    const stub: BatchScanItem = {
+      id: newId,
+      imageUrl: dataUrl,
+      status: "queued",
+      decision: "pending",
+      name: "Scanning...",
+      nameMalay: "",
+      category: "Produce",
+      emoji: "🥗",
+      confidence: 0,
+      engineUsed: "Queue",
+      quantity: 1,
+      unit: "pcs",
+      culinaryNote: "",
+    };
+    setBatchItems((prev) => [...prev, stub]);
+    void classifyForBatchItem(newId, sourceCanvas, dataUrl, false);
+  };
+
+  const openBatchReview = () => {
+    if (toastHideTimerRef.current) clearTimeout(toastHideTimerRef.current);
+    if (toastClearTimerRef.current) clearTimeout(toastClearTimerRef.current);
+    setToastState(null);
+    setIsBatchReviewOpen(true);
+  };
+
+  // Notify user automatically when background batch queue finishes
+  useEffect(() => {
+    const pendingNow = batchItems.filter(
+      (i) => i.status === "queued" || i.status === "analyzing"
+    ).length;
+    if (!isBatchReviewOpen && prevBatchPendingRef.current > 0 && pendingNow === 0 && batchItems.length > 0) {
+      showToast(`Batch scan ready (${batchItems.length} item${batchItems.length > 1 ? "s" : ""})!`, {
+        label: "Verify",
+        onClick: openBatchReview,
+      });
+    }
+    prevBatchPendingRef.current = pendingNow;
+  }, [batchItems]);
+
+  const handleRecheckBatchWithGemini = async (id: string) => {
+    const target = batchItems.find((i) => i.id === id);
+    if (!target) return;
+    await classifyForBatchItem(id, null, target.imageUrl, true);
+  };
+
+  const handleCommitBatchApproved = (approved: BatchScanItem[]) => {
+    setIsBatchReviewOpen(false);
+    setBatchItems([]);
+    setIsBatchMode(false);
+    if (approved.length === 0) {
+      showToast("Batch closed with no items added.");
+      return;
+    }
+
+    for (const item of approved) {
+      savePantryItem({
+        name: item.name,
+        nameMalay: item.nameMalay || item.name,
+        category: item.category || "Produce",
+        quantity: item.quantity || 1,
+        unit: item.unit || "pcs",
+        emoji: item.emoji || "🥬",
+        imageUrl: item.imageUrl || undefined,
+        confidence: item.confidence || 95,
+        engineUsed: item.engineUsed || "Batch AI Scan",
+        culinaryNote: item.culinaryNote || `Verified via ZeroWaste Batch Scan.`,
+      });
+    }
+    loadPantry();
+    const scannerNavRect = (
+      document.querySelector('[data-nav-tab="scanner"]') as HTMLElement | null
+    )?.getBoundingClientRect();
+
+    launchToNavTab({
+      targetTab: "pantry",
+      badgeText: `+${approved.length}`,
+      badgeTone: "emerald",
+      durationMs: 1200,
+      items: approved.slice(0, 4).map((it) => ({
+        label: it.name,
+        subtitle: `${it.quantity} ${it.unit} • To Pantry`,
+        emoji: it.emoji,
+        imageUrl: it.imageUrl,
+        tone: "emerald" as const,
+        sourceRect: scannerNavRect,
+      })),
+      onDockImpact: () => {
+        showToast(`Added ${approved.length} verified item${approved.length > 1 ? "s" : ""} to Pantry!`);
+      },
+    });
+  };
+
+  const handleManualAddItems = (items: Array<Omit<PantryItem, "id" | "dateAdded">>) => {
+    setIsManualModalOpen(false);
+    for (const it of items) {
+      savePantryItem(it);
+    }
+    loadPantry();
+
+    const navSource = (
+      document.querySelector('[data-nav-tab="scanner"]') as HTMLElement | null
+    )?.getBoundingClientRect();
+
+    launchToNavTab({
+      targetTab: "pantry",
+      badgeText: `+${items.length}`,
+      badgeTone: "emerald",
+      durationMs: 1150,
+      items: items.slice(0, 4).map((it) => ({
+        label: it.name,
+        subtitle: `${it.quantity} ${it.unit} • To Pantry`,
+        emoji: it.emoji,
+        tone: "emerald" as const,
+        sourceRect: navSource,
+      })),
+      onDockImpact: () => {
+        showToast(`Added ${items.length} item${items.length > 1 ? "s" : ""} to Digital Pantry!`);
+      },
+    });
+  };
+
+  const handleBarcodeProductFound = (product: BarcodeProductResult) => {
+    setIsBarcodeModalOpen(false);
+    setDetectedItemName(product.name);
+    setDetectedMalayName(product.nameMalay || product.brand || "");
+    setDetectedCategory(product.category || "Staples");
+    setDetectedConfidence(product.confidence || 99);
+    setDetectedSubtitle(product.brand ? `${product.brand} • Barcode #${product.barcode}` : `Barcode #${product.barcode}`);
+    setDetectedEmoji(product.emoji || "📦");
+    setDetectedEngineUsed(product.engine || "Open Food Facts Barcode DB");
+    setPopPortion(product.suggestedQuantity || 1);
+    setPopUnit(product.suggestedUnit || "pcs");
+    setDetectedCulinaryNote(product.culinaryNote || `Scanned barcode #${product.barcode}`);
+    setCapturedPhotoUrl(product.imageUrl || "");
+    setShowPopOutCard(true);
+    showToast(`Barcode Found: ${product.name}`);
+  };
+
+  // AI Shutter Snap (Draws canvas, freezes frame, runs hybrid classification or queues batch)
   const triggerShutter = async () => {
-    if (isScanning) return;
+    if (isScanning && !isBatchMode) return;
 
     const canvas = document.createElement("canvas");
     canvas.width = 640;
@@ -701,16 +1022,52 @@ export default function OfficialV3Client() {
       return;
     }
 
+    if (isBatchMode) {
+      enqueueBatchSnap(canvas, capturedDataUrl);
+      showToast("Snapped to background batch! Keep snapping or leave screen.");
+      return;
+    }
+
     // Freeze viewfinder immediately on the captured frame
     setCapturedPhotoUrl(capturedDataUrl);
     await runHybridPipeline(canvas, capturedDataUrl);
   };
 
-  // Upload image handler
+  // Upload image handler (supports multi-file enqueue in Batch Mode)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
+    if (isBatchMode || files.length > 1) {
+      if (!isBatchMode) setIsBatchMode(true);
+      for (const file of files) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64Url = reader.result as string;
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 640;
+            canvas.height = 640;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              const minDim = Math.min(img.width, img.height);
+              const sX = (img.width - minDim) / 2;
+              const sY = (img.height - minDim) / 2;
+              ctx.drawImage(img, sX, sY, minDim, minDim, 0, 0, 640, 640);
+            }
+            enqueueBatchSnap(canvas, base64Url);
+          };
+          img.src = base64Url;
+        };
+        reader.readAsDataURL(file);
+      }
+      showToast(`Added ${files.length} photo${files.length > 1 ? "s" : ""} to background batch!`);
+      e.target.value = "";
+      return;
+    }
+
+    const file = files[0];
     const reader = new FileReader();
     reader.onload = async () => {
       const base64Url = reader.result as string;
@@ -851,10 +1208,19 @@ export default function OfficialV3Client() {
 
   const handleConfirmDelete = () => {
     if (cardToDelete) {
+      const prevCards = [...cards];
+      const deletedName = cardToDelete.name;
       deletePantryItem(cardToDelete.id);
       loadPantry();
-      showToast(`Removed ${cardToDelete.name} from Digital Pantry`);
       setCardToDelete(null);
+      showToast(`Removed ${deletedName} from Pantry`, {
+        label: "Undo",
+        onClick: () => {
+          restorePantryItemsSnapshot(prevCards);
+          loadPantry();
+          showToast(`Restored ${deletedName} to Pantry!`);
+        },
+      });
     }
   };
 
@@ -906,17 +1272,61 @@ export default function OfficialV3Client() {
       className="h-screen overflow-hidden flex items-center justify-center p-0 sm:p-2 bg-[var(--zw-bg)] font-['Plus_Jakarta_Sans',sans-serif] text-[var(--zw-fg)] select-none transition-colors duration-300"
     >
       
-      {/* Hidden file input for uploading images from gallery/desktop */}
+      {/* Hidden file input for uploading single or multi-photo batch images */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple={isBatchMode}
         className="hidden"
         onChange={handleFileUpload}
       />
 
       {/* Mobile Container: Warm Pandan Neumorphic Shell (Fits cleanly without outer page scroll) */}
       <div className="w-full sm:w-[390px] h-full sm:max-h-[844px] sm:h-[calc(100vh-16px)] sm:rounded-[44px] p-3 neo-raised flex flex-col relative overflow-hidden bg-[var(--zw-bg)] text-foreground justify-between mx-auto shadow-2xl transition-colors duration-300">
+
+        {/* Ultra-Thin Background Batch Progress Strip pinned to very top */}
+        {batchItems.length > 0 && (() => {
+          const total = batchItems.length;
+          const done = batchItems.filter((b) => b.status === "ready" || b.status === "error").length;
+          const pct = Math.round((done / total) * 100);
+          const isStillWorking = done < total;
+          return (
+            <div className="absolute top-0 inset-x-0 z-50 pointer-events-none">
+              <div className="w-full h-[3px] bg-black/10 overflow-hidden">
+                <div
+                  className="h-full bg-[#006948] transition-all duration-300 ease-out"
+                  style={{ width: `${Math.max(8, pct)}%` }}
+                />
+              </div>
+              <div className="flex justify-center pt-1">
+                <button
+                  onClick={() => {
+                    if (!isStillWorking) openBatchReview();
+                  }}
+                  className={`pointer-events-auto px-2.5 py-0.5 rounded-full text-[9px] font-extrabold shadow-sm flex items-center gap-1 transition-all ${
+                    isStillWorking
+                      ? "bg-slate-900/80 text-white"
+                      : "bg-[#006948] text-white cursor-pointer hover:scale-105 animate-pulse"
+                  }`}
+                  type="button"
+                >
+                  <span
+                    className={`material-symbols-outlined ${isStillWorking ? "animate-spin" : ""}`}
+                    style={{ fontSize: "10px" }}
+                  >
+                    {isStillWorking ? "sync" : "fact_check"}
+                  </span>
+                  <span>
+                    {isStillWorking
+                      ? `Analyzing Batch ${done}/${total}...`
+                      : `Batch Ready (${total}) • Verify`}
+                  </span>
+                </button>
+              </div>
+            </div>
+          );
+        })()}
         
         {/* 4-Screen Horizontal Carousel Viewport (Matches Bottom Nav Order: Scanner | Pantry | Cook | Grocery) */}
         <div className="flex-1 overflow-hidden relative">
@@ -936,17 +1346,19 @@ export default function OfficialV3Client() {
                 activeTab !== "pantry" ? "pointer-events-none" : ""
               }`}
             >
-              {/* Top Bar with Settings Theme Selector + Fullscreen + Functional Search */}
-              <header className="h-16 px-3 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
+              {/* Uniform Header Bar */}
+              <header className="h-16 px-3.5 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
-                    <span className="material-symbols-outlined text-lg">kitchen</span>
+                  <div className="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
+                    <span className="material-symbols-outlined text-xl">kitchen</span>
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-sm font-bold text-foreground tracking-tight truncate">ZeroWaste Chef</span>
-                    </div>
-                    <span className="text-[9px] text-[#004730] uppercase font-extrabold tracking-wider">Smart Stock AI</span>
+                    <span className="text-sm font-bold text-foreground tracking-tight truncate">
+                      ZeroWaste Chef
+                    </span>
+                    <span className="text-[9.5px] text-[#006948] font-semibold truncate">
+                      Smart Stock AI Pantry
+                    </span>
                   </div>
                 </div>
 
@@ -1090,8 +1502,9 @@ export default function OfficialV3Client() {
                     className={`rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group transition-all ${
                       isPandanHero
                         ? "neo-amber-cta"
-                        : "bg-[#004730] text-white active:scale-95 shadow-md"
+                        : "text-white active:scale-95 shadow-md"
                     }`}
+                    style={isPandanHero ? undefined : { backgroundColor: palette.primaryBg }}
                     title="Generate Meals"
                     type="button"
                   >
@@ -1119,10 +1532,9 @@ export default function OfficialV3Client() {
                     className={`rounded-xl p-2.5 flex items-center justify-center gap-1.5 text-center cursor-pointer group transition-all ${
                       isPandanHero
                         ? "neo-emerald-glass-btn"
-                        : showFoodAccents
-                        ? "bg-amber-600 text-white active:scale-95 shadow-md"
-                        : "bg-[#004730] text-white active:scale-95 shadow-md"
+                        : "text-white active:scale-95 shadow-md"
                     }`}
+                    style={isPandanHero ? undefined : { backgroundColor: palette.pantryAddBg }}
                     title="Add Item (Quick Log)"
                     type="button"
                   >
@@ -1483,20 +1895,12 @@ export default function OfficialV3Client() {
 
                         <div className="card-info-box flex flex-col min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-1">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              {showFoodAccents && (
-                                <span
-                                  className="w-1.5 h-1.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: catVisual.dotColor }}
-                                />
-                              )}
-                              <h4
-                                onClick={() => setSelectedItemForDetail(card)}
-                                className="text-xs font-extrabold text-foreground truncate cursor-pointer hover:text-[#004730]"
-                              >
-                                {card.name}
-                              </h4>
-                            </div>
+                            <h4
+                              onClick={() => setSelectedItemForDetail(card)}
+                              className="text-xs font-extrabold text-foreground truncate cursor-pointer hover:text-[#004730]"
+                            >
+                              {card.name}
+                            </h4>
                             <button
                               onClick={() => setCardToDelete(card)}
                               className="w-7 h-7 shrink-0 rounded-full neo-raised-sm flex items-center justify-center text-muted hover:text-rose-600 active:scale-90 cursor-pointer"
@@ -1506,25 +1910,36 @@ export default function OfficialV3Client() {
                               <span className="material-symbols-outlined text-sm">delete_outline</span>
                             </button>
                           </div>
-                          <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
-                            {showFoodAccents ? (
-                              <span
-                                className="px-1.5 py-[1px] rounded text-[8px] font-extrabold uppercase tracking-wide shrink-0"
-                                style={{ backgroundColor: catVisual.pillBg, color: catVisual.pillText }}
-                              >
-                                {catVisual.label}
-                              </span>
-                            ) : (
-                              <span className="text-[10px] text-muted font-medium truncate">
-                                {card.category}
-                              </span>
-                            )}
-                            {card.nameMalay && card.nameMalay.toLowerCase() !== card.name.toLowerCase() && (
-                              <span className="text-[10px] text-muted font-medium truncate">
-                                {card.nameMalay}
-                              </span>
-                            )}
-                          </div>
+                          {(showFoodAccents ||
+                            (card.nameMalay &&
+                              card.nameMalay.toLowerCase() !== card.name.toLowerCase())) && (
+                            <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
+                              {showFoodAccents && (
+                                <span
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-[1px] rounded-full text-[7.5px] font-extrabold uppercase tracking-wide shrink-0 border"
+                                  style={{
+                                    backgroundColor: catVisual.pillBg,
+                                    color: catVisual.pillText,
+                                    borderColor: catVisual.pillBorder,
+                                  }}
+                                >
+                                  <span
+                                    className="material-symbols-outlined shrink-0"
+                                    style={{ fontSize: "10px", lineHeight: 1 }}
+                                  >
+                                    {catVisual.icon}
+                                  </span>
+                                  <span>{catVisual.label}</span>
+                                </span>
+                              )}
+                              {card.nameMalay &&
+                                card.nameMalay.toLowerCase() !== card.name.toLowerCase() && (
+                                  <span className="text-[10px] text-muted font-medium truncate">
+                                    {card.nameMalay}
+                                  </span>
+                                )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -1583,45 +1998,33 @@ export default function OfficialV3Client() {
                 activeTab !== "scanner" ? "pointer-events-none" : ""
               }`}
             >
-            {/* Header with Stack Back Button, Context Title & Fullscreen Button */}
-            <header className="w-full z-20 neo-bar-top backdrop-blur-md rounded-t-[32px] shrink-0">
-              <div className="h-16 px-3 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <button
-                    aria-label="Go Back"
-                    className="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-foreground active:scale-95 transition-all cursor-pointer"
-                    onClick={() => setActiveTab("pantry")}
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-2xl">arrow_back</span>
-                  </button>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-bold text-foreground tracking-tight truncate">Scanner Hud</span>
-                    <span className="text-[9px] text-[#004730] uppercase font-bold tracking-wider">ZeroWaste Kitchen</span>
-                  </div>
+            {/* Uniform Header Bar (Icon + Title + Fullscreen, no Back/Home) */}
+            <header className="h-16 px-3.5 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
+                  <span className="material-symbols-outlined text-xl">photo_camera</span>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={toggleFullscreen}
-                    className="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer"
-                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-lg">
-                      {isFullscreen ? "fullscreen_exit" : "fullscreen"}
-                    </span>
-                  </button>
-
-                  <button
-                    aria-label="Go to Pantry"
-                    className="min-h-[44px] min-w-[44px] rounded-2xl neo-raised flex items-center justify-center text-muted hover:text-foreground active:scale-95 transition-transform cursor-pointer"
-                    onClick={() => setActiveTab("pantry")}
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-xl">home</span>
-                  </button>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm font-bold text-foreground tracking-tight truncate">
+                    Scanner Hud
+                  </span>
+                  <span className="text-[9.5px] text-[#006948] font-semibold truncate">
+                    Point at fresh ingredients
+                  </span>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={toggleFullscreen}
+                  className="w-9 h-9 rounded-full neo-raised-sm flex items-center justify-center text-foreground hover:text-[#004730] active:scale-95 transition-all cursor-pointer"
+                  title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {isFullscreen ? "fullscreen_exit" : "fullscreen"}
+                  </span>
+                </button>
               </div>
             </header>
 
@@ -1789,6 +2192,79 @@ export default function OfficialV3Client() {
                   </div>
                 )}
 
+                {/* Batch Scan Active Queue Strip (shown when Batch Mode is toggled or items queued) */}
+                {(isBatchMode || batchItems.length > 0) && (
+                  <div className="w-full neo-sunken rounded-2xl p-2.5 flex flex-col gap-2 animate-pop-up">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10.5px] font-extrabold text-[#004730] flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm">burst_mode</span>
+                        <span>
+                          Batch Queue ({batchItems.length} snapped)
+                        </span>
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {batchItems.length > 0 && (
+                          <button
+                            onClick={openBatchReview}
+                            className="px-2.5 py-1 rounded-lg bg-[#004730] text-white text-[10px] font-extrabold cursor-pointer active:scale-95"
+                            type="button"
+                          >
+                            Verify ({batchItems.filter((b) => b.status === "ready" || b.status === "error").length}/{batchItems.length})
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setIsBatchMode(false)}
+                          className="px-2 py-1 rounded-lg neo-raised-sm text-[10px] font-bold text-muted cursor-pointer"
+                          type="button"
+                        >
+                          Done
+                        </button>
+                      </div>
+                    </div>
+
+                    {batchItems.length === 0 ? (
+                      <p className="text-[10px] text-muted font-medium">
+                        Tap Shutter or Upload to snap multiple items — they analyze in the background.
+                      </p>
+                    ) : (
+                      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+                        {batchItems.map((b) => (
+                          <div
+                            key={b.id}
+                            className="relative w-11 h-11 rounded-xl neo-raised-sm overflow-hidden shrink-0"
+                            title={b.name}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={b.imageUrl} alt={b.name} className="w-full h-full object-cover" />
+                            <span
+                              className={`absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-white shadow-xs ${
+                                b.status === "ready"
+                                  ? "bg-[#006948]"
+                                  : b.status === "error"
+                                  ? "bg-amber-500"
+                                  : "bg-slate-800"
+                              }`}
+                            >
+                              <span
+                                className={`material-symbols-outlined ${
+                                  b.status === "queued" || b.status === "analyzing" ? "animate-spin" : ""
+                                }`}
+                                style={{ fontSize: "10px" }}
+                              >
+                                {b.status === "ready"
+                                  ? "check"
+                                  : b.status === "error"
+                                  ? "priority_high"
+                                  : "sync"}
+                              </span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Bottom Shutter & Mode Action Deck */}
                 <div className="w-full neo-raised rounded-2xl p-4 flex flex-col space-y-4">
                   <div className="w-full neo-sunken rounded-2xl p-3 flex items-center justify-around">
@@ -1859,36 +2335,53 @@ export default function OfficialV3Client() {
                       </span>
                     </div>
 
-                    {/* Manual -> Coming Soon */}
+                    {/* Manual Entry (Two Modes: Quick Grid + Type Custom) */}
                     <button
-                      onClick={() => showToast("Coming Soon: Manual ingredient entry")}
+                      onClick={() => setIsManualModalOpen(true)}
                       className="flex flex-col items-center justify-center gap-1 p-2.5 min-w-[72px] rounded-xl neo-raised-sm active:scale-95 transition-all text-foreground cursor-pointer"
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-2xl text-muted">keyboard</span>
-                      <span className="text-[10px] font-semibold text-muted">Manual</span>
+                      <span className="material-symbols-outlined text-2xl text-[#004730]">keyboard</span>
+                      <span className="text-[10px] font-semibold text-foreground">Manual</span>
                     </button>
                   </div>
 
                   {/* Secondary Pills */}
                   <div className="flex items-center gap-2">
+                    {/* Batch Scan Toggle */}
                     <button
-                      className="flex-1 py-2.5 px-3 rounded-full neo-sunken text-[11px] font-semibold text-muted opacity-75 flex items-center justify-center gap-1.5 cursor-not-allowed"
-                      disabled
+                      onClick={() => {
+                        setIsBatchMode((prev) => {
+                          const next = !prev;
+                          showToast(
+                            next
+                              ? "Batch Scan ON: Snap or upload multiple items!"
+                              : "Batch Scan paused"
+                          );
+                          return next;
+                        });
+                      }}
+                      className={`flex-1 py-2.5 px-3 rounded-full text-[11px] font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer ${
+                        isBatchMode
+                          ? "bg-[#004730] text-white shadow-sm"
+                          : "neo-raised-sm text-foreground hover:text-[#004730]"
+                      }`}
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-base opacity-60">barcode_scanner</span>
-                      <span>Coming Soon</span>
+                      <span className="material-symbols-outlined text-base">burst_mode</span>
+                      <span>
+                        {batchItems.length > 0 ? `Batch (${batchItems.length})` : "Batch Scan"}
+                      </span>
                     </button>
 
-                    {/* Scan Receipt -> Coming Soon */}
+                    {/* Scan Barcode */}
                     <button
-                      onClick={() => showToast("Coming Soon: Scan Receipt OCR")}
+                      onClick={() => setIsBarcodeModalOpen(true)}
                       className="flex-1 py-2.5 px-3 rounded-full neo-raised-sm text-[11px] font-semibold text-foreground hover:text-[#004730] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-base">receipt_long</span>
-                      <span>Scan Receipt</span>
+                      <span className="material-symbols-outlined text-base">barcode_scanner</span>
+                      <span>Scan Barcode</span>
                     </button>
                   </div>
                 </div>
@@ -2210,7 +2703,23 @@ export default function OfficialV3Client() {
             )}
 
             {mealFlowStep === "prompt" && (
-              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <header className="h-16 px-3.5 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
+                      <span className="material-symbols-outlined text-xl">skillet</span>
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-bold text-foreground tracking-tight truncate">
+                        Cook Recipes
+                      </span>
+                      <span className="text-[9.5px] font-semibold text-[#006948] truncate">
+                        Curated for your kitchen
+                      </span>
+                    </div>
+                  </div>
+                </header>
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-20 h-20 rounded-full neo-sunken flex items-center justify-center mb-4 text-[#004730]">
                   <span className="material-symbols-outlined text-4xl">skillet</span>
                 </div>
@@ -2228,6 +2737,7 @@ export default function OfficialV3Client() {
                   <span className="material-symbols-outlined text-lg">auto_awesome</span>
                   <span>Generate Meals</span>
                 </button>
+                </div>
               </div>
             )}
 
@@ -2236,12 +2746,11 @@ export default function OfficialV3Client() {
                 cuisinesState={cuisinesState}
                 appliancesState={appliancesState}
                 pantryItems={cards}
-                onGoToCuisines={() => {
-                  setMealStepDir("back");
-                  setMealFlowStep("cuisines");
-                }}
+                storedSnapshot={generatedSnapshot}
+                onGoToCuisines={handleGoToCuisines}
+                onAddPantryItems={handleAddPantryItemsFromCook}
                 onRegenerate={startMealFlow}
-                onSelectRecipe={(recipe) => setSelectedRecipeForDetail(recipe)}
+                onSelectRecipe={handleSelectRecipeFromCook}
                 themeId={theme}
               />
             )}
@@ -2703,26 +3212,50 @@ export default function OfficialV3Client() {
             currentTheme={theme}
             onSelectTheme={(next) => {
               handleSelectTheme(next);
-              const label =
-                next === "pandan-hero"
-                  ? "Pandan Hero"
-                  : next === "warm-clay"
-                  ? "Warm Kitchen Clay"
-                  : next === "fresh-accents"
-                  ? "Vibrant Accents"
-                  : "Classic Clay";
+              const label = THEME_OPTIONS.find((t) => t.id === next)?.name || next;
               showToast(`Theme switched to ${label}`);
             }}
             onClose={() => setIsThemeModalOpen(false)}
           />
         )}
 
-        {/* Toast Notification Pill (Centered container; slides up from bottom with live tick draw & exits smoothly) */}
+        {/* Manual Entry Dual-Mode Modal (Quick Pick Grid & Type Custom) */}
+        {isManualModalOpen && (
+          <ManualPantryModal
+            onClose={() => setIsManualModalOpen(false)}
+            onAddItems={handleManualAddItems}
+            quantifierList={QUANTIFIER_LIST}
+          />
+        )}
+
+        {/* Barcode Scanner & Open Food Facts Lookup Modal */}
+        {isBarcodeModalOpen && (
+          <BarcodeScannerModal
+            onClose={() => setIsBarcodeModalOpen(false)}
+            onProductFound={handleBarcodeProductFound}
+          />
+        )}
+
+        {/* Background Batch Scan One-by-One Verify Modal */}
+        {isBatchReviewOpen && batchItems.length > 0 && (
+          <BatchReviewModal
+            items={batchItems}
+            onUpdateItem={(id, patch) =>
+              setBatchItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)))
+            }
+            onRecheckGemini={handleRecheckBatchWithGemini}
+            onFinishBatch={handleCommitBatchApproved}
+            onClose={() => setIsBatchReviewOpen(false)}
+            quantifierList={QUANTIFIER_LIST}
+          />
+        )}
+
+        {/* Toast Notification Pill (Centered container; slides up from bottom with live tick draw & optional Undo) */}
         {toastState && (
           <div className="absolute bottom-[84px] inset-x-0 flex justify-center px-4 pointer-events-none z-50">
             <div
               key={toastState.id}
-              className={`px-4 py-2.5 rounded-full bg-slate-900/95 text-white text-xs font-bold shadow-2xl flex items-center gap-2.5 border border-white/15 backdrop-blur-md max-w-full ${
+              className={`pointer-events-auto px-4 py-2.5 rounded-full bg-slate-900/95 text-white text-xs font-bold shadow-2xl flex items-center gap-2.5 border border-white/15 backdrop-blur-md max-w-full ${
                 toastState.exiting ? "animate-toast-out" : "animate-toast-in"
               }`}
             >
@@ -2739,6 +3272,19 @@ export default function OfficialV3Client() {
                 </svg>
               </span>
               <span className="leading-snug">{toastState.msg}</span>
+              {toastState.action && (
+                <button
+                  onClick={() => {
+                    const cb = toastState.action?.onClick;
+                    dismissToast();
+                    cb?.();
+                  }}
+                  className="ml-1 px-2.5 py-1 rounded-full bg-amber-400 text-[#142419] text-[10.5px] font-black uppercase tracking-wide hover:bg-amber-300 active:scale-95 transition-all cursor-pointer shrink-0"
+                  type="button"
+                >
+                  {toastState.action.label}
+                </button>
+              )}
             </div>
           </div>
         )}

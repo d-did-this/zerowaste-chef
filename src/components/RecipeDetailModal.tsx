@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   CANONICAL_APPLIANCE_LABELS,
+  extractStepAppliancesAndTools,
+  extractStepIngredients,
   extractStepTimers,
   formatDuration,
   MatchedRecipeResult,
@@ -10,8 +12,18 @@ import {
 } from "@/utils/recipesDb";
 import { addMissingToGrocery } from "@/utils/groceryStorage";
 import HalalIcon from "@/components/HalalIcon";
-import { IngredientAnalysis } from "@/utils/ingredientMatcher";
 import { launchToNavTab } from "@/utils/flyToNavAnimation";
+
+const STEP_APPLIANCE_ICONS: Record<string, string> = {
+  stove: "local_fire_department",
+  wok: "skillet",
+  pot: "soup_kitchen",
+  blender: "blender",
+  rice_cooker: "rice_bowl",
+  oven: "oven_gen",
+  air_fryer: "air",
+  microwave: "microwave",
+};
 
 function detectStepAction(stepText: string): { label: string; icon: string } {
   const s = stepText.toLowerCase();
@@ -53,27 +65,6 @@ function highlightStepMeasurements(stepText: string): React.ReactNode[] {
     }
     return part;
   });
-}
-
-function extractStepIngredients(stepText: string, ingredients: IngredientAnalysis[]): string[] {
-  const lower = stepText.toLowerCase();
-  const found: string[] = [];
-  for (const ing of ingredients) {
-    const clean = ing.cleanName.trim();
-    if (clean.length < 3) continue;
-    const words = clean.toLowerCase().split(/\s+/).filter((w) => w.length >= 4);
-    const matched =
-      lower.includes(clean.toLowerCase()) ||
-      words.some((w) => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i").test(lower));
-    if (matched) {
-      const display = clean.charAt(0).toUpperCase() + clean.slice(1);
-      if (!found.some((f) => f.toLowerCase() === display.toLowerCase())) {
-        found.push(display);
-      }
-    }
-    if (found.length >= 4) break;
-  }
-  return found;
 }
 
 interface RecipeDetailModalProps {
@@ -145,6 +136,10 @@ export default function RecipeDetailModal({
   const stepIngredients = useMemo(
     () => extractStepIngredients(currentStepText, recipe.analysis.ingredients),
     [currentStepText, recipe.analysis.ingredients]
+  );
+  const stepTools = useMemo(
+    () => extractStepAppliancesAndTools(currentStepText, recipe.appliances),
+    [currentStepText, recipe.appliances]
   );
   const detectedTimers = useMemo(() => extractStepTimers(currentStepText), [currentStepText]);
   const selectedTimerIdx = selectedTimerIdxByStep[currentStepIdx] ?? 0;
@@ -671,20 +666,53 @@ export default function RecipeDetailModal({
                     </p>
                   </div>
 
-                  {/* Step Ingredients Cue (Only when ingredients are detected in this step) */}
-                  {stepIngredients.length > 0 && (
-                    <div className="pt-2 border-t border-black/5 flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[9.5px] font-bold text-[#64748B] mr-0.5">
-                        In this step:
-                      </span>
-                      {stepIngredients.map((ing) => (
-                        <span
-                          key={ing}
-                          className="px-2 py-0.5 rounded-full neo-sunken text-[9.5px] font-bold text-[#334155]"
-                        >
-                          {ing}
-                        </span>
-                      ))}
+                  {/* Per-Step Ingredients, Canonical Appliances & Optional Small Tools */}
+                  {(stepIngredients.length > 0 ||
+                    stepTools.appliances.length > 0 ||
+                    stepTools.optionalTools.length > 0) && (
+                    <div className="pt-2.5 border-t border-black/5 flex flex-col gap-2">
+                      {stepIngredients.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[9.5px] font-bold text-[#64748B] mr-0.5">
+                            In this step:
+                          </span>
+                          {stepIngredients.map((ing) => (
+                            <span
+                              key={ing}
+                              className="px-2 py-0.5 rounded-full neo-sunken text-[9.5px] font-bold text-[#334155]"
+                            >
+                              {ing}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {(stepTools.appliances.length > 0 || stepTools.optionalTools.length > 0) && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[9.5px] font-bold text-[#64748B] mr-0.5">
+                            Using:
+                          </span>
+                          {stepTools.appliances.map((appKey) => (
+                            <span
+                              key={appKey}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[rgba(0,71,48,0.08)] text-[9.5px] font-bold text-[#004730]"
+                            >
+                              <span className="material-symbols-outlined text-[11px]">
+                                {STEP_APPLIANCE_ICONS[appKey] || "skillet"}
+                              </span>
+                              <span>{CANONICAL_APPLIANCE_LABELS[appKey] || appKey}</span>
+                            </span>
+                          ))}
+                          {stepTools.optionalTools.map((tool) => (
+                            <span
+                              key={tool}
+                              className="px-2 py-0.5 rounded-full neo-sunken text-[9.5px] font-semibold text-[#475569]"
+                            >
+                              {tool}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </article>

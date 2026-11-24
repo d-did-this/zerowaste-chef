@@ -95,6 +95,12 @@ export function deletePantryItem(id: string): void {
   localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
 }
 
+export function restorePantryItemsSnapshot(snapshot: PantryItem[]): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+  localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
+}
+
 export function clearPantry(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);

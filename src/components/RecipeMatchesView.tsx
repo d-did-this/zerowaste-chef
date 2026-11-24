@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   CANONICAL_APPLIANCE_LABELS,
+  GeneratedRecipeSnapshot,
   getAllRecipesWithPantryMatch,
   getFilteredRecipes,
   MatchedRecipeResult,
@@ -10,17 +11,29 @@ import {
 import { PantryItem } from "@/utils/pantryStorage";
 import HalalIcon from "@/components/HalalIcon";
 import { getCuisinePillColors, getReadinessBadgeColors } from "@/utils/foodSemantics";
-import { ThemeId } from "@/utils/themeStorage";
+import { getThemePalette, ThemeId } from "@/utils/themeStorage";
 
 interface RecipeMatchesViewProps {
   cuisinesState: Record<string, boolean>;
   appliancesState: Record<string, boolean>;
   pantryItems: PantryItem[];
+  storedSnapshot?: GeneratedRecipeSnapshot | null;
   onGoToCuisines: () => void;
+  onAddPantryItems?: () => void;
   onRegenerate?: () => void;
   onSelectRecipe: (recipe: MatchedRecipeResult) => void;
   themeId?: ThemeId;
 }
+
+const PAGE_SIZE = 24;
+
+const CUISINE_DISPLAY_NAMES: Record<string, string> = {
+  malay: "Malay",
+  chinese: "Chinese",
+  indian: "Indian",
+  "sabah-sarawak": "Sabah & Sarawak",
+  others: "Other",
+};
 
 type SortOption = "pantry" | "time" | "ingredients" | "appliances";
 
@@ -37,23 +50,26 @@ function parseMinutes(prepTime: string): number {
   return isNaN(num) ? 999 : num;
 }
 
-export default function RecipeMatchesView({
+function RecipeMatchesView({
   cuisinesState,
   appliancesState,
   pantryItems,
+  storedSnapshot,
   onGoToCuisines,
+  onAddPantryItems,
   onRegenerate,
   onSelectRecipe,
   themeId = "pandan-hero",
 }: RecipeMatchesViewProps) {
-  const isPandanHero = themeId === "pandan-hero";
-  const showFoodAccents = themeId !== "classic-clay";
+  const palette = getThemePalette(themeId);
+  const isPandanHero = palette.isHeroDark;
   const [engineMode, setEngineMode] = useState<"ingredients-to-meals" | "meals-to-ingredients">(
     "ingredients-to-meals"
   );
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("pantry");
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const filterMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -70,11 +86,16 @@ export default function RecipeMatchesView({
   }, [isFilterOpen]);
 
   const modeRecipes = useMemo(() => {
+    if (storedSnapshot) {
+      return engineMode === "ingredients-to-meals"
+        ? storedSnapshot.kitchenMatched
+        : storedSnapshot.allExploreScored;
+    }
     if (engineMode === "ingredients-to-meals") {
       return getFilteredRecipes(cuisinesState, appliancesState, pantryItems);
     }
     return getAllRecipesWithPantryMatch(pantryItems, appliancesState);
-  }, [engineMode, cuisinesState, appliancesState, pantryItems]);
+  }, [storedSnapshot, engineMode, cuisinesState, appliancesState, pantryItems]);
 
   // Build context-aware dropdown filter options adapting to chosen cuisines
   const filterOptions = useMemo<DynamicFilterOption[]>(() => {
@@ -143,6 +164,12 @@ export default function RecipeMatchesView({
 
   const toggleSort = (option: Exclude<SortOption, "pantry">) => {
     setSortBy((prev) => (prev === option ? "pantry" : option));
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const switchMode = (next: "ingredients-to-meals" | "meals-to-ingredients") => {
+    setEngineMode(next);
+    setVisibleCount(PAGE_SIZE);
   };
 
   const displayedRecipes = useMemo(() => {
@@ -183,6 +210,14 @@ export default function RecipeMatchesView({
     });
   }, [modeRecipes, activeFilterOption, searchQuery, sortBy]);
 
+  const selectedCuisineSummary = useMemo(() => {
+    const chosen = Object.keys(CUISINE_DISPLAY_NAMES)
+      .filter((k) => Boolean(cuisinesState[k]))
+      .map((k) => CUISINE_DISPLAY_NAMES[k]);
+    if (chosen.length === 0 || chosen.length >= 4) return "selected";
+    return chosen.join("/");
+  }, [cuisinesState]);
+
   const sortSubtitle =
     sortBy === "time"
       ? "Sorted by least cooking time"
@@ -191,8 +226,48 @@ export default function RecipeMatchesView({
       : sortBy === "appliances"
       ? "Sorted by least appliances"
       : engineMode === "ingredients-to-meals"
-      ? `Sorted by pantry match (${pantryItems.length} pantry item${pantryItems.length === 1 ? "" : "s"})`
-      : "Sorted by pantry match across all dishes";
+      ? `≥75% pantry match • ${pantryItems.length} pantry item${pantryItems.length === 1 ? "" : "s"}`
+      : "Craving search across all cuisines";
+
+  const renderSearchBar = (placement: "top-craving" | "list-filter") => (
+    <div
+      className={`w-full neo-sunken rounded-2xl px-3 flex items-center gap-2 shrink-0 ${
+        placement === "top-craving"
+          ? "py-2 ring-1 ring-[#006948]/20"
+          : "py-1.5"
+      }`}
+    >
+      <span
+        className="material-symbols-outlined text-base"
+        style={placement === "top-craving" ? { color: palette.primaryBg } : { color: "#64748B" }}
+      >
+        search
+      </span>
+      <input
+        type="text"
+        placeholder={
+          placement === "top-craving"
+            ? "Search any dish or craving across all cuisines..."
+            : "Search dish or filter matched recipes..."
+        }
+        value={searchQuery}
+        onChange={(e) => {
+          setSearchQuery(e.target.value);
+          setVisibleCount(PAGE_SIZE);
+        }}
+        className="bg-transparent border-0 outline-none w-full text-[11px] font-semibold text-[#1E293B] placeholder:text-[#94A3B8]"
+      />
+      {searchQuery && (
+        <button
+          onClick={() => setSearchQuery("")}
+          className="w-5 h-5 rounded-full neo-raised-sm flex items-center justify-center text-muted cursor-pointer"
+          type="button"
+        >
+          <span className="material-symbols-outlined text-xs">close</span>
+        </button>
+      )}
+    </div>
+  );
 
   const cuisineOptions = filterOptions.filter((o) => o.group === "cuisine");
   const categoryOptions = filterOptions.filter((o) => o.group === "category");
@@ -200,27 +275,51 @@ export default function RecipeMatchesView({
 
   return (
     <div className="meal-flow-scope flex-1 flex flex-col justify-between overflow-hidden relative">
-      {/* Header (No back button once recipes are generated; Regenerate action on right) */}
-      <header className="header-bar">
-        <div className="header-left-group">
-          <div className="header-context">
-            <span className="header-title">Matched Recipes</span>
-            <span className="header-sub">Curated for your kitchen</span>
+      {/* Uniform Header Bar with Skillet Icon & Bulging Neumorphic Regenerate Pill */}
+      <header className="h-16 px-3.5 flex items-center justify-between neo-bar-top backdrop-blur-md rounded-t-[32px] z-20 shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-10 h-10 rounded-2xl neo-raised flex items-center justify-center text-[#004730] shrink-0">
+            <span className="material-symbols-outlined text-xl">skillet</span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-bold text-foreground tracking-tight truncate">
+              Matched Recipes
+            </span>
+            <span className="text-[9.5px] font-semibold text-[#006948] truncate">
+              Curated for your kitchen
+            </span>
           </div>
         </div>
 
         <button
           onClick={onRegenerate || onGoToCuisines}
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#006948] text-white text-[10.5px] font-extrabold shadow-xs shrink-0 cursor-pointer active:scale-95 transition-all animate-nav-dock-bounce"
+          className="px-3.5 py-2 rounded-2xl text-white text-[11px] font-extrabold inline-flex items-center gap-1.5 shrink-0 cursor-pointer hover:translate-y-[-1px] active:scale-95 transition-all ring-1 ring-white/35 animate-nav-dock-bounce border-0"
+          style={{
+            background: palette.regenGradient,
+            boxShadow: palette.regenShadow,
+          }}
           aria-label="Regenerate Recipes"
           type="button"
         >
-          <span className="material-symbols-outlined text-[13px] font-bold">autorenew</span>
+          <span className="w-4 h-4 rounded-full bg-white/20 text-white flex items-center justify-center">
+            <span className="material-symbols-outlined text-[11px] font-bold">autorenew</span>
+          </span>
           <span>Regenerate</span>
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar py-1.5 px-3 flex flex-col gap-2.5">
+      <main
+        className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar py-1.5 px-3 flex flex-col gap-2.5"
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          if (
+            visibleCount < displayedRecipes.length &&
+            el.scrollTop + el.clientHeight >= el.scrollHeight - 240
+          ) {
+            setVisibleCount((prev) => Math.min(displayedRecipes.length, prev + PAGE_SIZE));
+          }
+        }}
+      >
         {/* Bidirectional Engine Switcher with Sliding Dark-Green Pill */}
         <div className="p-1 rounded-2xl neo-sunken relative grid grid-cols-2 gap-1 shrink-0">
           <div
@@ -233,7 +332,7 @@ export default function RecipeMatchesView({
             }}
           />
           <button
-            onClick={() => setEngineMode("ingredients-to-meals")}
+            onClick={() => switchMode("ingredients-to-meals")}
             className={`relative z-10 py-1.5 px-2 rounded-xl text-[10.5px] font-extrabold flex items-center justify-center gap-1 transition-colors duration-200 cursor-pointer ${
               engineMode === "ingredients-to-meals"
                 ? "text-white"
@@ -242,10 +341,10 @@ export default function RecipeMatchesView({
             type="button"
           >
             <span className="material-symbols-outlined text-xs">kitchen</span>
-            <span>Pantry to Meals</span>
+            <span>My Kitchen Match</span>
           </button>
           <button
-            onClick={() => setEngineMode("meals-to-ingredients")}
+            onClick={() => switchMode("meals-to-ingredients")}
             className={`relative z-10 py-1.5 px-2 rounded-xl text-[10.5px] font-extrabold flex items-center justify-center gap-1 transition-colors duration-200 cursor-pointer ${
               engineMode === "meals-to-ingredients"
                 ? "text-white"
@@ -253,74 +352,68 @@ export default function RecipeMatchesView({
             }`}
             type="button"
           >
-            <span className="material-symbols-outlined text-xs">manage_search</span>
-            <span>Craving Lookup</span>
+            <span className="material-symbols-outlined text-xs">explore</span>
+            <span>Explore All</span>
           </button>
         </div>
 
-        {/* Summary Header: Pandan Hero Card or Clean Animated Title */}
-        {isPandanHero ? (
-          <section
-            key={`hdr-hero-${engineMode}`}
-            className={`neo-pandan-hero rounded-2xl p-3 flex items-center justify-between gap-2.5 shrink-0 ${
-              engineMode === "meals-to-ingredients" ? "animate-slide-in-right" : "animate-slide-in-left"
-            }`}
-          >
-            <div className="min-w-0">
-              <h1 className="text-[15.5px] font-extrabold text-white tracking-tight leading-[1.2]">
-                {displayedRecipes.length} Recipes Matched!
-              </h1>
-              <p className="text-[10.5px] text-emerald-100/85 mt-[2px] leading-[1.35] truncate">
-                {sortSubtitle}
-              </p>
-            </div>
-            <div className="neo-pandan-sunken rounded-xl px-2.5 py-1.5 text-center shrink-0">
-              <span className="text-xs font-extrabold text-amber-300 leading-none block">
-                {pantryItems.length > 0 && displayedRecipes.length > 0
-                  ? `${Math.max(...displayedRecipes.map((d) => d.analysis.matchPercentage))}%`
-                  : displayedRecipes.length}
-              </span>
-              <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-100/80 block mt-0.5">
-                {pantryItems.length > 0 && displayedRecipes.length > 0 ? "Top Match" : "Ready"}
-              </span>
-            </div>
-          </section>
-        ) : (
-          <div
-            key={`hdr-${engineMode}`}
-            className={`pt-0.5 px-1 shrink-0 ${
-              engineMode === "meals-to-ingredients" ? "animate-slide-in-right" : "animate-slide-in-left"
-            }`}
-          >
-            <h1 className="text-[15.5px] font-extrabold text-[#0F172A] tracking-tight leading-[1.25]">
+        {/* Module 3 (Explore All): Prominent Craving Search Bar ABOVE Summary Card */}
+        {engineMode === "meals-to-ingredients" && renderSearchBar("top-craving")}
+
+        {/* Unified Summary Header Across All Themes (with Square Top Match Badge) */}
+        <section
+          key={`hdr-hero-${engineMode}-${themeId}`}
+          className={`rounded-2xl p-3 flex items-center justify-between gap-2.5 shrink-0 ${
+            isPandanHero ? "neo-pandan-hero" : "neo-raised"
+          } ${
+            engineMode === "meals-to-ingredients" ? "animate-slide-in-right" : "animate-slide-in-left"
+          }`}
+        >
+          <div className="min-w-0 flex-1">
+            <h1
+              className={`text-[15.5px] font-extrabold tracking-tight leading-[1.2] ${
+                isPandanHero ? "text-white" : "text-[#0F172A]"
+              }`}
+            >
               {displayedRecipes.length} Recipes Matched!
             </h1>
-            <p className="text-[10.5px] text-[#64748B] mt-[2px] leading-[1.35]">
+            <p
+              className={`text-[10.5px] mt-[3px] leading-[1.35] truncate ${
+                isPandanHero ? "text-emerald-100/85" : "text-[#64748B]"
+              }`}
+            >
               {sortSubtitle}
             </p>
           </div>
-        )}
-
-        {/* Search Input */}
-        <div className="w-full neo-sunken rounded-2xl px-3 py-1.5 flex items-center gap-2 shrink-0">
-          <span className="material-symbols-outlined text-[#64748B] text-base">search</span>
-          <input
-            type="text"
-            placeholder="Search dish or ingredient (telur, ayam, dhal)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-transparent border-0 outline-none w-full text-[11px] font-semibold text-[#1E293B] placeholder:text-[#94A3B8]"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="w-5 h-5 rounded-full neo-raised-sm flex items-center justify-center text-muted cursor-pointer"
-              type="button"
+          <div
+            className={`w-[54px] h-[54px] rounded-[14px] flex flex-col items-center justify-center text-center shrink-0 ${
+              isPandanHero ? "neo-pandan-sunken" : "neo-sunken"
+            }`}
+          >
+            <span
+              className={`text-[15px] font-extrabold leading-none block ${
+                isPandanHero ? "text-amber-300" : ""
+              }`}
+              style={isPandanHero ? undefined : { color: palette.primaryBg }}
             >
-              <span className="material-symbols-outlined text-xs">close</span>
-            </button>
-          )}
-        </div>
+              {pantryItems.length > 0 && displayedRecipes.length > 0
+                ? `${Math.max(...displayedRecipes.map((d) => d.analysis.matchPercentage))}%`
+                : displayedRecipes.length}
+            </span>
+            <span
+              className={`text-[7.5px] font-extrabold uppercase tracking-[0.04em] leading-none block mt-1 ${
+                isPandanHero ? "text-emerald-100/85" : "text-[#006948]"
+              }`}
+            >
+              {pantryItems.length > 0 && displayedRecipes.length > 0 ? "Top Match" : "Ready"}
+            </span>
+          </div>
+        </section>
+
+        {/* Module 2 (My Kitchen Match): Secondary List Filter below Summary Card when matches exist */}
+        {engineMode === "ingredients-to-meals" &&
+          modeRecipes.length > 0 &&
+          renderSearchBar("list-filter")}
 
         {/* Unified Single Control Row: 3-Way Sort Toggle with Sliding Pill + Filter Dropdown Button */}
         <div className="flex items-center gap-2 shrink-0 relative z-30" ref={filterMenuRef}>
@@ -538,38 +631,87 @@ export default function RecipeMatchesView({
         {/* Matched Recipe Cards */}
         <div className="flex flex-col gap-2.5 pb-2">
           {displayedRecipes.length === 0 ? (
-            <div className="rounded-2xl p-5 neo-sunken text-center flex flex-col items-center gap-2">
+            <div className="rounded-2xl p-5 neo-sunken text-center flex flex-col items-center gap-2.5">
               <span className="material-symbols-outlined text-3xl text-[#64748B]">
                 soup_kitchen
               </span>
-              <p className="text-xs font-bold text-[#334155]">
-                No recipes match your current filters.
+              <p className="text-xs font-extrabold text-[#334155] leading-snug max-w-[260px]">
+                {engineMode === "ingredients-to-meals"
+                  ? pantryItems.length === 0
+                    ? "Your Pantry is empty — add ingredients to unlock ready-to-cook matches."
+                    : modeRecipes.length === 0
+                    ? `No ${selectedCuisineSummary} dishes matched your current Pantry items yet`
+                    : "No matched dishes fit your current search or filter."
+                  : "No dishes matched that search or filter."}
               </p>
-              <p className="text-[10.5px] text-[#64748B]">
-                Try switching to Craving Lookup or resetting the filter.
+              <p className="text-[10.5px] text-[#64748B] leading-snug max-w-[250px]">
+                {engineMode === "ingredients-to-meals"
+                  ? "My Kitchen Match requires ≥75% of a dish's core ingredients in your Pantry."
+                  : "Try a broader keyword or clear active filters."}
               </p>
+              <div className="flex items-center justify-center gap-2 flex-wrap pt-1">
+                {engineMode === "ingredients-to-meals" && onAddPantryItems && (
+                  <button
+                    onClick={onAddPantryItems}
+                    className="px-3.5 py-2 rounded-xl neo-button text-[11px] font-extrabold text-[#004730] inline-flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-sm">add_a_photo</span>
+                    <span>Add Pantry Items</span>
+                  </button>
+                )}
+                {engineMode === "ingredients-to-meals" && (
+                  <button
+                    onClick={() => switchMode("meals-to-ingredients")}
+                    className="px-3.5 py-2 rounded-xl text-white text-[11px] font-extrabold inline-flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer"
+                    style={{ backgroundColor: palette.primaryBg }}
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-sm">explore</span>
+                    <span>Search in Explore All →</span>
+                  </button>
+                )}
+                {(activeFilter !== "all" || searchQuery.trim() !== "") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setActiveFilter("all");
+                    }}
+                    className="px-3 py-2 rounded-xl neo-button text-[11px] font-extrabold text-[#004730] active:scale-95 transition-all cursor-pointer"
+                    type="button"
+                  >
+                    Reset Filters
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
-            displayedRecipes.map((r, idx) => {
-              const hasPantry = pantryItems.length > 0;
-              const pct = r.analysis.matchPercentage;
-              const [timeNum, timeUnit] = r.prepTime.split(" ");
-              const cuisineColors = showFoodAccents
-                ? getCuisinePillColors(r.cuisine)
-                : { bg: "#004730", text: "#FFFFFF" };
-              const readinessColors = getReadinessBadgeColors(pct);
-              return (
-                <div
-                  key={`${engineMode}-${sortBy}-${r.uid}`}
-                  onClick={() => onSelectRecipe(r)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") onSelectRecipe(r);
-                  }}
-                  style={{ animationDelay: `${100 + Math.min(idx, 6) * 165}ms` }}
-                  className="rounded-2xl p-3.5 bg-[var(--zw-bg)] neo-raised flex flex-col gap-2.5 cursor-pointer hover:shadow-lg transition-shadow text-left animate-recipe-unfold"
-                >
+            <>
+              {displayedRecipes.slice(0, visibleCount).map((r, idx) => {
+                const hasPantry = pantryItems.length > 0;
+                const pct = r.analysis.matchPercentage;
+                const [timeNum, timeUnit] = r.prepTime.split(" ");
+                const cuisineColors = getCuisinePillColors(r.cuisine);
+                const readinessColors = getReadinessBadgeColors(pct);
+                const shouldAnimate = idx < 8;
+                return (
+                  <div
+                    key={`${engineMode}-${sortBy}-${r.uid}`}
+                    onClick={() => onSelectRecipe(r)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") onSelectRecipe(r);
+                    }}
+                    style={
+                      shouldAnimate
+                        ? { animationDelay: `${80 + Math.min(idx, 6) * 110}ms` }
+                        : undefined
+                    }
+                    className={`rounded-2xl p-3.5 bg-[var(--zw-bg)] neo-raised flex flex-col gap-2.5 cursor-pointer hover:shadow-lg transition-shadow text-left ${
+                      shouldAnimate ? "animate-recipe-unfold" : ""
+                    }`}
+                  >
                   {/* Card Top Row: Cuisine + Readiness Pill + Halal Logo + Title | Stat Squares */}
                   <div className="flex items-start justify-between gap-2.5">
                     <div className="flex-1 min-w-0">
@@ -580,7 +722,7 @@ export default function RecipeMatchesView({
                         >
                           {r.cuisineLabel}
                         </span>
-                        {showFoodAccents && hasPantry && (
+                        {hasPantry && (
                           <span
                             className="px-2 py-0.5 rounded-full text-[9px] font-extrabold"
                             style={{ backgroundColor: readinessColors.bg, color: readinessColors.text }}
@@ -636,7 +778,7 @@ export default function RecipeMatchesView({
                       <div className="flex items-center justify-between text-[9.5px] font-bold">
                         {hasPantry ? (
                           <span className={pct >= 50 ? "text-[#006948]" : "text-[#475569]"}>
-                            {r.analysis.matchedCoreCount}/{r.analysis.totalCoreCount} pantry ready ({pct}%)
+                            {r.analysis.matchedCoreCount}/{r.analysis.totalCoreCount} pantry ready
                           </span>
                         ) : (
                           <span />
@@ -679,11 +821,28 @@ export default function RecipeMatchesView({
                     </span>
                   </div>
                 </div>
-              );
-            })
+                );
+              })}
+              {visibleCount < displayedRecipes.length && (
+                <button
+                  onClick={() =>
+                    setVisibleCount((prev) => Math.min(displayedRecipes.length, prev + PAGE_SIZE))
+                  }
+                  className="w-full py-2.5 px-4 rounded-2xl neo-button text-[11px] font-extrabold text-[#004730] flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-sm">expand_more</span>
+                  <span>
+                    Show More Recipes ({displayedRecipes.length - visibleCount} remaining)
+                  </span>
+                </button>
+              )}
+            </>
           )}
         </div>
       </main>
     </div>
   );
 }
+
+export default React.memo(RecipeMatchesView);
